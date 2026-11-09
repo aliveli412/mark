@@ -3,26 +3,15 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { PageBanner } from "@/components/PageBanner";
-import { posts } from "@/lib/posts";
 import { searchEntries } from "@/lib/site";
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
-  const entries = useMemo(
-    () => [
-      ...searchEntries,
-      ...posts.map((post) => ({
-        href: `/blog/${post.slug}`,
-        title: post.title,
-        text: post.excerpt,
-      })),
-    ],
-    [],
-  );
   const needle = query.trim().toLowerCase();
-  const matches = needle
-    ? entries.filter((entry) => `${entry.title} ${entry.text}`.toLowerCase().includes(needle))
-    : entries;
+  const matches = useMemo(() => {
+    if (!needle) return searchEntries;
+    return searchEntries.filter((entry) => `${entry.title} ${entry.text}`.toLowerCase().includes(needle));
+  }, [needle]);
 
   return (
     <>

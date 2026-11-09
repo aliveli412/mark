@@ -3,23 +3,17 @@
 import Link from "next/link";
 import { PageBanner } from "@/components/PageBanner";
 import { useCart } from "@/components/CartProvider";
-import { formatPrice, products } from "@/lib/site";
+import { formatPence } from "@/lib/format";
 
 export default function BasketPage() {
   const { lines, setQty, remove } = useCart();
-  const detailed = lines
-    .map((line) => {
-      const product = products.find((item) => item.slug === line.slug);
-      return product ? { ...line, product } : null;
-    })
-    .filter((line): line is NonNullable<typeof line> => Boolean(line));
-  const total = detailed.reduce((sum, line) => sum + line.product.price * line.qty, 0);
+  const total = lines.reduce((sum, line) => sum + line.price_pence * line.qty, 0);
 
   return (
     <>
       <PageBanner title="Basket" />
       <div className="wrap page">
-        {detailed.length === 0 ? (
+        {lines.length === 0 ? (
           <div className="empty">
             <p>Your basket is empty.</p>
             <Link href="/shop">Return to the shop</Link>
@@ -37,10 +31,10 @@ export default function BasketPage() {
                 </tr>
               </thead>
               <tbody>
-                {detailed.map((line) => (
+                {lines.map((line) => (
                   <tr key={line.slug}>
-                    <td>{line.product.name}</td>
-                    <td>{formatPrice(line.product.price)}</td>
+                    <td>{line.name}</td>
+                    <td>{formatPence(line.price_pence)}</td>
                     <td>
                       <input
                         className="qty"
@@ -50,7 +44,7 @@ export default function BasketPage() {
                         onChange={(event) => setQty(line.slug, Number(event.target.value))}
                       />
                     </td>
-                    <td>{formatPrice(line.product.price * line.qty)}</td>
+                    <td>{formatPence(line.price_pence * line.qty)}</td>
                     <td>
                       <button className="btn" type="button" onClick={() => remove(line.slug)}>
                         Remove
@@ -61,7 +55,7 @@ export default function BasketPage() {
               </tbody>
             </table>
             <p>
-              <strong>Basket total {formatPrice(total)}</strong>
+              <strong>Basket total {formatPence(total)}</strong>
             </p>
             <Link className="btn" href="/shop/checkout">Checkout</Link>
           </>

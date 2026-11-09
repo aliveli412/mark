@@ -1,12 +1,20 @@
 # Mark Master Masons portal
 
-Next.js version of the public Mark Master Masons portal at [markmastermasons.com](https://www.markmastermasons.com/).
+Next.js portal for Mark Master Masons, with a Supabase-backed admin for events, news and shop.
 
-The Mark Sites menu (Gallipoli, Namik Kemal, Anadolu, Freemasons Without Borders, ATA, Khalsa, Mark Enterprise, Phoenix and Roentgen Portal) is not included.
+## Run
 
 ```bash
 npm install
 npm run dev
 ```
 
-Province and district names on the home page still open the existing WordPress lodge sites.
+Without Supabase secrets the app uses sample data. Admin: `/admin/login` (any email/password in sample mode).
+
+## Supabase
+
+1. Add `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` in Cursor Secrets.
+2. Run `supabase/schema.sql` in the Supabase SQL editor.
+3. Create an Auth user, then set `profiles.role` to `super_admin`.
+
+Mark Sites lodge microsites and Stripe dues come next.

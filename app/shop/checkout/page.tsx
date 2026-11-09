@@ -10,13 +10,10 @@ export default function CheckoutPage() {
       <PageBanner title="Checkout" />
       <div className="wrap page prose">
         <p>
-          Card payments are still handled by the existing WooCommerce shop. This Next.js shop keeps a basket in the browser and does not take card details.
+          The catalogue and basket are live. Card checkout will use Stripe once payment secrets are connected; membership dues will share the same Stripe account later.
         </p>
         <p>
-          To place an order, use the <Link href="/contact">contact form</Link> and include the items in your basket, or continue on the current store.
-        </p>
-        <p>
-          <a href="https://www.markmastermasons.com/shop/" target="_blank" rel="noreferrer">Open the current MMM Online Store</a>
+          For now, send an order through the <Link href="/contact">contact form</Link> with the items in your basket, or continue browsing the <Link href="/shop">shop</Link>.
         </p>
       </div>
     </>

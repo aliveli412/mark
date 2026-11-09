@@ -101,30 +101,6 @@ export const packages = [
   },
 ];
 
-export const products = [
-  {
-    slug: "325-ml-white-mug",
-    name: "325 ml – White Mug",
-    price: 4.5,
-    image: "/images/mug.jpg",
-    canAdd: false,
-  },
-  {
-    slug: "english-turkish-ritual-no-1",
-    name: "English & Turkish Ritual No. 1",
-    price: 7.5,
-    image: "/images/ritual.jpg",
-    canAdd: true,
-  },
-];
-
-export function formatPrice(amount: number) {
-  return new Intl.NumberFormat("en-GB", {
-    style: "currency",
-    currency: "GBP",
-  }).format(amount);
-}
-
 export const searchEntries = [
   { href: "/", title: "Home", text: "Free website for every lodge. Online portal, festive board, digital summons and minutes." },
   { href: "/mark-degree", title: "Mark Degree", text: "What is the Mark Degree, history, working, regalia, advancement and Grand Lodge." },

@@ -1,21 +1,26 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { products } from "@/lib/site";
 
-export type CartLine = { slug: string; qty: number };
+export type CartLine = {
+  slug: string;
+  name: string;
+  price_pence: number;
+  image_path: string;
+  qty: number;
+};
 
 type CartValue = {
   lines: CartLine[];
   count: number;
-  add: (slug: string) => void;
+  add: (product: Omit<CartLine, "qty">) => void;
   setQty: (slug: string, qty: number) => void;
   remove: (slug: string) => void;
   clear: () => void;
 };
 
 const CartContext = createContext<CartValue | null>(null);
-const storageKey = "mmm-basket";
+const storageKey = "mmm-basket-v2";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
@@ -40,13 +45,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return {
       lines,
       count,
-      add(slug) {
-        const product = products.find((item) => item.slug === slug && item.canAdd);
-        if (!product) return;
+      add(product) {
         setLines((current) => {
-          const existing = current.find((line) => line.slug === slug);
-          if (!existing) return [...current, { slug, qty: 1 }];
-          return current.map((line) => (line.slug === slug ? { ...line, qty: line.qty + 1 } : line));
+          const existing = current.find((line) => line.slug === product.slug);
+          if (!existing) return [...current, { ...product, qty: 1 }];
+          return current.map((line) =>
+            line.slug === product.slug ? { ...line, qty: line.qty + 1 } : line,
+          );
         });
       },
       setQty(slug, qty) {

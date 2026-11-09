@@ -1,0 +1,246 @@
+-- Run once in the Supabase SQL editor (Dashboard → SQL).
+-- Creates the portal schema for lodges, news, events, shop and admin roles.
+
+create extension if not exists "pgcrypto";
+
+create table if not exists public.profiles (
+  id uuid primary key references auth.users (id) on delete cascade,
+  email text not null,
+  full_name text,
+  role text not null default 'member' check (role in ('super_admin', 'lodge_admin', 'member')),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.lodges (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique,
+  name text not null,
+  tagline text,
+  published boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.posts (
+  id uuid primary key default gen_random_uuid(),
+  lodge_id uuid references public.lodges (id) on delete set null,
+  slug text not null unique,
+  title text not null,
+  excerpt text not null default '',
+  body text not null default '',
+  published boolean not null default false,
+  published_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.events (
+  id uuid primary key default gen_random_uuid(),
+  lodge_id uuid references public.lodges (id) on delete set null,
+  title text not null,
+  summary text not null default '',
+  body text not null default '',
+  location text not null default '',
+  starts_at timestamptz not null,
+  ends_at timestamptz,
+  published boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.products (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique,
+  name text not null,
+  description text not null default '',
+  price_pence integer not null check (price_pence >= 0),
+  image_path text not null default '',
+  active boolean not null default true,
+  stock integer,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.orders (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  status text not null default 'pending' check (status in ('pending', 'paid', 'cancelled', 'fulfilled')),
+  total_pence integer not null default 0,
+  stripe_session_id text,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.order_items (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid not null references public.orders (id) on delete cascade,
+  product_id uuid references public.products (id) on delete set null,
+  product_name text not null,
+  unit_price_pence integer not null,
+  quantity integer not null check (quantity > 0)
+);
+
+create index if not exists events_starts_at_idx on public.events (starts_at);
+create index if not exists posts_published_at_idx on public.posts (published_at desc);
+create index if not exists products_active_idx on public.products (active);
+
+alter table public.profiles enable row level security;
+alter table public.lodges enable row level security;
+alter table public.posts enable row level security;
+alter table public.events enable row level security;
+alter table public.products enable row level security;
+alter table public.orders enable row level security;
+alter table public.order_items enable row level security;
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.role in ('super_admin', 'lodge_admin')
+  );
+$$;
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (id, email, full_name, role)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'full_name', ''),
+    coalesce(new.raw_app_meta_data->>'role', 'member')
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+drop policy if exists "Public read published lodges" on public.lodges;
+create policy "Public read published lodges" on public.lodges
+  for select using (published = true or public.is_admin());
+
+drop policy if exists "Admins manage lodges" on public.lodges;
+create policy "Admins manage lodges" on public.lodges
+  for all using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "Public read published posts" on public.posts;
+create policy "Public read published posts" on public.posts
+  for select using (published = true or public.is_admin());
+
+drop policy if exists "Admins manage posts" on public.posts;
+create policy "Admins manage posts" on public.posts
+  for all using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "Public read published events" on public.events;
+create policy "Public read published events" on public.events
+  for select using (published = true or public.is_admin());
+
+drop policy if exists "Admins manage events" on public.events;
+create policy "Admins manage events" on public.events
+  for all using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "Public read active products" on public.products;
+create policy "Public read active products" on public.products
+  for select using (active = true or public.is_admin());
+
+drop policy if exists "Admins manage products" on public.products;
+create policy "Admins manage products" on public.products
+  for all using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "Admins read orders" on public.orders;
+create policy "Admins read orders" on public.orders
+  for select using (public.is_admin());
+
+drop policy if exists "Admins manage orders" on public.orders;
+create policy "Admins manage orders" on public.orders
+  for all using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "Admins read order items" on public.order_items;
+create policy "Admins read order items" on public.order_items
+  for select using (public.is_admin());
+
+drop policy if exists "Admins manage order items" on public.order_items;
+create policy "Admins manage order items" on public.order_items
+  for all using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "Users read own profile" on public.profiles;
+create policy "Users read own profile" on public.profiles
+  for select using (auth.uid() = id or public.is_admin());
+
+drop policy if exists "Users update own profile name" on public.profiles;
+create policy "Users update own profile name" on public.profiles
+  for update using (auth.uid() = id or public.is_admin())
+  with check (auth.uid() = id or public.is_admin());
+
+-- Seed catalogue products (safe to re-run)
+insert into public.products (slug, name, description, price_pence, image_path, active)
+values
+  (
+    '325-ml-white-mug',
+    '325 ml – White Mug',
+    'MMM Online Store mug shared with Freemasons Without Borders.',
+    450,
+    '/images/mug.jpg',
+    true
+  ),
+  (
+    'english-turkish-ritual-no-1',
+    'English & Turkish Ritual No. 1',
+    'Mark Ritual No. 1 in English and Turkish.',
+    750,
+    '/images/ritual.jpg',
+    true
+  )
+on conflict (slug) do update set
+  name = excluded.name,
+  description = excluded.description,
+  price_pence = excluded.price_pence,
+  image_path = excluded.image_path,
+  active = excluded.active,
+  updated_at = now();
+
+insert into public.events (title, summary, location, starts_at, ends_at, published)
+select * from (values
+  (
+    'Mark Grand Lodge Communication',
+    'Regular communication of Mark Grand Lodge.',
+    'Freemasons’ Hall, London',
+    (date_trunc('month', now()) + interval '20 days')::timestamptz,
+    (date_trunc('month', now()) + interval '20 days' + interval '3 hours')::timestamptz,
+    true
+  ),
+  (
+    'Provincial Meeting',
+    'Open meeting for Mark lodges in the province.',
+    'Provincial Lodge Rooms',
+    (date_trunc('month', now()) + interval '1 month' + interval '10 days')::timestamptz,
+    (date_trunc('month', now()) + interval '1 month' + interval '10 days' + interval '2 hours')::timestamptz,
+    true
+  )
+) as seed(title, summary, location, starts_at, ends_at, published)
+where not exists (select 1 from public.events limit 1);
+
+insert into public.posts (slug, title, excerpt, body, published, published_at)
+select * from (values
+  (
+    'welcome-to-the-portal',
+    'Welcome to the Mark Master Masons portal',
+    'The portal now runs on Next.js with a Supabase admin.',
+    'This is the first news item managed from the admin panel. Replace it when the live Supabase project is connected.',
+    true,
+    now()
+  )
+) as seed(slug, title, excerpt, body, published, published_at)
+on conflict (slug) do nothing;
