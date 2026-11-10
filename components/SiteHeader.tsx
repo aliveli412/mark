@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/components/CartProvider";
+import { lodgePath, markSites } from "@/lib/mark-sites";
 
 const markLinks = [
   { href: "/what-is-mark-degree", label: "What is Mark degree?" },
@@ -18,8 +19,9 @@ export function SiteHeader() {
   const { count } = useCart();
   const [open, setOpen] = useState(false);
   const markActive = pathname.startsWith("/mark-degree") || markLinks.some((link) => pathname === link.href);
+  const sitesActive = pathname.startsWith("/sites");
 
-  if (pathname.startsWith("/admin")) return null;
+  if (pathname.startsWith("/admin") || pathname.startsWith("/sites")) return null;
 
   return (
     <header className="site-header">
@@ -50,6 +52,23 @@ export function SiteHeader() {
           <Link className={pathname.startsWith("/blog") ? "active" : ""} href="/blog" onClick={() => setOpen(false)}>
             Blog
           </Link>
+          <div className="menu">
+            <Link className={sitesActive ? "active" : ""} href={lodgePath(markSites[0].slug)} onClick={() => setOpen(false)}>
+              Mark Sites <span className="nav-caret" aria-hidden="true" />
+            </Link>
+            <div className="submenu sites-menu">
+              {markSites.map((site) => (
+                <Link
+                  key={site.slug}
+                  className={site.accent ? "accent" : undefined}
+                  href={lodgePath(site.slug)}
+                  onClick={() => setOpen(false)}
+                >
+                  {site.menuLabel}
+                </Link>
+              ))}
+            </div>
+          </div>
           <Link className={pathname.startsWith("/shop") ? "active" : ""} href="/shop" onClick={() => setOpen(false)}>
             Shop
           </Link>

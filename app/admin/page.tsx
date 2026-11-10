@@ -36,7 +36,7 @@ export default async function AdminDashboardPage() {
         <h2 style={{ marginTop: 0 }}>Next build steps</h2>
         <ol>
           <li>Manage events, news and shop from the links above.</li>
-          <li>Add lodge microsite pages when you are ready.</li>
+          <li>Mark Sites microsites live under /sites (menu: Mark Sites).</li>
           <li>Shop checkout uses Stripe — add STRIPE_SECRET_KEY locally, then open Admin → Shop.</li>
         </ol>
       </div>
