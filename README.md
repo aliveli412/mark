@@ -35,9 +35,10 @@ Open http://localhost:3000 and admin at http://localhost:3000/admin/login
 ## Supabase (one-time)
 
 1. Run `supabase/schema.sql` in the SQL editor (or `supabase/fix-login.sql` + `supabase/fix-security.sql` if an older schema is already there).
-2. Create an Auth user (e.g. `info@etki.co.uk`).
-3. Run `supabase/make-admin.sql` to set `profiles.role = 'super_admin'`.
-4. Confirm with:
+2. If events already existed before RSVP fields, also run `supabase/events-rsvp.sql`.
+3. Create an Auth user (e.g. `info@etki.co.uk`).
+4. Run `supabase/make-admin.sql` / `supabase/fix-admin-promote.sql` to set `profiles.role = 'super_admin'`.
+5. Confirm with:
 
 ```sql
 select id, email, role from public.profiles where email = 'info@etki.co.uk';

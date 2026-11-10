@@ -36,15 +36,32 @@ create table if not exists public.posts (
 create table if not exists public.events (
   id uuid primary key default gen_random_uuid(),
   lodge_id uuid references public.lodges (id) on delete set null,
+  slug text not null unique,
   title text not null,
   summary text not null default '',
   body text not null default '',
   location text not null default '',
+  address text not null default '',
+  contact_name text not null default '',
+  contact_phone text not null default '',
+  contact_email text not null default '',
+  category text not null default '',
   starts_at timestamptz not null,
   ends_at timestamptz,
   published boolean not null default false,
+  rsvp_enabled boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
+);
+
+create table if not exists public.event_rsvps (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references public.events (id) on delete cascade,
+  name text not null,
+  email text not null,
+  guests integer not null default 1 check (guests > 0 and guests <= 20),
+  note text not null default '',
+  created_at timestamptz not null default now()
 );
 
 create table if not exists public.products (
@@ -79,6 +96,7 @@ create table if not exists public.order_items (
 );
 
 create index if not exists events_starts_at_idx on public.events (starts_at);
+create index if not exists event_rsvps_event_id_idx on public.event_rsvps (event_id);
 create index if not exists posts_published_at_idx on public.posts (published_at desc);
 create index if not exists products_active_idx on public.products (active);
 
@@ -86,6 +104,7 @@ alter table public.profiles enable row level security;
 alter table public.lodges enable row level security;
 alter table public.posts enable row level security;
 alter table public.events enable row level security;
+alter table public.event_rsvps enable row level security;
 alter table public.products enable row level security;
 alter table public.orders enable row level security;
 alter table public.order_items enable row level security;
@@ -179,6 +198,24 @@ create policy "Public read published events" on public.events
 
 drop policy if exists "Admins manage events" on public.events;
 create policy "Admins manage events" on public.events
+  for all using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "Public can RSVP to open events" on public.event_rsvps;
+create policy "Public can RSVP to open events" on public.event_rsvps
+  for insert
+  with check (
+    exists (
+      select 1 from public.events e
+      where e.id = event_id and e.published = true and e.rsvp_enabled = true
+    )
+  );
+
+drop policy if exists "Admins read RSVPs" on public.event_rsvps;
+create policy "Admins read RSVPs" on public.event_rsvps
+  for select using (public.is_admin());
+
+drop policy if exists "Admins manage RSVPs" on public.event_rsvps;
+create policy "Admins manage RSVPs" on public.event_rsvps
   for all using (public.is_admin()) with check (public.is_admin());
 
 drop policy if exists "Public read active products" on public.products;
@@ -289,25 +326,37 @@ on conflict (slug) do update set
   active = excluded.active,
   updated_at = now();
 
-insert into public.events (title, summary, location, starts_at, ends_at, published)
+insert into public.events (
+  slug, title, summary, location, address, contact_name, category, starts_at, ends_at, published, rsvp_enabled
+)
 select * from (values
   (
+    'mark-grand-lodge-communication',
     'Mark Grand Lodge Communication',
     'Regular communication of Mark Grand Lodge.',
     'Freemasons’ Hall, London',
+    '60 Great Queen Street, London WC2B 5AZ',
+    'Mark Grand Lodge',
+    'Grand Lodge',
     (date_trunc('month', now()) + interval '20 days')::timestamptz,
     (date_trunc('month', now()) + interval '20 days' + interval '3 hours')::timestamptz,
+    true,
     true
   ),
   (
+    'provincial-meeting',
     'Provincial Meeting',
     'Open meeting for Mark lodges in the province.',
     'Provincial Lodge Rooms',
+    '',
+    'Provincial Office',
+    'Province',
     (date_trunc('month', now()) + interval '1 month' + interval '10 days')::timestamptz,
     (date_trunc('month', now()) + interval '1 month' + interval '10 days' + interval '2 hours')::timestamptz,
+    true,
     true
   )
-) as seed(title, summary, location, starts_at, ends_at, published)
+) as seed(slug, title, summary, location, address, contact_name, category, starts_at, ends_at, published, rsvp_enabled)
 where not exists (select 1 from public.events limit 1);
 
 insert into public.posts (slug, title, excerpt, body, published, published_at)

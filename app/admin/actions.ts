@@ -132,19 +132,27 @@ export async function saveEventAction(formData: FormData): Promise<{ error?: str
   if (!session) return { error: "Not authorized.", next: "/admin/login" };
 
   const id = String(formData.get("id") ?? "") || undefined;
+  const title = String(formData.get("title") ?? "").trim();
   const payload = {
-    title: String(formData.get("title") ?? "").trim(),
+    title,
+    slug: String(formData.get("slug") ?? "").trim() || slugify(title),
     summary: String(formData.get("summary") ?? "").trim(),
     body: String(formData.get("body") ?? "").trim(),
     location: String(formData.get("location") ?? "").trim(),
+    address: String(formData.get("address") ?? "").trim(),
+    contact_name: String(formData.get("contact_name") ?? "").trim(),
+    contact_phone: String(formData.get("contact_phone") ?? "").trim(),
+    contact_email: String(formData.get("contact_email") ?? "").trim(),
+    category: String(formData.get("category") ?? "").trim(),
     starts_at: new Date(String(formData.get("starts_at") ?? "")).toISOString(),
     ends_at: String(formData.get("ends_at") ?? "")
       ? new Date(String(formData.get("ends_at"))).toISOString()
       : null,
     published: formData.get("published") === "on",
+    rsvp_enabled: formData.get("rsvp_enabled") === "on",
     lodge_id: null as string | null,
   };
-  if (!payload.title || Number.isNaN(Date.parse(payload.starts_at))) {
+  if (!payload.title || !payload.slug || Number.isNaN(Date.parse(payload.starts_at))) {
     return { error: "Title and start date are required." };
   }
 
@@ -155,15 +163,24 @@ export async function saveEventAction(formData: FormData): Promise<{ error?: str
     if (!supabase) return { error: "Supabase is not configured." };
     if (id) {
       const { error } = await supabase.from("events").update(payload).eq("id", id);
-      if (error) return { error: error.message };
+      if (error) {
+        return {
+          error: `${error.message}. If columns are missing, run supabase/events-rsvp.sql.`,
+        };
+      }
     } else {
       const { error } = await supabase.from("events").insert(payload);
-      if (error) return { error: error.message };
+      if (error) {
+        return {
+          error: `${error.message}. If columns are missing, run supabase/events-rsvp.sql.`,
+        };
+      }
     }
   }
 
   revalidatePath("/admin/events");
   revalidatePath("/calendar");
+  revalidatePath(`/calendar/${payload.slug}`);
   return { next: "/admin/events" };
 }
 

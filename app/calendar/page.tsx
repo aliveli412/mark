@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { PageBanner } from "@/components/PageBanner";
+import { EventListItem } from "@/components/events/EventListItem";
 import { listPublishedEvents, usingSampleData } from "@/lib/data/catalog";
-import { formatEventWhen, groupEventsByMonth } from "@/lib/format";
+import { groupEventsByMonth } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Calendar" };
@@ -9,32 +10,41 @@ export const metadata: Metadata = { title: "Calendar" };
 export default async function CalendarPage() {
   const events = await listPublishedEvents();
   const months = groupEventsByMonth(events);
+  const rangeLabel =
+    events.length === 0
+      ? "No dates"
+      : `${new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric", timeZone: "Europe/London" }).format(new Date(events[0].starts_at))} – ${new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric", timeZone: "Europe/London" }).format(new Date(events[events.length - 1].starts_at))}`.toUpperCase();
 
   return (
     <>
       <PageBanner title="Calendar" />
-      <div className="wrap page">
-        <p className="lede">
-          Meetings and events{usingSampleData() ? " (sample data until Supabase is connected)" : ""}.
-        </p>
+      <div className="wrap page ev-page">
+        <div className="ev-toolbar">
+          <p className="lede ev-lede">
+            Meetings and lodge events
+            {usingSampleData() ? " · sample data until Supabase is connected" : ""}.
+          </p>
+          <div className="ev-range" aria-label="Shown date range">
+            {rangeLabel}
+          </div>
+        </div>
+
         {months.length === 0 ? (
           <div className="empty">
             <h2>No meetings published yet</h2>
-            <p>Add events from the admin calendar tools.</p>
+            <p>Add events from Admin → Events.</p>
           </div>
         ) : (
-          <div className="event-months">
+          <div className="ev-agenda">
             {months.map(([month, items]) => (
-              <section key={month} className="event-month">
-                <h2>{month}</h2>
-                <div className="event-list">
+              <section key={month} className="ev-month">
+                <header className="ev-month-head">
+                  <h2>{month}</h2>
+                  <span>{items.length} event{items.length === 1 ? "" : "s"}</span>
+                </header>
+                <div className="ev-list">
                   {items.map((event) => (
-                    <article className="event-card" key={event.id}>
-                      <h3>{event.title}</h3>
-                      <p className="event-when">{formatEventWhen(event.starts_at, event.ends_at)}</p>
-                      {event.location ? <p className="event-location">{event.location}</p> : null}
-                      {event.summary ? <p>{event.summary}</p> : null}
-                    </article>
+                    <EventListItem key={event.id} event={event} />
                   ))}
                 </div>
               </section>

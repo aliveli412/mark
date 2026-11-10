@@ -8,6 +8,28 @@ export function usingSampleData() {
   return !getSupabaseEnv().configured;
 }
 
+function asEvent(row: Record<string, unknown> | EventRecord): EventRecord {
+  const event = row as Partial<EventRecord> & { id: string; title: string; starts_at: string };
+  return {
+    id: event.id,
+    lodge_id: event.lodge_id ?? null,
+    slug: event.slug || event.id,
+    title: event.title,
+    summary: event.summary ?? "",
+    body: event.body ?? "",
+    location: event.location ?? "",
+    address: event.address ?? "",
+    contact_name: event.contact_name ?? "",
+    contact_phone: event.contact_phone ?? "",
+    contact_email: event.contact_email ?? "",
+    category: event.category ?? "",
+    starts_at: event.starts_at,
+    ends_at: event.ends_at ?? null,
+    published: Boolean(event.published),
+    rsvp_enabled: event.rsvp_enabled ?? false,
+  };
+}
+
 async function publicClient() {
   try {
     return await createSupabaseServerClient();
@@ -34,7 +56,7 @@ export async function listPublishedEvents(): Promise<EventRecord[]> {
       .eq("published", true)
       .order("starts_at", { ascending: true });
     if (error) return mockStore.listEvents(false);
-    return (data ?? []) as EventRecord[];
+    return (data ?? []).map((row) => asEvent(row as EventRecord));
   } catch {
     return mockStore.listEvents(false);
   }
@@ -46,7 +68,7 @@ export async function listAdminEvents(): Promise<EventRecord[]> {
   try {
     const { data, error } = await supabase.from("events").select("*").order("starts_at", { ascending: true });
     if (error) return mockStore.listEvents(true);
-    return (data ?? []) as EventRecord[];
+    return (data ?? []).map((row) => asEvent(row as EventRecord));
   } catch {
     return mockStore.listEvents(true);
   }
@@ -58,9 +80,66 @@ export async function getAdminEvent(id: string) {
   try {
     const { data, error } = await supabase.from("events").select("*").eq("id", id).maybeSingle();
     if (error) return mockStore.getEvent(id);
-    return data as EventRecord | null;
+    return data ? asEvent(data as EventRecord) : null;
   } catch {
     return mockStore.getEvent(id);
+  }
+}
+
+export async function getPublishedEvent(slugOrId: string) {
+  const supabase = await publicClient();
+  if (!supabase) {
+    const event = mockStore.getEventBySlug(slugOrId);
+    return event?.published ? event : null;
+  }
+  try {
+    const bySlug = await supabase
+      .from("events")
+      .select("*")
+      .eq("slug", slugOrId)
+      .eq("published", true)
+      .maybeSingle();
+    if (!bySlug.error && bySlug.data) return asEvent(bySlug.data as EventRecord);
+
+    const byId = await supabase
+      .from("events")
+      .select("*")
+      .eq("id", slugOrId)
+      .eq("published", true)
+      .maybeSingle();
+    if (byId.error) {
+      const event = mockStore.getEventBySlug(slugOrId);
+      return event?.published ? event : null;
+    }
+    return byId.data ? asEvent(byId.data as EventRecord) : null;
+  } catch {
+    const event = mockStore.getEventBySlug(slugOrId);
+    return event?.published ? event : null;
+  }
+}
+
+export async function listUpcomingEvents(limit = 6, excludeId?: string) {
+  const events = await listPublishedEvents();
+  const now = Date.now();
+  return events
+    .filter((event) => new Date(event.starts_at).getTime() >= now - 6 * 60 * 60 * 1000)
+    .filter((event) => event.id !== excludeId)
+    .slice(0, limit);
+}
+
+export async function listEventRsvps(eventId: string) {
+  const supabase = adminClient();
+  if (!supabase) return mockStore.listRsvps(eventId);
+  try {
+    const { data, error } = await supabase
+      .from("event_rsvps")
+      .select("*")
+      .eq("event_id", eventId)
+      .order("created_at", { ascending: false });
+    if (error) return mockStore.listRsvps(eventId);
+    return data ?? [];
+  } catch {
+    return mockStore.listRsvps(eventId);
   }
 }
 

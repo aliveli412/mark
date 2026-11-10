@@ -19,12 +19,36 @@ export function EventForm({ event }: { event?: EventRecord | null }) {
         <input name="title" required defaultValue={event?.title ?? ""} />
       </label>
       <label>
+        Slug
+        <input name="slug" defaultValue={event?.slug ?? ""} placeholder="auto from title if blank" />
+      </label>
+      <label>
+        Category
+        <input name="category" defaultValue={event?.category ?? ""} placeholder="e.g. Gallipoli MMM Meetings" />
+      </label>
+      <label>
         Summary
         <input name="summary" defaultValue={event?.summary ?? ""} />
       </label>
       <label>
-        Location
-        <input name="location" defaultValue={event?.location ?? ""} />
+        Location name
+        <input name="location" defaultValue={event?.location ?? ""} placeholder="Mark Mason Hall" />
+      </label>
+      <label>
+        Address
+        <input name="address" defaultValue={event?.address ?? ""} placeholder="Full street address" />
+      </label>
+      <label>
+        Contact name
+        <input name="contact_name" defaultValue={event?.contact_name ?? ""} />
+      </label>
+      <label>
+        Contact phone
+        <input name="contact_phone" defaultValue={event?.contact_phone ?? ""} />
+      </label>
+      <label>
+        Contact email
+        <input name="contact_email" type="email" defaultValue={event?.contact_email ?? ""} />
       </label>
       <label>
         Starts
@@ -41,6 +65,10 @@ export function EventForm({ event }: { event?: EventRecord | null }) {
       <label className="check">
         <input name="published" type="checkbox" defaultChecked={event?.published ?? true} />
         Published
+      </label>
+      <label className="check">
+        <input name="rsvp_enabled" type="checkbox" defaultChecked={event?.rsvp_enabled ?? true} />
+        RSVP open
       </label>
       <button type="submit">Save event</button>
     </AdminNavForm>
