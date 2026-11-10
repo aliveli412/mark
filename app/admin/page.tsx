@@ -35,9 +35,9 @@ export default async function AdminDashboardPage() {
       <div className="admin-card" style={{ marginTop: 18 }}>
         <h2 style={{ marginTop: 0 }}>Next build steps</h2>
         <ol>
-          <li>Connect Supabase and run <code>supabase/schema.sql</code>.</li>
-          <li>Create an Auth user and set <code>profiles.role</code> to <code>super_admin</code>.</li>
-          <li>Add lodge pages and Stripe dues after the content admin is live.</li>
+          <li>Manage events, news and shop from the links above.</li>
+          <li>Add lodge microsite pages when you are ready.</li>
+          <li>Wire Stripe for dues and shop checkout.</li>
         </ol>
       </div>
     </AdminShell>
