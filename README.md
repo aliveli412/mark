@@ -23,6 +23,9 @@ Edit `.env.local` with your Supabase Project Settings → API values:
 - `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (the **service_role** secret — not the anon key)
 - `ADMIN_BOOTSTRAP_EMAIL=info@etki.co.uk` (auto-promotes this user on local sign-in)
+- `SITE_URL=http://localhost:3000`
+- `STRIPE_SECRET_KEY` (Stripe Dashboard → API keys, test mode)
+- `STRIPE_WEBHOOK_SECRET` (from `stripe listen` locally, or a Dashboard webhook)
 
 Then:
 
@@ -31,6 +34,22 @@ npm run dev
 ```
 
 Open http://localhost:3000 and admin at http://localhost:3000/admin/login
+
+## Shop products + Stripe
+
+1. Sign in at `/admin/login`.
+2. Open **Admin → Shop → New product** (name, price in £, image path, Active).
+3. Product appears on `/shop` when Active is checked.
+4. Customer: Add to basket → Checkout → Stripe Checkout.
+5. Paid rows appear under **Admin → Orders** after the webhook marks the session paid.
+
+Local webhook forwarding:
+
+```powershell
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+```
+
+Put the printed `whsec_…` into `.env.local` as `STRIPE_WEBHOOK_SECRET`.
 
 ## Supabase (one-time)
 

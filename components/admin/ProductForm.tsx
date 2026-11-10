@@ -27,7 +27,8 @@ export function ProductForm({ product }: { product?: ProductRecord | null }) {
       </label>
       <label>
         Image path
-        <input name="image_path" defaultValue={product?.image_path ?? "/images/mug.jpg"} />
+        <input name="image_path" defaultValue={product?.image_path ?? "/images/mug.jpg"} placeholder="/images/mug.jpg" />
+        <span className="optional">File under public/ (e.g. /images/apron.jpg) or a full https URL</span>
       </label>
       <label>
         Description

@@ -12,8 +12,14 @@ export default async function AdminShopPage() {
 
   return (
     <AdminShell title="Shop" email={gate.session.user.email}>
+      <p className="lede" style={{ marginTop: 0 }}>
+        Add products here → they appear on <Link href="/shop">/shop</Link> when Active.
+        Checkout uses Stripe; paid orders show under{" "}
+        <Link href="/admin/orders">Orders</Link>.
+      </p>
       <div className="admin-actions" style={{ marginBottom: 16 }}>
         <Link className="button" href="/admin/shop/new">New product</Link>
+        <Link className="button secondary" href="/admin/orders">Orders</Link>
         <Link className="button secondary" href="/shop">View shop</Link>
       </div>
       <div className="admin-card">

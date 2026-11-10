@@ -37,7 +37,7 @@ export default async function AdminDashboardPage() {
         <ol>
           <li>Manage events, news and shop from the links above.</li>
           <li>Add lodge microsite pages when you are ready.</li>
-          <li>Wire Stripe for dues and shop checkout.</li>
+          <li>Shop checkout uses Stripe — add STRIPE_SECRET_KEY locally, then open Admin → Shop.</li>
         </ol>
       </div>
     </AdminShell>
