@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./admin.css";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: {
     default: "Admin | Mark Master Masons",

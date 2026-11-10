@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PageBanner } from "@/components/PageBanner";
 import { listPublishedPosts, usingSampleData } from "@/lib/data/catalog";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Blog" };
 
 export default async function BlogPage() {

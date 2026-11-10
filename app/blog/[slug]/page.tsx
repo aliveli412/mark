@@ -2,15 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageBanner } from "@/components/PageBanner";
-import { getPublishedPost, listPublishedPosts } from "@/lib/data/catalog";
+import { getPublishedPost } from "@/lib/data/catalog";
 import { paragraphs } from "@/lib/format";
 
 type Params = { slug: string };
 
-export async function generateStaticParams() {
-  const posts = await listPublishedPosts();
-  return posts.map((post) => ({ slug: post.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;

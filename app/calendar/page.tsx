@@ -3,6 +3,7 @@ import { PageBanner } from "@/components/PageBanner";
 import { listPublishedEvents, usingSampleData } from "@/lib/data/catalog";
 import { formatEventWhen, groupEventsByMonth } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Calendar" };
 
 export default async function CalendarPage() {

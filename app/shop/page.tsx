@@ -3,6 +3,7 @@ import { PageBanner } from "@/components/PageBanner";
 import { ShopGrid } from "@/components/ShopGrid";
 import { listActiveProducts, usingSampleData } from "@/lib/data/catalog";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Shop" };
 
 export default async function ShopPage() {

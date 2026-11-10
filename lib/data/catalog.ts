@@ -7,98 +7,150 @@ export function usingSampleData() {
   return !getSupabaseEnv().configured;
 }
 
+async function supabaseOrNull() {
+  try {
+    return await createSupabaseServerClient();
+  } catch {
+    return null;
+  }
+}
+
 export async function listPublishedEvents(): Promise<EventRecord[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await supabaseOrNull();
   if (!supabase) return mockStore.listEvents(false);
-  const { data, error } = await supabase
-    .from("events")
-    .select("*")
-    .eq("published", true)
-    .order("starts_at", { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as EventRecord[];
+  try {
+    const { data, error } = await supabase
+      .from("events")
+      .select("*")
+      .eq("published", true)
+      .order("starts_at", { ascending: true });
+    if (error) return mockStore.listEvents(false);
+    return (data ?? []) as EventRecord[];
+  } catch {
+    return mockStore.listEvents(false);
+  }
 }
 
 export async function listAdminEvents(): Promise<EventRecord[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await supabaseOrNull();
   if (!supabase) return mockStore.listEvents(true);
-  const { data, error } = await supabase.from("events").select("*").order("starts_at", { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as EventRecord[];
+  try {
+    const { data, error } = await supabase.from("events").select("*").order("starts_at", { ascending: true });
+    if (error) return mockStore.listEvents(true);
+    return (data ?? []) as EventRecord[];
+  } catch {
+    return mockStore.listEvents(true);
+  }
 }
 
 export async function getAdminEvent(id: string) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await supabaseOrNull();
   if (!supabase) return mockStore.getEvent(id);
-  const { data, error } = await supabase.from("events").select("*").eq("id", id).maybeSingle();
-  if (error) throw error;
-  return data as EventRecord | null;
+  try {
+    const { data, error } = await supabase.from("events").select("*").eq("id", id).maybeSingle();
+    if (error) return mockStore.getEvent(id);
+    return data as EventRecord | null;
+  } catch {
+    return mockStore.getEvent(id);
+  }
 }
 
 export async function listPublishedPosts(): Promise<PostRecord[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await supabaseOrNull();
   if (!supabase) return mockStore.listPosts(false);
-  const { data, error } = await supabase
-    .from("posts")
-    .select("*")
-    .eq("published", true)
-    .order("published_at", { ascending: false });
-  if (error) throw error;
-  return (data ?? []) as PostRecord[];
+  try {
+    const { data, error } = await supabase
+      .from("posts")
+      .select("*")
+      .eq("published", true)
+      .order("published_at", { ascending: false });
+    if (error) return mockStore.listPosts(false);
+    return (data ?? []) as PostRecord[];
+  } catch {
+    return mockStore.listPosts(false);
+  }
 }
 
 export async function listAdminPosts(): Promise<PostRecord[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await supabaseOrNull();
   if (!supabase) return mockStore.listPosts(true);
-  const { data, error } = await supabase.from("posts").select("*").order("created_at", { ascending: false });
-  if (error) throw error;
-  return (data ?? []) as PostRecord[];
+  try {
+    const { data, error } = await supabase.from("posts").select("*").order("created_at", { ascending: false });
+    if (error) return mockStore.listPosts(true);
+    return (data ?? []) as PostRecord[];
+  } catch {
+    return mockStore.listPosts(true);
+  }
 }
 
 export async function getPublishedPost(slug: string) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await supabaseOrNull();
   if (!supabase) {
     const post = mockStore.getPostBySlug(slug);
     return post?.published ? post : null;
   }
-  const { data, error } = await supabase
-    .from("posts")
-    .select("*")
-    .eq("slug", slug)
-    .eq("published", true)
-    .maybeSingle();
-  if (error) throw error;
-  return data as PostRecord | null;
+  try {
+    const { data, error } = await supabase
+      .from("posts")
+      .select("*")
+      .eq("slug", slug)
+      .eq("published", true)
+      .maybeSingle();
+    if (error) {
+      const post = mockStore.getPostBySlug(slug);
+      return post?.published ? post : null;
+    }
+    return data as PostRecord | null;
+  } catch {
+    const post = mockStore.getPostBySlug(slug);
+    return post?.published ? post : null;
+  }
 }
 
 export async function getAdminPost(id: string) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await supabaseOrNull();
   if (!supabase) return mockStore.getPost(id);
-  const { data, error } = await supabase.from("posts").select("*").eq("id", id).maybeSingle();
-  if (error) throw error;
-  return data as PostRecord | null;
+  try {
+    const { data, error } = await supabase.from("posts").select("*").eq("id", id).maybeSingle();
+    if (error) return mockStore.getPost(id);
+    return data as PostRecord | null;
+  } catch {
+    return mockStore.getPost(id);
+  }
 }
 
 export async function listActiveProducts(): Promise<ProductRecord[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await supabaseOrNull();
   if (!supabase) return mockStore.listProducts(false);
-  const { data, error } = await supabase.from("products").select("*").eq("active", true).order("name");
-  if (error) throw error;
-  return (data ?? []) as ProductRecord[];
+  try {
+    const { data, error } = await supabase.from("products").select("*").eq("active", true).order("name");
+    if (error) return mockStore.listProducts(false);
+    return (data ?? []) as ProductRecord[];
+  } catch {
+    return mockStore.listProducts(false);
+  }
 }
 
 export async function listAdminProducts(): Promise<ProductRecord[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await supabaseOrNull();
   if (!supabase) return mockStore.listProducts(true);
-  const { data, error } = await supabase.from("products").select("*").order("name");
-  if (error) throw error;
-  return (data ?? []) as ProductRecord[];
+  try {
+    const { data, error } = await supabase.from("products").select("*").order("name");
+    if (error) return mockStore.listProducts(true);
+    return (data ?? []) as ProductRecord[];
+  } catch {
+    return mockStore.listProducts(true);
+  }
 }
 
 export async function getAdminProduct(id: string) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await supabaseOrNull();
   if (!supabase) return mockStore.getProduct(id);
-  const { data, error } = await supabase.from("products").select("*").eq("id", id).maybeSingle();
-  if (error) throw error;
-  return data as ProductRecord | null;
+  try {
+    const { data, error } = await supabase.from("products").select("*").eq("id", id).maybeSingle();
+    if (error) return mockStore.getProduct(id);
+    return data as ProductRecord | null;
+  } catch {
+    return mockStore.getProduct(id);
+  }
 }

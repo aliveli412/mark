@@ -103,6 +103,19 @@ as $$
   );
 $$;
 
+create or replace function public.is_super_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.role = 'super_admin'
+  );
+$$;
+
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -110,12 +123,13 @@ security definer
 set search_path = public
 as $$
 begin
+  -- New accounts always start as members. Only a super_admin (or SQL) may promote them.
   insert into public.profiles (id, email, full_name, role)
   values (
     new.id,
     new.email,
     coalesce(new.raw_user_meta_data->>'full_name', ''),
-    coalesce(new.raw_app_meta_data->>'role', 'member')
+    'member'
   )
   on conflict (id) do nothing;
   return new;
@@ -188,8 +202,9 @@ create policy "Users update own full name" on public.profiles
   with check (auth.uid() = id);
 
 drop policy if exists "Admins manage profiles" on public.profiles;
-create policy "Admins manage profiles" on public.profiles
-  for all using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "Super admins manage profiles" on public.profiles;
+create policy "Super admins manage profiles" on public.profiles
+  for all using (public.is_super_admin()) with check (public.is_super_admin());
 
 create or replace function public.protect_profile_privileges()
 returns trigger
@@ -199,11 +214,13 @@ set search_path = public
 as $$
 begin
   if tg_op = 'UPDATE' then
-    -- Non-admins cannot change identity or privilege columns.
+    -- Only super_admin may change roles. Lodge admins and members cannot.
+    if new.role is distinct from old.role and not public.is_super_admin() then
+      new.role := old.role;
+    end if;
     if not public.is_admin() then
       new.id := old.id;
       new.email := old.email;
-      new.role := old.role;
       new.created_at := old.created_at;
     end if;
   end if;

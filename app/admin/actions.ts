@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { mockStore } from "@/lib/data/mock-store";
 import { requireAdmin } from "@/lib/admin/auth";
+import { safeAdminNextPath } from "@/lib/admin/paths";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -19,7 +20,7 @@ function slugify(value: string) {
 export async function signInAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const next = String(formData.get("next") ?? "/admin");
+  const next = safeAdminNextPath(String(formData.get("next") ?? "/admin"));
 
   if (!getSupabaseEnv().configured) {
     return { error: "Admin sign-in requires Supabase. Add the project secrets first." };
@@ -42,7 +43,7 @@ export async function signInAction(formData: FormData) {
     return { error: "This account is not an admin." };
   }
 
-  redirect(next || "/admin");
+  redirect(next);
 }
 
 export async function signOutAction() {
