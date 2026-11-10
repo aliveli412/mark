@@ -2,13 +2,32 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { MarkSite } from "@/lib/mark-sites";
 import { lodgePath, markSites } from "@/lib/mark-sites";
+
+function titleFromPath(site: MarkSite, pathname: string) {
+  if (pathname === lodgePath(site.slug) || pathname === `${lodgePath(site.slug)}/`) {
+    return site.fullName;
+  }
+  if (pathname.endsWith("/contact")) return "Contact Us";
+  for (const group of site.nav) {
+    for (const link of group.links) {
+      if (pathname.endsWith(`/${group.slug}/${link.slug}`)) return link.label;
+    }
+  }
+  if (pathname.includes("/posts/")) {
+    const slug = pathname.split("/posts/")[1];
+    return slug ? slug.replace(/-/g, " ") : "Article";
+  }
+  return site.fullName;
+}
 
 export function LodgeShell({ site, children }: { site: MarkSite; children: React.ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const pageTitle = useMemo(() => titleFromPath(site, pathname), [site, pathname]);
+  const isHome = pathname === lodgePath(site.slug) || pathname === `${lodgePath(site.slug)}/`;
 
   return (
     <div className="lodge-site">
@@ -23,10 +42,10 @@ export function LodgeShell({ site, children }: { site: MarkSite; children: React
             </Link>
             {site.nav.map((group) => (
               <div className="lodge-menu" key={group.slug}>
-                <Link href={lodgePath(site.slug, group.slug, group.links?.[0]?.slug)} onClick={() => setOpen(false)}>
+                <Link href={lodgePath(site.slug, group.slug, group.links[0]?.slug)} onClick={() => setOpen(false)}>
                   {group.label}
                 </Link>
-                {group.links && group.links.length > 1 ? (
+                {group.links.length > 1 ? (
                   <div className="lodge-submenu">
                     {group.links.map((link) => (
                       <Link
@@ -75,7 +94,16 @@ export function LodgeShell({ site, children }: { site: MarkSite; children: React
       </header>
 
       <div className="lodge-titlebar">
-        <div className="wrap">{site.fullName}</div>
+        <div className="wrap lodge-titlebar-row">
+          <div>{isHome ? site.fullName : pageTitle}</div>
+          {!isHome ? (
+            <nav className="lodge-crumbs" aria-label="Breadcrumb">
+              <Link href={lodgePath(site.slug)}>Home</Link>
+              <span>›</span>
+              <span>{pageTitle}</span>
+            </nav>
+          ) : null}
+        </div>
       </div>
 
       <div className="wrap lodge-layout">
@@ -84,24 +112,22 @@ export function LodgeShell({ site, children }: { site: MarkSite; children: React
             <div key={group.slug}>
               <Link
                 className={pathname.includes(`/${group.slug}`) ? "active" : undefined}
-                href={lodgePath(site.slug, group.slug, group.links?.[0]?.slug)}
+                href={lodgePath(site.slug, group.slug, group.links[0]?.slug)}
               >
                 {group.label}
               </Link>
-              {group.links ? (
-                <ul>
-                  {group.links.map((link) => (
-                    <li key={link.slug}>
-                      <Link
-                        className={pathname.endsWith(`/${link.slug}`) ? "active" : undefined}
-                        href={lodgePath(site.slug, group.slug, link.slug)}
-                      >
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
+              <ul>
+                {group.links.map((link) => (
+                  <li key={link.slug}>
+                    <Link
+                      className={pathname.endsWith(`/${link.slug}`) ? "active" : undefined}
+                      href={lodgePath(site.slug, group.slug, link.slug)}
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
         </aside>
@@ -124,7 +150,7 @@ export function LodgeShell({ site, children }: { site: MarkSite; children: React
             {site.addressLines.map((line) => (
               <p key={line}>{line}</p>
             ))}
-            <p>WhatsApp / Telegram: {site.phone}</p>
+            {site.phone ? <p>WhatsApp / Telegram: {site.phone}</p> : null}
           </section>
           <section>
             <h2>Regular Meetings</h2>

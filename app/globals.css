@@ -1137,3 +1137,53 @@ button, input, select, textarea { font: inherit; }
   .lodge-count-grid { grid-template-columns: repeat(2, 1fr); }
   .lodge-footer-grid { grid-template-columns: 1fr; }
 }
+
+.lodge-titlebar-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.lodge-crumbs {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+}
+.lodge-crumbs a { color: #fff; text-decoration: underline; }
+.lodge-source-note {
+  margin: 0 0 18px;
+  padding: 10px 12px;
+  border: 1px solid #f0d9a8;
+  background: #fff8e8;
+  color: #6a4b00;
+}
+.lodge-rich {
+  color: #444;
+  line-height: 1.7;
+  max-width: 76ch;
+}
+.lodge-rich h1, .lodge-rich h2, .lodge-rich h3 {
+  color: #222;
+}
+.lodge-rich img {
+  max-width: min(100%, 320px);
+  height: auto;
+  display: block;
+  margin: 12px 0;
+}
+.lodge-float-img {
+  float: right;
+  width: min(240px, 42%);
+  margin: 0 0 16px 20px;
+}
+.lodge-float-img img { width: 100%; margin: 0; }
+.lodge-float-img p { margin: 8px 0 0; font-size: 13px; text-align: center; }
+.lodge-rich table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+.lodge-rich td, .lodge-rich th { border-bottom: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: top; }
+@media (max-width: 640px) {
+  .lodge-float-img { float: none; width: 100%; margin: 0 0 16px; }
+}

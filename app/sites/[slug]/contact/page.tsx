@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { LodgeContent } from "@/components/sites/LodgeContent";
 import { getMarkSite } from "@/lib/mark-sites";
+import { getSitePage, loadSiteContent } from "@/lib/site-content";
 
 export async function generateMetadata({
   params,
@@ -18,6 +20,12 @@ export default async function LodgeContactPage({ params }: { params: Promise<{ s
   const site = getMarkSite(slug);
   if (!site) notFound();
 
+  const contentFile = loadSiteContent(slug);
+  const page = getSitePage(slug, "contact");
+  if (page && contentFile) {
+    return <LodgeContent slug={slug} page={page} pages={contentFile.pages} />;
+  }
+
   return (
     <article className="lodge-page">
       <h1>Contact Us</h1>
@@ -30,7 +38,7 @@ export default async function LodgeContactPage({ params }: { params: Promise<{ s
           </span>
         ))}
       </p>
-      <p>WhatsApp / Telegram: {site.phone}</p>
+      {site.phone ? <p>WhatsApp / Telegram: {site.phone}</p> : null}
       <p>
         Or use the main portal <Link href="/contact">contact form</Link>.
       </p>
