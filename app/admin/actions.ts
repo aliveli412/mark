@@ -43,22 +43,74 @@ export async function signInAction(
   if (!user) return { error: "Sign-in failed." };
 
   const admin = createSupabaseAdminClient();
-  const reader = admin ?? supabase;
-  const { data: profile, error: profileError } = await reader
+  if (!admin) {
+    await supabase.auth.signOut();
+    return {
+      error:
+        "SUPABASE_SERVICE_ROLE_KEY is missing in .env.local. Add the service_role key from Supabase → Project Settings → API, then restart npm run dev.",
+    };
+  }
+
+  let { data: profile, error: profileError } = await admin
     .from("profiles")
-    .select("role")
+    .select("id, email, role")
     .eq("id", user.id)
     .maybeSingle();
 
   if (profileError) {
     await supabase.auth.signOut();
-    return { error: `Could not read profile: ${profileError.message}` };
+    return {
+      error: `Could not read profiles (run supabase/schema.sql first): ${profileError.message}`,
+    };
   }
-  if (!profile || (profile.role !== "super_admin" && profile.role !== "lodge_admin")) {
+
+  const bootstrapEmail = (process.env.ADMIN_BOOTSTRAP_EMAIL ?? "info@etki.co.uk")
+    .trim()
+    .toLowerCase();
+  const signedInEmail = (user.email ?? email).trim().toLowerCase();
+  const canBootstrap =
+    Boolean(bootstrapEmail) && signedInEmail === bootstrapEmail;
+
+  if (
+    canBootstrap &&
+    (!profile || (profile.role !== "super_admin" && profile.role !== "lodge_admin"))
+  ) {
+    const { error: upsertError } = await admin.from("profiles").upsert(
+      {
+        id: user.id,
+        email: user.email ?? email,
+        full_name: "",
+        role: "super_admin",
+      },
+      { onConflict: "id" },
+    );
+    if (upsertError) {
+      await supabase.auth.signOut();
+      return {
+        error: `Could not promote admin profile (run supabase/schema.sql): ${upsertError.message}`,
+      };
+    }
+    ({ data: profile, error: profileError } = await admin
+      .from("profiles")
+      .select("id, email, role")
+      .eq("id", user.id)
+      .maybeSingle());
+    if (profileError) {
+      await supabase.auth.signOut();
+      return { error: `Profile re-read failed: ${profileError.message}` };
+    }
+  }
+
+  if (!profile) {
     await supabase.auth.signOut();
     return {
-      error:
-        "This account is not an admin. In Supabase SQL, insert/update profiles.role to super_admin for your Auth user.",
+      error: `No profiles row for ${signedInEmail} (${user.id}). Run supabase/schema.sql then supabase/make-admin.sql.`,
+    };
+  }
+  if (profile.role !== "super_admin" && profile.role !== "lodge_admin") {
+    await supabase.auth.signOut();
+    return {
+      error: `Account role is "${profile.role}", not admin. Run supabase/make-admin.sql or set ADMIN_BOOTSTRAP_EMAIL=${signedInEmail} in .env.local.`,
     };
   }
 

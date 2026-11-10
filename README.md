@@ -21,7 +21,8 @@ Edit `.env.local` with your Supabase Project Settings → API values:
 
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (the **service_role** secret — not the anon key)
+- `ADMIN_BOOTSTRAP_EMAIL=info@etki.co.uk` (auto-promotes this user on local sign-in)
 
 Then:
 
