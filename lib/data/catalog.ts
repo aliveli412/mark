@@ -1,4 +1,5 @@
 import { mockStore } from "@/lib/data/mock-store";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 import type { EventRecord, PostRecord, ProductRecord } from "@/lib/types";
@@ -7,7 +8,7 @@ export function usingSampleData() {
   return !getSupabaseEnv().configured;
 }
 
-async function supabaseOrNull() {
+async function publicClient() {
   try {
     return await createSupabaseServerClient();
   } catch {
@@ -15,8 +16,16 @@ async function supabaseOrNull() {
   }
 }
 
+function adminClient() {
+  try {
+    return createSupabaseAdminClient();
+  } catch {
+    return null;
+  }
+}
+
 export async function listPublishedEvents(): Promise<EventRecord[]> {
-  const supabase = await supabaseOrNull();
+  const supabase = await publicClient();
   if (!supabase) return mockStore.listEvents(false);
   try {
     const { data, error } = await supabase
@@ -32,7 +41,7 @@ export async function listPublishedEvents(): Promise<EventRecord[]> {
 }
 
 export async function listAdminEvents(): Promise<EventRecord[]> {
-  const supabase = await supabaseOrNull();
+  const supabase = adminClient() ?? (await publicClient());
   if (!supabase) return mockStore.listEvents(true);
   try {
     const { data, error } = await supabase.from("events").select("*").order("starts_at", { ascending: true });
@@ -44,7 +53,7 @@ export async function listAdminEvents(): Promise<EventRecord[]> {
 }
 
 export async function getAdminEvent(id: string) {
-  const supabase = await supabaseOrNull();
+  const supabase = adminClient() ?? (await publicClient());
   if (!supabase) return mockStore.getEvent(id);
   try {
     const { data, error } = await supabase.from("events").select("*").eq("id", id).maybeSingle();
@@ -56,7 +65,7 @@ export async function getAdminEvent(id: string) {
 }
 
 export async function listPublishedPosts(): Promise<PostRecord[]> {
-  const supabase = await supabaseOrNull();
+  const supabase = await publicClient();
   if (!supabase) return mockStore.listPosts(false);
   try {
     const { data, error } = await supabase
@@ -72,7 +81,7 @@ export async function listPublishedPosts(): Promise<PostRecord[]> {
 }
 
 export async function listAdminPosts(): Promise<PostRecord[]> {
-  const supabase = await supabaseOrNull();
+  const supabase = adminClient() ?? (await publicClient());
   if (!supabase) return mockStore.listPosts(true);
   try {
     const { data, error } = await supabase.from("posts").select("*").order("created_at", { ascending: false });
@@ -84,7 +93,7 @@ export async function listAdminPosts(): Promise<PostRecord[]> {
 }
 
 export async function getPublishedPost(slug: string) {
-  const supabase = await supabaseOrNull();
+  const supabase = await publicClient();
   if (!supabase) {
     const post = mockStore.getPostBySlug(slug);
     return post?.published ? post : null;
@@ -108,7 +117,7 @@ export async function getPublishedPost(slug: string) {
 }
 
 export async function getAdminPost(id: string) {
-  const supabase = await supabaseOrNull();
+  const supabase = adminClient() ?? (await publicClient());
   if (!supabase) return mockStore.getPost(id);
   try {
     const { data, error } = await supabase.from("posts").select("*").eq("id", id).maybeSingle();
@@ -120,7 +129,7 @@ export async function getAdminPost(id: string) {
 }
 
 export async function listActiveProducts(): Promise<ProductRecord[]> {
-  const supabase = await supabaseOrNull();
+  const supabase = await publicClient();
   if (!supabase) return mockStore.listProducts(false);
   try {
     const { data, error } = await supabase.from("products").select("*").eq("active", true).order("name");
@@ -132,7 +141,7 @@ export async function listActiveProducts(): Promise<ProductRecord[]> {
 }
 
 export async function listAdminProducts(): Promise<ProductRecord[]> {
-  const supabase = await supabaseOrNull();
+  const supabase = adminClient() ?? (await publicClient());
   if (!supabase) return mockStore.listProducts(true);
   try {
     const { data, error } = await supabase.from("products").select("*").order("name");
@@ -144,7 +153,7 @@ export async function listAdminProducts(): Promise<ProductRecord[]> {
 }
 
 export async function getAdminProduct(id: string) {
-  const supabase = await supabaseOrNull();
+  const supabase = adminClient() ?? (await publicClient());
   if (!supabase) return mockStore.getProduct(id);
   try {
     const { data, error } = await supabase.from("products").select("*").eq("id", id).maybeSingle();

@@ -31,7 +31,7 @@ export default async function AdminLoginPage({
                 Signed in, but this account is not an admin. In Supabase SQL, set <code>profiles.role = &apos;super_admin&apos;</code> for your user (and make sure a profiles row exists).
               </p>
             ) : null}
-            <LoginForm nextPath={params.next || "/admin"} sampleMode={false} />
+            <LoginForm nextPath={params.next || "/admin"} />
           </>
         )}
       </div>

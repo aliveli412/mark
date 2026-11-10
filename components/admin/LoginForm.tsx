@@ -1,36 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { signInAction } from "@/app/admin/actions";
 
-export function LoginForm({ nextPath, sampleMode }: { nextPath: string; sampleMode: boolean }) {
-  const [error, setError] = useState("");
-  const [pending, setPending] = useState(false);
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return <button type="submit" disabled={pending}>{pending ? "Signing in…" : "Sign in"}</button>;
+}
+
+export function LoginForm({ nextPath }: { nextPath: string; sampleMode?: boolean }) {
+  const [state, formAction] = useActionState(signInAction, null);
 
   return (
-    <form
-      className="admin-form"
-      action={async (formData) => {
-        setPending(true);
-        setError("");
-        const result = await signInAction(formData);
-        if (result?.error) {
-          setError(result.error);
-          setPending(false);
-        }
-      }}
-    >
+    <form className="admin-form" action={formAction}>
       <input type="hidden" name="next" value={nextPath} />
       <label>
         Email
-        <input name="email" type="email" required defaultValue={sampleMode ? "admin@example.com" : ""} />
+        <input name="email" type="email" required autoComplete="username" />
       </label>
       <label>
         Password
-        <input name="password" type="password" required defaultValue={sampleMode ? "sample" : ""} />
+        <input name="password" type="password" required autoComplete="current-password" />
       </label>
-      {error ? <p className="error">{error}</p> : null}
-      <button type="submit" disabled={pending}>{pending ? "Signing in…" : "Sign in"}</button>
+      {state?.error ? <p className="error">{state.error}</p> : null}
+      <SubmitButton />
     </form>
   );
 }

@@ -18,7 +18,10 @@ function slugify(value: string) {
     .slice(0, 80);
 }
 
-export async function signInAction(formData: FormData) {
+export async function signInAction(
+  _prev: { error?: string } | null,
+  formData: FormData,
+): Promise<{ error?: string } | null> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const next = safeAdminNextPath(String(formData.get("next") ?? "/admin"));
@@ -89,7 +92,7 @@ export async function saveEventAction(formData: FormData) {
   if (!getSupabaseEnv().configured) {
     mockStore.saveEvent({ ...payload, id });
   } else {
-    const supabase = await createSupabaseServerClient();
+    const supabase = createSupabaseAdminClient() ?? (await createSupabaseServerClient());
     if (!supabase) throw new Error("Supabase is not configured.");
     if (id) {
       const { error } = await supabase.from("events").update(payload).eq("id", id);
@@ -111,7 +114,7 @@ export async function deleteEventAction(formData: FormData) {
   if (!id) return;
   if (!getSupabaseEnv().configured) mockStore.deleteEvent(id);
   else {
-    const supabase = await createSupabaseServerClient();
+    const supabase = createSupabaseAdminClient() ?? (await createSupabaseServerClient());
     if (supabase) await supabase.from("events").delete().eq("id", id);
   }
   revalidatePath("/admin/events");
@@ -137,7 +140,7 @@ export async function savePostAction(formData: FormData) {
   if (!getSupabaseEnv().configured) {
     mockStore.savePost({ ...payload, id });
   } else {
-    const supabase = await createSupabaseServerClient();
+    const supabase = createSupabaseAdminClient() ?? (await createSupabaseServerClient());
     if (!supabase) throw new Error("Supabase is not configured.");
     if (id) {
       const { error } = await supabase.from("posts").update(payload).eq("id", id);
@@ -159,7 +162,7 @@ export async function deletePostAction(formData: FormData) {
   if (!id) return;
   if (!getSupabaseEnv().configured) mockStore.deletePost(id);
   else {
-    const supabase = await createSupabaseServerClient();
+    const supabase = createSupabaseAdminClient() ?? (await createSupabaseServerClient());
     if (supabase) await supabase.from("posts").delete().eq("id", id);
   }
   revalidatePath("/admin/news");
@@ -185,7 +188,7 @@ export async function saveProductAction(formData: FormData) {
   if (!getSupabaseEnv().configured) {
     mockStore.saveProduct({ ...payload, id });
   } else {
-    const supabase = await createSupabaseServerClient();
+    const supabase = createSupabaseAdminClient() ?? (await createSupabaseServerClient());
     if (!supabase) throw new Error("Supabase is not configured.");
     if (id) {
       const { error } = await supabase.from("products").update(payload).eq("id", id);
@@ -207,7 +210,7 @@ export async function deleteProductAction(formData: FormData) {
   if (!id) return;
   if (!getSupabaseEnv().configured) mockStore.deleteProduct(id);
   else {
-    const supabase = await createSupabaseServerClient();
+    const supabase = createSupabaseAdminClient() ?? (await createSupabaseServerClient());
     if (supabase) await supabase.from("products").delete().eq("id", id);
   }
   revalidatePath("/admin/shop");
