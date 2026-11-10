@@ -4,7 +4,7 @@ import { usingSampleData } from "@/lib/data/catalog";
 export default async function AdminLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; error?: string }>;
 }) {
   const params = await searchParams;
   const needsSupabase = usingSampleData();
@@ -26,6 +26,11 @@ export default async function AdminLoginPage({
         ) : (
           <>
             <p>Sign in with an admin account from Supabase Auth.</p>
+            {params.error === "not_admin" ? (
+              <p className="error">
+                Signed in, but this account is not an admin. In Supabase SQL, set <code>profiles.role = &apos;super_admin&apos;</code> for your user (and make sure a profiles row exists).
+              </p>
+            ) : null}
             <LoginForm nextPath={params.next || "/admin"} sampleMode={false} />
           </>
         )}

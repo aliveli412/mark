@@ -92,29 +92,45 @@ alter table public.order_items enable row level security;
 
 create or replace function public.is_admin()
 returns boolean
-language sql
+language plpgsql
 stable
 security definer
 set search_path = public
 as $$
+declare
+  allowed boolean;
+begin
+  -- Bypass RLS inside this helper so policies on profiles cannot recurse.
+  perform set_config('row_security', 'off', true);
   select exists (
     select 1 from public.profiles p
     where p.id = auth.uid() and p.role in ('super_admin', 'lodge_admin')
-  );
+  ) into allowed;
+  return coalesce(allowed, false);
+end;
 $$;
 
 create or replace function public.is_super_admin()
 returns boolean
-language sql
+language plpgsql
 stable
 security definer
 set search_path = public
 as $$
+declare
+  allowed boolean;
+begin
+  perform set_config('row_security', 'off', true);
   select exists (
     select 1 from public.profiles p
     where p.id = auth.uid() and p.role = 'super_admin'
-  );
+  ) into allowed;
+  return coalesce(allowed, false);
+end;
 $$;
+
+grant execute on function public.is_admin() to anon, authenticated;
+grant execute on function public.is_super_admin() to anon, authenticated;
 
 create or replace function public.handle_new_user()
 returns trigger
@@ -190,8 +206,13 @@ create policy "Admins manage order items" on public.order_items
   for all using (public.is_admin()) with check (public.is_admin());
 
 drop policy if exists "Users read own profile" on public.profiles;
-create policy "Users read own profile" on public.profiles
-  for select using (auth.uid() = id or public.is_admin());
+drop policy if exists "Users read own profile only" on public.profiles;
+drop policy if exists "Admins read all profiles" on public.profiles;
+-- Keep own-row reads free of is_admin() to avoid policy recursion.
+create policy "Users read own profile only" on public.profiles
+  for select using (auth.uid() = id);
+create policy "Admins read all profiles" on public.profiles
+  for select using (public.is_admin());
 
 -- Members may only change their display name. Role changes are blocked below.
 drop policy if exists "Users update own profile name" on public.profiles;

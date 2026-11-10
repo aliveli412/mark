@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { mockStore } from "@/lib/data/mock-store";
 import { requireAdmin } from "@/lib/admin/auth";
 import { safeAdminNextPath } from "@/lib/admin/paths";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -37,10 +38,24 @@ export async function signInAction(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sign-in failed." };
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  const admin = createSupabaseAdminClient();
+  const reader = admin ?? supabase;
+  const { data: profile, error: profileError } = await reader
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    await supabase.auth.signOut();
+    return { error: `Could not read profile: ${profileError.message}` };
+  }
   if (!profile || (profile.role !== "super_admin" && profile.role !== "lodge_admin")) {
     await supabase.auth.signOut();
-    return { error: "This account is not an admin." };
+    return {
+      error:
+        "This account is not an admin. In Supabase SQL, insert/update profiles.role to super_admin for your Auth user.",
+    };
   }
 
   redirect(next);

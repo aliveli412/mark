@@ -37,17 +37,11 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Never bounce /admin/login → /admin here. Non-admins would loop with requireAdmin().
   if (!isLogin && !user) {
     const redirect = request.nextUrl.clone();
     redirect.pathname = "/admin/login";
     redirect.searchParams.set("next", path);
-    return NextResponse.redirect(redirect);
-  }
-
-  if (isLogin && user) {
-    const redirect = request.nextUrl.clone();
-    redirect.pathname = "/admin";
-    redirect.search = "";
     return NextResponse.redirect(redirect);
   }
 
