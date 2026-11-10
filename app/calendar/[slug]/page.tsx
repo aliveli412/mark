@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { PageBanner } from "@/components/PageBanner";
+import { EventActions } from "@/components/events/EventActions";
 import { EventDateBlock } from "@/components/events/EventDateBlock";
-import { RsvpForm } from "@/components/events/RsvpForm";
+import { RsvpModal } from "@/components/events/RsvpModal";
 import { getPublishedEvent, listUpcomingEvents } from "@/lib/data/catalog";
+import { eventLocationLine } from "@/lib/calendar-links";
 import { eventDateParts, eventHref, formatEventWhen, paragraphs } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -20,10 +23,13 @@ export async function generateMetadata({
 
 export default async function EventDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ rsvp?: string }>;
 }) {
   const { slug } = await params;
+  const query = await searchParams;
   const event = await getPublishedEvent(slug);
 
   if (!event) {
@@ -41,9 +47,42 @@ export default async function EventDetailPage({
   const upcoming = await listUpcomingEvents(5, event.id);
   const parts = eventDateParts(event.starts_at);
   const body = paragraphs(event.body || event.summary);
+  const headerList = await headers();
+  const host = headerList.get("x-forwarded-host") ?? headerList.get("host") ?? "localhost:3000";
+  const proto = headerList.get("x-forwarded-proto") ?? "http";
+  const pageUrl = `${proto}://${host}${eventHref(event)}`;
+  const locationLine = eventLocationLine(event);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: event.title,
+    description: event.summary || event.body,
+    startDate: event.starts_at,
+    endDate: event.ends_at || event.starts_at,
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    eventStatus: "https://schema.org/EventScheduled",
+    location: locationLine
+      ? {
+          "@type": "Place",
+          name: event.location || "Venue",
+          address: event.address || event.location,
+        }
+      : undefined,
+    organizer: event.contact_name
+      ? {
+          "@type": "Organization",
+          name: event.contact_name,
+          email: event.contact_email || undefined,
+          telephone: event.contact_phone || undefined,
+        }
+      : undefined,
+    url: pageUrl,
+  };
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <PageBanner title={event.title} current="Calendar" />
       <div className="wrap page ev-single">
         <div className="ev-single-grid">
@@ -56,6 +95,8 @@ export default async function EventDetailPage({
                 <p className="ev-meta-line">{formatEventWhen(event.starts_at, event.ends_at)}</p>
               </div>
             </div>
+
+            <EventActions event={event} pageUrl={pageUrl} />
 
             <dl className="ev-facts">
               <div>
@@ -101,10 +142,18 @@ export default async function EventDetailPage({
             ) : null}
 
             {event.rsvp_enabled ? (
-              <section className="ev-rsvp" id="rsvp">
-                <h2>RSVP</h2>
-                <p>Let the lodge know you are coming · starts {parts.time}.</p>
-                <RsvpForm eventId={event.id} />
+              <section className="ev-rsvp-cta" id="rsvp">
+                <div>
+                  <h2>Will you attend?</h2>
+                  <p>Open the RSVP popup to reserve your place · starts {parts.time}.</p>
+                </div>
+                <RsvpModal
+                  eventId={event.id}
+                  eventTitle={event.title}
+                  startsLabel={`Starts ${parts.time}`}
+                  triggerLabel="Open RSVP"
+                  autoOpen={query.rsvp === "1"}
+                />
               </section>
             ) : null}
           </article>
@@ -133,6 +182,9 @@ export default async function EventDetailPage({
             <Link className="ev-side-all" href="/calendar">
               View calendar →
             </Link>
+            <a className="ev-side-all" href="/calendar/feed.ics">
+              Subscribe to all (.ics)
+            </a>
           </aside>
         </div>
       </div>

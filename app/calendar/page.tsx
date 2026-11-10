@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageBanner } from "@/components/PageBanner";
-import { EventListItem } from "@/components/events/EventListItem";
+import { CalendarToolbar } from "@/components/events/CalendarToolbar";
+import { EventCard } from "@/components/events/EventCard";
 import { listPublishedEvents, usingSampleData } from "@/lib/data/catalog";
 import { groupEventsByMonth } from "@/lib/format";
 
@@ -19,15 +20,10 @@ export default async function CalendarPage() {
     <>
       <PageBanner title="Calendar" />
       <div className="wrap page ev-page">
-        <div className="ev-toolbar">
-          <p className="lede ev-lede">
-            Meetings and lodge events
-            {usingSampleData() ? " · sample data until Supabase is connected" : ""}.
-          </p>
-          <div className="ev-range" aria-label="Shown date range">
-            {rangeLabel}
-          </div>
-        </div>
+        <CalendarToolbar rangeLabel={rangeLabel} feedHref="/calendar/feed.ics" />
+        {usingSampleData() ? (
+          <p className="ev-sample-note">Showing sample events until Supabase is connected.</p>
+        ) : null}
 
         {months.length === 0 ? (
           <div className="empty">
@@ -40,11 +36,13 @@ export default async function CalendarPage() {
               <section key={month} className="ev-month">
                 <header className="ev-month-head">
                   <h2>{month}</h2>
-                  <span>{items.length} event{items.length === 1 ? "" : "s"}</span>
+                  <span>
+                    {items.length} event{items.length === 1 ? "" : "s"}
+                  </span>
                 </header>
                 <div className="ev-list">
                   {items.map((event) => (
-                    <EventListItem key={event.id} event={event} />
+                    <EventCard key={event.id} event={event} />
                   ))}
                 </div>
               </section>
