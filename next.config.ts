@@ -3,17 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: { unoptimized: true },
-  // Cursor apps.grok.bot (and similar proxies) forward a Host that can differ from
-  // the browser Origin. Without this allowlist, Server Actions abort with E80
-  // ("Invalid Server Actions request.") — digest 4136645460@E80 on login.
+  // Local / reverse-proxy Server Action CSRF allowlist (exact hosts only).
   experimental: {
     serverActions: {
-      allowedOrigins: [
-        "mark-portal.apps.grok.bot",
-        "*.apps.grok.bot",
-        "localhost:3000",
-        "127.0.0.1:3000",
-      ],
+      allowedOrigins: ["localhost:3000", "127.0.0.1:3000"],
     },
   },
   async headers() {
