@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { signInAction } from "@/app/admin/actions";
 
@@ -11,12 +11,6 @@ function SubmitButton() {
 
 export function LoginForm({ nextPath }: { nextPath: string }) {
   const [state, formAction] = useActionState(signInAction, null);
-
-  useEffect(() => {
-    if (state?.ok && state.next) {
-      window.location.assign(state.next);
-    }
-  }, [state]);
 
   return (
     <form className="admin-form" action={formAction}>
@@ -30,7 +24,6 @@ export function LoginForm({ nextPath }: { nextPath: string }) {
         <input name="password" type="password" required autoComplete="current-password" />
       </label>
       {state?.error ? <p className="error">{state.error}</p> : null}
-      {state?.ok ? <p>Signed in — opening admin…</p> : null}
       <SubmitButton />
     </form>
   );

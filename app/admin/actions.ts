@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { mockStore } from "@/lib/data/mock-store";
 import { requireAdmin } from "@/lib/admin/auth";
 import { safeAdminNextPath } from "@/lib/admin/paths";
@@ -114,9 +115,9 @@ export async function signInAction(
     };
   }
 
-  // Do not call redirect() — on some hosts the NEXT_REDIRECT digest is shown as Application error.
   revalidatePath("/admin", "layout");
-  return { ok: true, next };
+  // Localhost: server redirect keeps Set-Cookie on the same response (client assign was dropping the session).
+  redirect(next);
 }
 
 export async function signOutAction(): Promise<{ ok: true; next: string }> {
