@@ -4,18 +4,8 @@ import { getSupabaseEnv } from "@/lib/supabase/env";
 import type { Profile } from "@/lib/types";
 
 export async function getAdminSession() {
-  if (!getSupabaseEnv().configured) {
-    return {
-      mode: "sample" as const,
-      user: { id: "sample-admin", email: "admin@example.com" },
-      profile: {
-        id: "sample-admin",
-        email: "admin@example.com",
-        full_name: "Sample Admin",
-        role: "super_admin",
-      } satisfies Profile,
-    };
-  }
+  // Admin never fails open. Without Supabase Auth there is no admin session.
+  if (!getSupabaseEnv().configured) return null;
 
   const supabase = await createSupabaseServerClient();
   if (!supabase) return null;

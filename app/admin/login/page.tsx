@@ -7,17 +7,28 @@ export default async function AdminLoginPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const params = await searchParams;
-  const sampleMode = usingSampleData();
+  const needsSupabase = usingSampleData();
   return (
     <div className="login-wrap">
       <div className="login-card">
         <h1>Mark Admin</h1>
-        <p>
-          {sampleMode
-            ? "Supabase is not connected yet. Sign in with any email and password to explore the sample admin."
-            : "Sign in with an admin account from Supabase Auth."}
-        </p>
-        <LoginForm nextPath={params.next || "/admin"} sampleMode={sampleMode} />
+        {needsSupabase ? (
+          <>
+            <p>
+              Admin access needs a connected Supabase project. Public pages can still use sample content, but nobody can open the admin panel until Auth is configured.
+            </p>
+            <ol style={{ paddingLeft: 18, color: "#444" }}>
+              <li>Add the Supabase secrets in Cursor.</li>
+              <li>Run <code>supabase/schema.sql</code> in the SQL editor.</li>
+              <li>Create an Auth user and set <code>profiles.role</code> to <code>super_admin</code>.</li>
+            </ol>
+          </>
+        ) : (
+          <>
+            <p>Sign in with an admin account from Supabase Auth.</p>
+            <LoginForm nextPath={params.next || "/admin"} sampleMode={false} />
+          </>
+        )}
       </div>
     </div>
   );

@@ -22,8 +22,7 @@ export async function signInAction(formData: FormData) {
   const next = String(formData.get("next") ?? "/admin");
 
   if (!getSupabaseEnv().configured) {
-    if (email && password) redirect(next || "/admin");
-    return { error: "Enter any email and password while running on sample data." };
+    return { error: "Admin sign-in requires Supabase. Add the project secrets first." };
   }
 
   const supabase = await createSupabaseServerClient();

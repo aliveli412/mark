@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { signOutAction } from "@/app/admin/actions";
-import { usingSampleData } from "@/lib/data/catalog";
 
 const links = [
   { href: "/admin", label: "Dashboard" },
@@ -18,7 +17,6 @@ export function AdminShell({
   email: string;
   children: React.ReactNode;
 }) {
-  const sample = usingSampleData();
   return (
     <div className="admin-shell">
       <aside className="admin-side">
@@ -39,11 +37,6 @@ export function AdminShell({
         <Link href="/">View site</Link>
       </aside>
       <main className="admin-main">
-        {sample ? (
-          <div className="banner-sample">
-            Running on sample data until Supabase is connected. Changes stay on this server only.
-          </div>
-        ) : null}
         <div className="admin-top">
           <h1>{title}</h1>
         </div>

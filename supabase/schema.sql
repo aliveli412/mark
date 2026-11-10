@@ -179,10 +179,47 @@ drop policy if exists "Users read own profile" on public.profiles;
 create policy "Users read own profile" on public.profiles
   for select using (auth.uid() = id or public.is_admin());
 
+-- Members may only change their display name. Role changes are blocked below.
 drop policy if exists "Users update own profile name" on public.profiles;
-create policy "Users update own profile name" on public.profiles
-  for update using (auth.uid() = id or public.is_admin())
-  with check (auth.uid() = id or public.is_admin());
+drop policy if exists "Users update own full name" on public.profiles;
+create policy "Users update own full name" on public.profiles
+  for update
+  using (auth.uid() = id)
+  with check (auth.uid() = id);
+
+drop policy if exists "Admins manage profiles" on public.profiles;
+create policy "Admins manage profiles" on public.profiles
+  for all using (public.is_admin()) with check (public.is_admin());
+
+create or replace function public.protect_profile_privileges()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if tg_op = 'UPDATE' then
+    -- Non-admins cannot change identity or privilege columns.
+    if not public.is_admin() then
+      new.id := old.id;
+      new.email := old.email;
+      new.role := old.role;
+      new.created_at := old.created_at;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_profile_privileges on public.profiles;
+create trigger protect_profile_privileges
+  before update on public.profiles
+  for each row execute function public.protect_profile_privileges();
+
+-- Authenticated clients may touch these columns; the trigger above blocks
+-- privilege escalation for anyone who is not already an admin.
+revoke update on table public.profiles from anon, authenticated;
+grant update (full_name, email, role) on table public.profiles to authenticated;
 
 -- Seed catalogue products (safe to re-run)
 insert into public.products (slug, name, description, price_pence, image_path, active)
