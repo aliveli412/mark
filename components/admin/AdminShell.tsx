@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { signOutAction } from "@/app/admin/actions";
 
@@ -31,7 +33,12 @@ export function AdminShell({
             </Link>
           ))}
         </nav>
-        <form action={signOutAction}>
+        <form
+          action={async () => {
+            const result = await signOutAction();
+            window.location.assign(result.next);
+          }}
+        >
           <button className="btn-admin secondary" type="submit">Sign out</button>
         </form>
         <Link href="/">View site</Link>

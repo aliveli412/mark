@@ -1,9 +1,10 @@
 import { savePostAction } from "@/app/admin/actions";
+import { AdminNavForm } from "@/components/admin/AdminNavForm";
 import type { PostRecord } from "@/lib/types";
 
 export function PostForm({ post }: { post?: PostRecord | null }) {
   return (
-    <form className="admin-form admin-card" action={savePostAction}>
+    <AdminNavForm className="admin-form admin-card" action={savePostAction}>
       {post ? <input type="hidden" name="id" value={post.id} /> : null}
       <label>
         Title
@@ -26,6 +27,6 @@ export function PostForm({ post }: { post?: PostRecord | null }) {
         Published
       </label>
       <button type="submit">Save news</button>
-    </form>
+    </AdminNavForm>
   );
 }

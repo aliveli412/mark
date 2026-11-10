@@ -19,6 +19,8 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const markActive = pathname.startsWith("/mark-degree") || markLinks.some((link) => pathname === link.href);
 
+  if (pathname.startsWith("/admin")) return null;
+
   return (
     <header className="site-header">
       <div className="header-row">

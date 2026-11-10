@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { deletePostAction } from "@/app/admin/actions";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { requireAdmin } from "@/lib/admin/auth";
+import { adminGate } from "@/lib/admin/gate";
 import { listAdminPosts } from "@/lib/data/catalog";
 
 export default async function AdminNewsPage() {
-  const session = await requireAdmin();
+  const gate = await adminGate();
+  if (!gate.ok) return gate.node;
   const posts = await listAdminPosts();
 
   return (
-    <AdminShell title="News" email={session.user.email}>
+    <AdminShell title="News" email={gate.session.user.email}>
       <div className="admin-actions" style={{ marginBottom: 16 }}>
         <Link className="button" href="/admin/news/new">New post</Link>
         <Link className="button secondary" href="/blog">View blog</Link>

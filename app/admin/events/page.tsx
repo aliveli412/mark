@@ -1,16 +1,17 @@
 import Link from "next/link";
 import { deleteEventAction } from "@/app/admin/actions";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { requireAdmin } from "@/lib/admin/auth";
+import { adminGate } from "@/lib/admin/gate";
 import { listAdminEvents } from "@/lib/data/catalog";
 import { formatEventWhen } from "@/lib/format";
 
 export default async function AdminEventsPage() {
-  const session = await requireAdmin();
+  const gate = await adminGate();
+  if (!gate.ok) return gate.node;
   const events = await listAdminEvents();
 
   return (
-    <AdminShell title="Events" email={session.user.email}>
+    <AdminShell title="Events" email={gate.session.user.email}>
       <div className="admin-actions" style={{ marginBottom: 16 }}>
         <Link className="button" href="/admin/events/new">New event</Link>
         <Link className="button secondary" href="/calendar">View calendar</Link>

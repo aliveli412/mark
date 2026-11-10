@@ -1,9 +1,10 @@
 import { saveProductAction } from "@/app/admin/actions";
+import { AdminNavForm } from "@/components/admin/AdminNavForm";
 import type { ProductRecord } from "@/lib/types";
 
 export function ProductForm({ product }: { product?: ProductRecord | null }) {
   return (
-    <form className="admin-form admin-card" action={saveProductAction}>
+    <AdminNavForm className="admin-form admin-card" action={saveProductAction}>
       {product ? <input type="hidden" name="id" value={product.id} /> : null}
       <label>
         Name
@@ -37,6 +38,6 @@ export function ProductForm({ product }: { product?: ProductRecord | null }) {
         Active in shop
       </label>
       <button type="submit">Save product</button>
-    </form>
+    </AdminNavForm>
   );
 }

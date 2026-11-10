@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { requireAdmin } from "@/lib/admin/auth";
+import { adminGate } from "@/lib/admin/gate";
 import { listAdminEvents, listAdminPosts, listAdminProducts } from "@/lib/data/catalog";
 
 export default async function AdminDashboardPage() {
-  const session = await requireAdmin();
+  const gate = await adminGate();
+  if (!gate.ok) return gate.node;
+
   const [events, posts, products] = await Promise.all([
     listAdminEvents(),
     listAdminPosts(),
@@ -12,7 +14,7 @@ export default async function AdminDashboardPage() {
   ]);
 
   return (
-    <AdminShell title="Dashboard" email={session.user.email}>
+    <AdminShell title="Dashboard" email={gate.session.user.email}>
       <div className="admin-grid">
         <div className="admin-card stat-card">
           <span>Events</span>

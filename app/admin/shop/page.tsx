@@ -1,16 +1,17 @@
 import Link from "next/link";
 import { deleteProductAction } from "@/app/admin/actions";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { requireAdmin } from "@/lib/admin/auth";
+import { adminGate } from "@/lib/admin/gate";
 import { listAdminProducts } from "@/lib/data/catalog";
 import { formatPence } from "@/lib/format";
 
 export default async function AdminShopPage() {
-  const session = await requireAdmin();
+  const gate = await adminGate();
+  if (!gate.ok) return gate.node;
   const products = await listAdminProducts();
 
   return (
-    <AdminShell title="Shop" email={session.user.email}>
+    <AdminShell title="Shop" email={gate.session.user.email}>
       <div className="admin-actions" style={{ marginBottom: 16 }}>
         <Link className="button" href="/admin/shop/new">New product</Link>
         <Link className="button secondary" href="/shop">View shop</Link>

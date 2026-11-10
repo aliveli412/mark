@@ -1,11 +1,12 @@
 import { AdminShell } from "@/components/admin/AdminShell";
 import { EventForm } from "@/components/admin/EventForm";
-import { requireAdmin } from "@/lib/admin/auth";
+import { adminGate } from "@/lib/admin/gate";
 
 export default async function NewEventPage() {
-  const session = await requireAdmin();
+  const gate = await adminGate();
+  if (!gate.ok) return gate.node;
   return (
-    <AdminShell title="New event" email={session.user.email}>
+    <AdminShell title="New event" email={gate.session.user.email}>
       <EventForm />
     </AdminShell>
   );

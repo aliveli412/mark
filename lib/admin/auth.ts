@@ -1,10 +1,15 @@
-import { redirect } from "next/navigation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 import type { Profile } from "@/lib/types";
 
-export async function getAdminSession() {
+export type AdminSession = {
+  mode: "live";
+  user: { id: string; email: string };
+  profile: Profile;
+};
+
+export async function getAdminSession(): Promise<AdminSession | null> {
   // Admin never fails open. Without Supabase Auth there is no admin session.
   if (!getSupabaseEnv().configured) return null;
 
@@ -35,7 +40,7 @@ export async function getAdminSession() {
     }
 
     return {
-      mode: "live" as const,
+      mode: "live",
       user: { id: user.id, email: user.email ?? profile.email },
       profile: profile as Profile,
     };
@@ -45,8 +50,7 @@ export async function getAdminSession() {
   }
 }
 
-export async function requireAdmin() {
-  const session = await getAdminSession();
-  if (!session) redirect("/admin/login?error=not_admin");
-  return session;
+/** Prefer this over redirect()-based requireAdmin — digests can surface as app errors. */
+export async function requireAdmin(): Promise<AdminSession | null> {
+  return getAdminSession();
 }

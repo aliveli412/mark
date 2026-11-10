@@ -1,4 +1,5 @@
 import { saveEventAction } from "@/app/admin/actions";
+import { AdminNavForm } from "@/components/admin/AdminNavForm";
 import type { EventRecord } from "@/lib/types";
 
 function toLocalInput(value?: string | null) {
@@ -11,7 +12,7 @@ function toLocalInput(value?: string | null) {
 
 export function EventForm({ event }: { event?: EventRecord | null }) {
   return (
-    <form className="admin-form admin-card" action={saveEventAction}>
+    <AdminNavForm className="admin-form admin-card" action={saveEventAction}>
       {event ? <input type="hidden" name="id" value={event.id} /> : null}
       <label>
         Title
@@ -42,6 +43,6 @@ export function EventForm({ event }: { event?: EventRecord | null }) {
         Published
       </label>
       <button type="submit">Save event</button>
-    </form>
+    </AdminNavForm>
   );
 }

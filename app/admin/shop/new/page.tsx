@@ -1,11 +1,12 @@
 import { AdminShell } from "@/components/admin/AdminShell";
 import { ProductForm } from "@/components/admin/ProductForm";
-import { requireAdmin } from "@/lib/admin/auth";
+import { adminGate } from "@/lib/admin/gate";
 
 export default async function NewProductPage() {
-  const session = await requireAdmin();
+  const gate = await adminGate();
+  if (!gate.ok) return gate.node;
   return (
-    <AdminShell title="New product" email={session.user.email}>
+    <AdminShell title="New product" email={gate.session.user.email}>
       <ProductForm />
     </AdminShell>
   );

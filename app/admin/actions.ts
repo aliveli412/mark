@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { mockStore } from "@/lib/data/mock-store";
 import { requireAdmin } from "@/lib/admin/auth";
 import { safeAdminNextPath } from "@/lib/admin/paths";
@@ -18,10 +17,12 @@ function slugify(value: string) {
     .slice(0, 80);
 }
 
+export type SignInState = { error?: string; ok?: boolean; next?: string } | null;
+
 export async function signInAction(
-  _prev: { error?: string } | null,
+  _prev: SignInState,
   formData: FormData,
-): Promise<{ error?: string } | null> {
+): Promise<SignInState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const next = safeAdminNextPath(String(formData.get("next") ?? "/admin"));
@@ -61,17 +62,22 @@ export async function signInAction(
     };
   }
 
-  redirect(next);
+  // Do not call redirect() — on some hosts the NEXT_REDIRECT digest is shown as Application error.
+  revalidatePath("/admin", "layout");
+  return { ok: true, next };
 }
 
-export async function signOutAction() {
+export async function signOutAction(): Promise<{ ok: true; next: string }> {
   const supabase = await createSupabaseServerClient();
   if (supabase) await supabase.auth.signOut();
-  redirect("/admin/login");
+  revalidatePath("/admin", "layout");
+  return { ok: true, next: "/admin/login" };
 }
 
-export async function saveEventAction(formData: FormData) {
-  await requireAdmin();
+export async function saveEventAction(formData: FormData): Promise<{ error?: string; next?: string }> {
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized.", next: "/admin/login" };
+
   const id = String(formData.get("id") ?? "") || undefined;
   const payload = {
     title: String(formData.get("title") ?? "").trim(),
@@ -86,30 +92,31 @@ export async function saveEventAction(formData: FormData) {
     lodge_id: null as string | null,
   };
   if (!payload.title || Number.isNaN(Date.parse(payload.starts_at))) {
-    throw new Error("Title and start date are required.");
+    return { error: "Title and start date are required." };
   }
 
   if (!getSupabaseEnv().configured) {
     mockStore.saveEvent({ ...payload, id });
   } else {
     const supabase = createSupabaseAdminClient() ?? (await createSupabaseServerClient());
-    if (!supabase) throw new Error("Supabase is not configured.");
+    if (!supabase) return { error: "Supabase is not configured." };
     if (id) {
       const { error } = await supabase.from("events").update(payload).eq("id", id);
-      if (error) throw new Error(error.message);
+      if (error) return { error: error.message };
     } else {
       const { error } = await supabase.from("events").insert(payload);
-      if (error) throw new Error(error.message);
+      if (error) return { error: error.message };
     }
   }
 
   revalidatePath("/admin/events");
   revalidatePath("/calendar");
-  redirect("/admin/events");
+  return { next: "/admin/events" };
 }
 
 export async function deleteEventAction(formData: FormData) {
-  await requireAdmin();
+  const session = await requireAdmin();
+  if (!session) return;
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   if (!getSupabaseEnv().configured) mockStore.deleteEvent(id);
@@ -121,8 +128,10 @@ export async function deleteEventAction(formData: FormData) {
   revalidatePath("/calendar");
 }
 
-export async function savePostAction(formData: FormData) {
-  await requireAdmin();
+export async function savePostAction(formData: FormData): Promise<{ error?: string; next?: string }> {
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized.", next: "/admin/login" };
+
   const id = String(formData.get("id") ?? "") || undefined;
   const title = String(formData.get("title") ?? "").trim();
   const published = formData.get("published") === "on";
@@ -135,29 +144,30 @@ export async function savePostAction(formData: FormData) {
     published_at: published ? new Date().toISOString() : null,
     lodge_id: null as string | null,
   };
-  if (!payload.title || !payload.slug) throw new Error("Title is required.");
+  if (!payload.title || !payload.slug) return { error: "Title is required." };
 
   if (!getSupabaseEnv().configured) {
     mockStore.savePost({ ...payload, id });
   } else {
     const supabase = createSupabaseAdminClient() ?? (await createSupabaseServerClient());
-    if (!supabase) throw new Error("Supabase is not configured.");
+    if (!supabase) return { error: "Supabase is not configured." };
     if (id) {
       const { error } = await supabase.from("posts").update(payload).eq("id", id);
-      if (error) throw new Error(error.message);
+      if (error) return { error: error.message };
     } else {
       const { error } = await supabase.from("posts").insert(payload);
-      if (error) throw new Error(error.message);
+      if (error) return { error: error.message };
     }
   }
 
   revalidatePath("/admin/news");
   revalidatePath("/blog");
-  redirect("/admin/news");
+  return { next: "/admin/news" };
 }
 
 export async function deletePostAction(formData: FormData) {
-  await requireAdmin();
+  const session = await requireAdmin();
+  if (!session) return;
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   if (!getSupabaseEnv().configured) mockStore.deletePost(id);
@@ -169,8 +179,10 @@ export async function deletePostAction(formData: FormData) {
   revalidatePath("/blog");
 }
 
-export async function saveProductAction(formData: FormData) {
-  await requireAdmin();
+export async function saveProductAction(formData: FormData): Promise<{ error?: string; next?: string }> {
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized.", next: "/admin/login" };
+
   const id = String(formData.get("id") ?? "") || undefined;
   const name = String(formData.get("name") ?? "").trim();
   const payload = {
@@ -182,30 +194,31 @@ export async function saveProductAction(formData: FormData) {
     active: formData.get("active") === "on",
   };
   if (!payload.name || Number.isNaN(payload.price_pence)) {
-    throw new Error("Name and price are required.");
+    return { error: "Name and price are required." };
   }
 
   if (!getSupabaseEnv().configured) {
     mockStore.saveProduct({ ...payload, id });
   } else {
     const supabase = createSupabaseAdminClient() ?? (await createSupabaseServerClient());
-    if (!supabase) throw new Error("Supabase is not configured.");
+    if (!supabase) return { error: "Supabase is not configured." };
     if (id) {
       const { error } = await supabase.from("products").update(payload).eq("id", id);
-      if (error) throw new Error(error.message);
+      if (error) return { error: error.message };
     } else {
       const { error } = await supabase.from("products").insert(payload);
-      if (error) throw new Error(error.message);
+      if (error) return { error: error.message };
     }
   }
 
   revalidatePath("/admin/shop");
   revalidatePath("/shop");
-  redirect("/admin/shop");
+  return { next: "/admin/shop" };
 }
 
 export async function deleteProductAction(formData: FormData) {
-  await requireAdmin();
+  const session = await requireAdmin();
+  if (!session) return;
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   if (!getSupabaseEnv().configured) mockStore.deleteProduct(id);

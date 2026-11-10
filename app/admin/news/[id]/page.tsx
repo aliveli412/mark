@@ -1,16 +1,22 @@
-import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { PostForm } from "@/components/admin/PostForm";
-import { requireAdmin } from "@/lib/admin/auth";
+import { adminGate } from "@/lib/admin/gate";
 import { getAdminPost } from "@/lib/data/catalog";
 
 export default async function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await requireAdmin();
+  const gate = await adminGate();
+  if (!gate.ok) return gate.node;
   const { id } = await params;
   const post = await getAdminPost(id);
-  if (!post) notFound();
+  if (!post) {
+    return (
+      <AdminShell title="Post not found" email={gate.session.user.email}>
+        <p>No post with that id.</p>
+      </AdminShell>
+    );
+  }
   return (
-    <AdminShell title="Edit post" email={session.user.email}>
+    <AdminShell title="Edit post" email={gate.session.user.email}>
       <PostForm post={post} />
     </AdminShell>
   );
