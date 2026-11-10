@@ -235,14 +235,17 @@ set search_path = public
 as $$
 begin
   if tg_op = 'UPDATE' then
-    -- Only super_admin may change roles. Lodge admins and members cannot.
-    if new.role is distinct from old.role and not public.is_super_admin() then
-      new.role := old.role;
-    end if;
-    if not public.is_admin() then
-      new.id := old.id;
-      new.email := old.email;
-      new.created_at := old.created_at;
+    -- Service role / SQL editor have no auth.uid(); allow those elevating paths.
+    -- Authenticated clients may only change roles if they are already super_admin.
+    if auth.uid() is not null then
+      if new.role is distinct from old.role and not public.is_super_admin() then
+        new.role := old.role;
+      end if;
+      if not public.is_admin() then
+        new.id := old.id;
+        new.email := old.email;
+        new.created_at := old.created_at;
+      end if;
     end if;
   end if;
   return new;

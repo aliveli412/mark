@@ -1,6 +1,5 @@
 -- Promote the portal admin Auth user to super_admin.
--- Run in Supabase → SQL Editor after Auth user exists.
--- Replace uid/email if you use a different account.
+-- If role stays "member", run fix-admin-promote.sql first (trigger bug).
 
 insert into public.profiles (id, email, full_name, role)
 values (
@@ -14,6 +13,5 @@ set
   email = excluded.email,
   role = 'super_admin';
 
--- Confirm:
 select id, email, role from public.profiles
 where email = 'info@etki.co.uk';
