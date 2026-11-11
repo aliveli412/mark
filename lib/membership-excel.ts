@@ -1,24 +1,114 @@
 import * as XLSX from "xlsx";
 import type { LodgeRosterMember } from "@/lib/types";
 
-type RawRow = Record<string, unknown>;
+/** Every Excel column we import (FWB As_of_06-06-2022.xlsx and compatible exports). */
+export const MEMBERSHIP_EXCEL_FIELDS = [
+  "brother_no",
+  "surname",
+  "given_names",
+  "prefix",
+  "initials",
+  "title",
+  "suffix",
+  "home_phone",
+  "mobile",
+  "postcode",
+  "address",
+  "address2",
+  "address3",
+  "city",
+  "county",
+  "email",
+  "country",
+  "start_date",
+  "end_date",
+  "grand_rank",
+  "prov_rank",
+  "unit_rank",
+  "grand_rank_id",
+  "prov_rank_id",
+  "unit_rank_id",
+  "unit_rank_start",
+  "prov_rank_start",
+  "grand_rank_start",
+  "unit_prefix",
+  "prov_prefix",
+  "grand_prefix",
+  "activity",
+] as const;
+
+export type MembershipExcelField = (typeof MEMBERSHIP_EXCEL_FIELDS)[number];
+
+function isBlankMarker(text: string) {
+  const lower = text.toLowerCase();
+  return !text || text === "---" || lower === "none" || lower === "nan" || lower === "n/a" || lower === "null";
+}
+
+/** Prefer Excel display text so phones/ids keep formatting when available. */
+function cellText(value: unknown): string {
+  if (value == null) return "";
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10);
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    if (Number.isInteger(value)) return String(value);
+    return String(value);
+  }
+  return String(value).trim();
+}
 
 function clean(value: unknown): string {
-  if (value == null) return "";
-  if (value instanceof Date) return value.toISOString().slice(0, 10);
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return Number.isInteger(value) ? String(value) : String(value);
-  }
-  const text = String(value).trim();
-  if (!text || text === "---" || text.toLowerCase() === "none" || text.toLowerCase() === "nan") {
-    return "";
-  }
+  const text = cellText(value);
+  if (isBlankMarker(text)) return "";
   return text;
 }
 
-function cleanDate(value: unknown): string | null {
+function cleanId(value: unknown): string {
   const text = clean(value);
-  return text || null;
+  if (!text || text === "0") return "";
+  return text;
+}
+
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function cleanDate(value: unknown): string | null {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10);
+  }
+  const text = clean(value);
+  if (!text) return null;
+  // Excel serial sometimes arrives as plain number string
+  if (/^\d+(\.\d+)?$/.test(text)) {
+    const serial = Number(text);
+    if (serial > 20000 && serial < 80000) {
+      const parsed = XLSX.SSF.parse_date_code(serial);
+      if (parsed) return `${parsed.y}-${pad2(parsed.m)}-${pad2(parsed.d)}`;
+    }
+  }
+  if (/^\d{4}-\d{2}-\d{2}/.test(text)) return text.slice(0, 10);
+  // Locale display from Excel (e.g. 10/30/21 or 30/10/2021)
+  const slash = text.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})$/);
+  if (slash) {
+    const a = Number(slash[1]);
+    const b = Number(slash[2]);
+    let year = Number(slash[3]);
+    if (year < 100) year += year >= 70 ? 1900 : 2000;
+    // Prefer MDY when first part > 12 is impossible → DMY; else assume MDY (Excel US display)
+    let month = a;
+    let day = b;
+    if (a > 12 && b <= 12) {
+      day = a;
+      month = b;
+    }
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      return `${year}-${pad2(month)}-${pad2(day)}`;
+    }
+  }
+  const parsed = new Date(text);
+  if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+  return text;
 }
 
 function normalizeHeader(value: unknown) {
@@ -28,7 +118,7 @@ function normalizeHeader(value: unknown) {
     .replace(/[^a-z0-9]+/g, "");
 }
 
-const HEADER_ALIASES: Record<string, string> = {
+const HEADER_ALIASES: Record<string, MembershipExcelField | "full_name"> = {
   brotherno: "brother_no",
   brothernumber: "brother_no",
   membershipno: "brother_no",
@@ -84,7 +174,7 @@ const HEADER_ALIASES: Record<string, string> = {
 };
 
 function mapHeaders(rawHeaders: unknown[]) {
-  const map = new Map<number, string>();
+  const map = new Map<number, MembershipExcelField | "full_name">();
   rawHeaders.forEach((header, index) => {
     const key = HEADER_ALIASES[normalizeHeader(header)];
     if (key) map.set(index, key);
@@ -135,25 +225,29 @@ function emptyFields() {
 export function parseMembershipExcel(
   buffer: ArrayBuffer | Buffer,
   lodgeSlug: string,
-): { members: LodgeRosterMember[]; error?: string } {
-  const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
+): { members: LodgeRosterMember[]; error?: string; mappedColumns: string[] } {
+  const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true, cellText: true });
   const sheetName = workbook.SheetNames[0];
-  if (!sheetName) return { members: [], error: "Excel file has no sheets." };
+  if (!sheetName) return { members: [], mappedColumns: [], error: "Excel file has no sheets." };
   const sheet = workbook.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json<(unknown | RawRow)[]>(sheet, {
+  // raw:false → formatted display strings (phones/dates as shown in Excel)
+  const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
     header: 1,
     defval: "",
     raw: false,
+    blankrows: false,
   }) as unknown[][];
 
-  if (!rows.length) return { members: [], error: "Excel sheet is empty." };
+  if (!rows.length) return { members: [], mappedColumns: [], error: "Excel sheet is empty." };
 
   const headerMap = mapHeaders(rows[0] ?? []);
+  const mappedColumns = [...new Set([...headerMap.values()])];
   if (!headerMap.size) {
     return {
       members: [],
+      mappedColumns: [],
       error:
-        "Could not recognise columns. Use the FWB-style headers (BrotherNo, Surname, GivenNames, Email, Address…).",
+        "Could not recognise columns. Use the FWB-style headers (BrotherNo, Surname, GivenNames, Email, Address, ranks, Activity…).",
     };
   }
 
@@ -165,13 +259,23 @@ export function parseMembershipExcel(
     const fields = emptyFields();
     headerMap.forEach((field, index) => {
       const value = row[index];
+      if (field === "full_name") {
+        fields.full_name = clean(value);
+        return;
+      }
       if (field.endsWith("_date") || field.endsWith("_start")) {
         (fields as Record<string, string | null>)[field] = cleanDate(value);
-      } else if (field === "email") {
-        fields.email = clean(value).toLowerCase();
-      } else {
-        (fields as Record<string, string | null>)[field] = clean(value);
+        return;
       }
+      if (field === "email") {
+        fields.email = clean(value).toLowerCase();
+        return;
+      }
+      if (field.endsWith("_rank_id")) {
+        (fields as Record<string, string>)[field] = cleanId(value);
+        return;
+      }
+      (fields as Record<string, string>)[field] = clean(value);
     });
 
     const fullName =
@@ -194,7 +298,7 @@ export function parseMembershipExcel(
   }
 
   if (!members.length) {
-    return { members: [], error: "No member rows found in the Excel file." };
+    return { members: [], mappedColumns, error: "No member rows found in the Excel file." };
   }
-  return { members };
+  return { members, mappedColumns };
 }

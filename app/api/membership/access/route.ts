@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getMembershipByAccess } from "@/lib/data/memberships";
+import { getMembershipByAccess, getMembershipRoster } from "@/lib/data/memberships";
 import { getMarkSite } from "@/lib/mark-sites";
 
 export const dynamic = "force-dynamic";
@@ -25,5 +25,6 @@ export async function POST(request: Request) {
   if (!membership) {
     return NextResponse.json({ error: "No membership found for that email and access code." }, { status: 404 });
   }
-  return NextResponse.json({ membership });
+  const roster = await getMembershipRoster(membership);
+  return NextResponse.json({ membership, roster });
 }

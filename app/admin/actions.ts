@@ -412,7 +412,10 @@ export async function importRosterExcelAction(
   revalidatePath(`/admin/memberships/${lodgeSlug}`);
   revalidatePath("/admin/memberships");
   revalidatePath(`/sites/${lodgeSlug}/membership`);
-  return { next: `/admin/memberships/${lodgeSlug}` };
+  const cols = Array.isArray(result.columns) ? result.columns.length : 0;
+  return {
+    next: `/admin/memberships/${lodgeSlug}?imported=${result.count ?? 0}&cols=${cols}`,
+  };
 }
 
 export async function deleteRosterMemberAction(formData: FormData) {

@@ -30,6 +30,7 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     membership: result.membership,
+    roster: result.roster ?? null,
     matched: result.matched,
   });
 }

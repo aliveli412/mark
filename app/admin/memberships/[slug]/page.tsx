@@ -57,7 +57,8 @@ export default async function AdminLodgeMembershipPage({
       <section className="admin-card" style={{ marginBottom: 18 }}>
         <h2 style={{ marginTop: 0 }}>Import Excel roster</h2>
         <p>
-          Same column format as FWB: <code>BrotherNo, Surname, GivenNames, Prefix, Email, Address…</code>
+          Imports every FWB column: BrotherNo, names, phones, full address, email, start/end dates, unit /
+          provincial / grand ranks (ids, prefixes, start dates), and Activity.
           {settings.roster_source ? (
             <>
               {" "}
@@ -242,18 +243,24 @@ export default async function AdminLodgeMembershipPage({
               <tr>
                 <th>BrotherNo</th>
                 <th>Name</th>
-                <th>Email</th>
-                <th>Mobile</th>
+                <th>Contact</th>
                 <th>Address</th>
-                <th>City</th>
-                <th>Activity</th>
+                <th>Ranks</th>
+                <th>Dates / activity</th>
                 <th>Status</th>
                 <th />
               </tr>
             </thead>
             <tbody>
               {roster.map((member) => {
-                const address = [member.address, member.address2, member.postcode].filter(Boolean).join(", ");
+                const address = [member.address, member.address2, member.address3, member.city, member.county, member.postcode, member.country]
+                  .filter(Boolean)
+                  .join(", ");
+                const ranks = [
+                  member.unit_rank ? `Unit: ${member.unit_rank}` : null,
+                  member.prov_rank ? `Prov: ${member.prov_rank}` : null,
+                  member.grand_rank ? `Grand: ${member.grand_rank}` : null,
+                ].filter(Boolean);
                 return (
                   <tr key={member.id}>
                     <td>{member.brother_no || member.membership_no || "—"}</td>
@@ -261,19 +268,21 @@ export default async function AdminLodgeMembershipPage({
                       <strong>
                         {[member.prefix, member.full_name].filter(Boolean).join(" ")}
                       </strong>
-                      {member.title || member.initials ? (
-                        <div>
-                          {[member.title, member.initials].filter(Boolean).join(" · ")}
-                        </div>
-                      ) : null}
+                      <div>
+                        {[member.title, member.initials, member.suffix].filter(Boolean).join(" · ") || "—"}
+                      </div>
                     </td>
-                    <td>{member.email || "—"}</td>
-                    <td>{member.mobile || member.home_phone || "—"}</td>
-                    <td>{address || "—"}</td>
                     <td>
-                      {[member.city, member.county, member.country].filter(Boolean).join(", ") || "—"}
+                      <div>{member.email || "—"}</div>
+                      <div>{member.mobile ? `M: ${member.mobile}` : "—"}</div>
+                      <div>{member.home_phone ? `H: ${member.home_phone}` : ""}</div>
                     </td>
-                    <td>{member.activity || "—"}</td>
+                    <td>{address || "—"}</td>
+                    <td>{ranks.length ? ranks.map((line) => <div key={line}>{line}</div>) : "—"}</td>
+                    <td>
+                      <div>{member.start_date || "—"}{member.end_date ? ` → ${member.end_date}` : ""}</div>
+                      <div>{member.activity || "—"}</div>
+                    </td>
                     <td>
                       <span className={`pill ${member.active ? "ok" : "draft"}`}>
                         {member.active ? "Active" : "Ended"}
@@ -293,9 +302,9 @@ export default async function AdminLodgeMembershipPage({
               })}
               {roster.length === 0 ? (
                 <tr>
-                  <td colSpan={9}>
+                  <td colSpan={8}>
                     {isFwb
-                      ? "No roster loaded yet — click “Re-import FWB Excel roster”."
+                      ? "No roster loaded yet — click “Re-import bundled FWB Excel” or upload the lodge file."
                       : "No roster members yet."}
                   </td>
                 </tr>

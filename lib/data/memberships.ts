@@ -423,13 +423,14 @@ export async function importFwbRosterSeed() {
 export async function importLodgeRosterExcel(lodgeSlug: string, fileName: string, buffer: ArrayBuffer | Buffer) {
   const { parseMembershipExcel } = await import("@/lib/membership-excel");
   const parsed = parseMembershipExcel(buffer, lodgeSlug);
-  if (parsed.error) return { error: parsed.error, count: 0 };
-  return replaceLodgeRoster({
+  if (parsed.error) return { error: parsed.error, count: 0, columns: parsed.mappedColumns };
+  const result = await replaceLodgeRoster({
     lodgeSlug,
     members: parsed.members,
     sourceName: fileName,
     markPilot: lodgeSlug === FWB_LODGE_SLUG,
   });
+  return { ...result, columns: parsed.mappedColumns };
 }
 
 export async function listMemberships(lodgeSlug: string) {
@@ -452,6 +453,22 @@ export async function getMembershipById(idValue: string) {
   const supabase = createSupabaseAdminClient()!;
   const { data } = await supabase.from("lodge_memberships").select("*").eq("id", idValue).maybeSingle();
   return (data as LodgeMembership | null) ?? null;
+}
+
+export async function getRosterMemberById(idValue: string | null | undefined) {
+  if (!idValue) return null;
+  if (!usingLive()) return mock().roster.find((item) => item.id === idValue) ?? null;
+  const supabase = createSupabaseAdminClient()!;
+  const { data } = await supabase.from("lodge_member_roster").select("*").eq("id", idValue).maybeSingle();
+  return (data as LodgeRosterMember | null) ?? null;
+}
+
+export async function getMembershipRoster(membership: LodgeMembership) {
+  if (membership.roster_id) {
+    const byId = await getRosterMemberById(membership.roster_id);
+    if (byId) return byId;
+  }
+  return findRosterMatch(membership.lodge_slug, membership.email, membership.membership_no);
 }
 
 export async function getMembershipByAccess(lodgeSlug: string, email: string, accessCode: string) {
@@ -515,7 +532,7 @@ export async function registerMembership(input: {
     );
     if (existing) {
       Object.assign(existing, payload, { id: existing.id, created_at: existing.created_at, access_code: existing.access_code });
-      return { membership: existing, matched: Boolean(match) };
+      return { membership: existing, matched: Boolean(match), roster: match ?? null };
     }
     const created: LodgeMembership = {
       id: id("membership"),
@@ -523,7 +540,7 @@ export async function registerMembership(input: {
       ...payload,
     };
     store.memberships.unshift(created);
-    return { membership: created, matched: Boolean(match) };
+    return { membership: created, matched: Boolean(match), roster: match ?? null };
   }
 
   const supabase = createSupabaseAdminClient()!;
@@ -545,12 +562,12 @@ export async function registerMembership(input: {
       .select("*")
       .single();
     if (error) return { error: error.message };
-    return { membership: data as LodgeMembership, matched: Boolean(match) };
+    return { membership: data as LodgeMembership, matched: Boolean(match), roster: match ?? null };
   }
 
   const { data, error } = await supabase.from("lodge_memberships").insert(payload).select("*").single();
   if (error) return { error: error.message };
-  return { membership: data as LodgeMembership, matched: Boolean(match) };
+  return { membership: data as LodgeMembership, matched: Boolean(match), roster: match ?? null };
 }
 
 export async function attachMembershipCheckout(input: {

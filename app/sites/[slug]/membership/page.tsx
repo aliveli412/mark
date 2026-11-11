@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MembershipPanel } from "@/components/sites/MembershipPanel";
-import { getMembershipByAccess, getMembershipSettings } from "@/lib/data/memberships";
+import {
+  getMembershipByAccess,
+  getMembershipRoster,
+  getMembershipSettings,
+} from "@/lib/data/memberships";
 import { formatPence } from "@/lib/format";
 import { getMarkSite } from "@/lib/mark-sites";
 
@@ -30,27 +34,27 @@ export default async function LodgeMembershipPage({
   const settings = await getMembershipSettings(slug);
   const initial =
     query.email && query.code ? await getMembershipByAccess(slug, query.email, query.code) : null;
+  const initialRoster = initial ? await getMembershipRoster(initial) : null;
 
   return (
     <article className="lodge-page membership-page">
       <h1>Membership</h1>
       <p>
-        Register with the name/email (and BrotherNo if you have it) held on the {site.brand} member list.
-        Once matched, activate dues by monthly, yearly, or standing order.
+        Register with the name, email and BrotherNo held on the {site.brand} member list. Once matched, your
+        full lodge record opens here — then activate dues by monthly, yearly, or standing order.
       </p>
-      {slug === "freemasons-without-borders" ? (
-        <p>
-          <strong>FWB pilot:</strong> member records follow the lodge Excel format (BrotherNo, names, phones,
-          full address, ranks, activity).
-        </p>
-      ) : null}
       <ul className="membership-price-list">
         <li>Monthly: {formatPence(settings.monthly_pence)}</li>
         <li>Yearly: {formatPence(settings.yearly_pence)}</li>
         <li>Standing order: {formatPence(settings.standing_order_pence)} / month</li>
       </ul>
       {!settings.active ? <p className="error">Membership payments are currently paused for this lodge.</p> : null}
-      <MembershipPanel lodgeSlug={slug} settings={settings} initialMembership={initial} />
+      <MembershipPanel
+        lodgeSlug={slug}
+        settings={settings}
+        initialMembership={initial}
+        initialRoster={initialRoster}
+      />
     </article>
   );
 }
