@@ -35,9 +35,15 @@ export default async function LodgeMembershipPage({
     <article className="lodge-page membership-page">
       <h1>Membership</h1>
       <p>
-        Register with the email held on the {site.brand} member list. Once matched, activate dues by monthly,
-        yearly, or standing order.
+        Register with the name/email (and BrotherNo if you have it) held on the {site.brand} member list.
+        Once matched, activate dues by monthly, yearly, or standing order.
       </p>
+      {slug === "freemasons-without-borders" ? (
+        <p>
+          <strong>FWB pilot:</strong> member records follow the lodge Excel format (BrotherNo, names, phones,
+          full address, ranks, activity).
+        </p>
+      ) : null}
       <ul className="membership-price-list">
         <li>Monthly: {formatPence(settings.monthly_pence)}</li>
         <li>Yearly: {formatPence(settings.yearly_pence)}</li>

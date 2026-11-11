@@ -37,11 +37,14 @@ Open http://localhost:3000 and admin at http://localhost:3000/admin/login
 
 ## Lodge memberships (Mark Sites)
 
-1. Run `supabase/memberships.sql` once in the Supabase SQL editor.
-2. Admin → **Memberships** → choose a lodge → add roster emails/names and set monthly/yearly/standing-order prices.
-3. On each lodge site open `/sites/<slug>/membership`.
-4. Members register with an email on the roster → match → pay via Stripe (monthly/yearly/standing-order subscription) or request bank standing order.
-5. Keep `STRIPE_SECRET_KEY` / webhook configured so activations update automatically.
+Pilot lodge: **Freemasons Without Borders** (`/sites/freemasons-without-borders/membership`).
+
+1. Run `supabase/memberships.sql` once, then `supabase/memberships-fwb-roster.sql`.
+2. Seed FWB roster either by running `supabase/seed-fwb-roster.sql` **or** Admin → Memberships → FWB → **Re-import FWB Excel roster**.
+3. Source Excel is stored at `content/memberships/source/As_of_06-06-2022.xlsx` (fields BrotherNo → Activity).
+4. Set monthly/yearly/standing-order prices on the FWB membership admin page.
+5. Members register on the lodge site with email and/or BrotherNo → match → pay via Stripe or bank standing order.
+6. Keep `STRIPE_SECRET_KEY` / webhook configured so activations update automatically.
 
 ## Shop products + Stripe
 

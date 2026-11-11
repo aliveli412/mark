@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   deleteRosterMemberAction,
+  importFwbRosterAction,
   saveMembershipSettingsAction,
   saveRosterMemberAction,
   setMembershipStatusAction,
@@ -10,6 +11,7 @@ import { AdminNavForm } from "@/components/admin/AdminNavForm";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { adminGate } from "@/lib/admin/gate";
 import {
+  FWB_LODGE_SLUG,
   getMembershipSettings,
   listMemberships,
   listRoster,
@@ -33,6 +35,7 @@ export default async function AdminLodgeMembershipPage({
     listRoster(slug),
     listMemberships(slug),
   ]);
+  const isFwb = slug === FWB_LODGE_SLUG;
 
   return (
     <AdminShell title={`${site.brand} membership`} email={gate.session.user.email}>
@@ -43,7 +46,19 @@ export default async function AdminLodgeMembershipPage({
         <Link className="button secondary" href={`/sites/${slug}/membership`}>
           Public membership page
         </Link>
+        {isFwb ? (
+          <AdminNavForm action={importFwbRosterAction}>
+            <button type="submit">Re-import FWB Excel roster ({roster.length || 265})</button>
+          </AdminNavForm>
+        ) : null}
       </div>
+
+      {isFwb ? (
+        <p className="lede" style={{ marginTop: 0 }}>
+          Pilot roster source: <code>As of 06-06-2022.xlsx</code> — BrotherNo, name, phones, full address,
+          ranks and activity. Matching uses BrotherNo and/or email.
+        </p>
+      ) : null}
 
       <section className="admin-card" style={{ marginBottom: 18 }}>
         <h2 style={{ marginTop: 0 }}>Dues plans</h2>
@@ -92,7 +107,7 @@ export default async function AdminLodgeMembershipPage({
           </div>
           <label>
             Standing-order reference hint
-            <input name="bank_reference_hint" defaultValue={settings.bank_reference_hint} placeholder="Use membership no as reference" />
+            <input name="bank_reference_hint" defaultValue={settings.bank_reference_hint} placeholder="Use BrotherNo as reference" />
           </label>
           <label className="check">
             <input name="active" type="checkbox" defaultChecked={settings.active} />
@@ -103,24 +118,91 @@ export default async function AdminLodgeMembershipPage({
       </section>
 
       <section className="admin-card" style={{ marginBottom: 18 }}>
-        <h2 style={{ marginTop: 0 }}>Member list (roster)</h2>
-        <p>Only people on this list can match and activate paid membership.</p>
+        <h2 style={{ marginTop: 0 }}>Member list (roster) · {roster.length}</h2>
         <AdminNavForm className="admin-form" action={saveRosterMemberAction}>
           <input type="hidden" name="lodge_slug" value={slug} />
           <div className="row-2">
             <label>
-              Full name
-              <input name="full_name" required />
+              BrotherNo
+              <input name="brother_no" />
             </label>
             <label>
-              Email
-              <input name="email" type="email" required />
+              Prefix
+              <input name="prefix" placeholder="Bro. / W.Bro." />
             </label>
           </div>
           <div className="row-2">
             <label>
-              Membership no.
-              <input name="membership_no" />
+              Given names
+              <input name="given_names" />
+            </label>
+            <label>
+              Surname
+              <input name="surname" required />
+            </label>
+          </div>
+          <div className="row-2">
+            <label>
+              Title
+              <input name="title" placeholder="Mr" />
+            </label>
+            <label>
+              Initials
+              <input name="initials" />
+            </label>
+          </div>
+          <div className="row-2">
+            <label>
+              Email
+              <input name="email" type="email" />
+            </label>
+            <label>
+              Mobile
+              <input name="mobile" />
+            </label>
+          </div>
+          <label>
+            Home phone
+            <input name="home_phone" />
+          </label>
+          <label>
+            Address
+            <input name="address" />
+          </label>
+          <div className="row-2">
+            <label>
+              Address 2
+              <input name="address2" />
+            </label>
+            <label>
+              Address 3
+              <input name="address3" />
+            </label>
+          </div>
+          <div className="row-2">
+            <label>
+              City
+              <input name="city" />
+            </label>
+            <label>
+              County
+              <input name="county" />
+            </label>
+          </div>
+          <div className="row-2">
+            <label>
+              Postcode
+              <input name="postcode" />
+            </label>
+            <label>
+              Country
+              <input name="country" />
+            </label>
+          </div>
+          <div className="row-2">
+            <label>
+              Activity
+              <input name="activity" placeholder="Founder / Joined" />
             </label>
             <label>
               Notes
@@ -131,48 +213,76 @@ export default async function AdminLodgeMembershipPage({
             <input name="active" type="checkbox" defaultChecked />
             Active on roster
           </label>
-          <button type="submit">Add to roster</button>
+          <button type="submit">Add member</button>
         </AdminNavForm>
 
-        <table className="admin-table" style={{ marginTop: 18 }}>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>No.</th>
-              <th>Status</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {roster.map((member) => (
-              <tr key={member.id}>
-                <td>{member.full_name}</td>
-                <td>{member.email}</td>
-                <td>{member.membership_no || "—"}</td>
-                <td>
-                  <span className={`pill ${member.active ? "ok" : "draft"}`}>
-                    {member.active ? "Active" : "Inactive"}
-                  </span>
-                </td>
-                <td>
-                  <form action={deleteRosterMemberAction}>
-                    <input type="hidden" name="id" value={member.id} />
-                    <input type="hidden" name="lodge_slug" value={slug} />
-                    <button className="danger" type="submit">
-                      Delete
-                    </button>
-                  </form>
-                </td>
-              </tr>
-            ))}
-            {roster.length === 0 ? (
+        <div style={{ overflowX: "auto", marginTop: 18 }}>
+          <table className="admin-table">
+            <thead>
               <tr>
-                <td colSpan={5}>No roster members yet.</td>
+                <th>BrotherNo</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Mobile</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>Activity</th>
+                <th>Status</th>
+                <th />
               </tr>
-            ) : null}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {roster.map((member) => {
+                const address = [member.address, member.address2, member.postcode].filter(Boolean).join(", ");
+                return (
+                  <tr key={member.id}>
+                    <td>{member.brother_no || member.membership_no || "—"}</td>
+                    <td>
+                      <strong>
+                        {[member.prefix, member.full_name].filter(Boolean).join(" ")}
+                      </strong>
+                      {member.title || member.initials ? (
+                        <div>
+                          {[member.title, member.initials].filter(Boolean).join(" · ")}
+                        </div>
+                      ) : null}
+                    </td>
+                    <td>{member.email || "—"}</td>
+                    <td>{member.mobile || member.home_phone || "—"}</td>
+                    <td>{address || "—"}</td>
+                    <td>
+                      {[member.city, member.county, member.country].filter(Boolean).join(", ") || "—"}
+                    </td>
+                    <td>{member.activity || "—"}</td>
+                    <td>
+                      <span className={`pill ${member.active ? "ok" : "draft"}`}>
+                        {member.active ? "Active" : "Ended"}
+                      </span>
+                    </td>
+                    <td>
+                      <form action={deleteRosterMemberAction}>
+                        <input type="hidden" name="id" value={member.id} />
+                        <input type="hidden" name="lodge_slug" value={slug} />
+                        <button className="danger" type="submit">
+                          Delete
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                );
+              })}
+              {roster.length === 0 ? (
+                <tr>
+                  <td colSpan={9}>
+                    {isFwb
+                      ? "No roster loaded yet — click “Re-import FWB Excel roster”."
+                      : "No roster members yet."}
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section className="admin-card">
@@ -193,6 +303,7 @@ export default async function AdminLodgeMembershipPage({
                 <td>
                   <strong>{item.full_name}</strong>
                   <div>{item.email}</div>
+                  {item.membership_no ? <div>No. {item.membership_no}</div> : null}
                 </td>
                 <td>{item.plan || "—"}</td>
                 <td>

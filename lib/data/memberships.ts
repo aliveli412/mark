@@ -1,3 +1,5 @@
+import { readFileSync, existsSync } from "fs";
+import path from "path";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 import type {
@@ -8,6 +10,8 @@ import type {
 } from "@/lib/types";
 import { markSites } from "@/lib/mark-sites";
 
+export const FWB_LODGE_SLUG = "freemasons-without-borders";
+
 function id(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -16,7 +20,46 @@ function accessCode() {
   return Math.random().toString(16).slice(2, 8) + Math.random().toString(16).slice(2, 6);
 }
 
+function emptyRosterFields(): Omit<LodgeRosterMember, "id" | "lodge_slug" | "full_name" | "email" | "active" | "created_at"> {
+  return {
+    brother_no: "",
+    surname: "",
+    given_names: "",
+    prefix: "",
+    initials: "",
+    title: "",
+    suffix: "",
+    home_phone: "",
+    mobile: "",
+    postcode: "",
+    address: "",
+    address2: "",
+    address3: "",
+    city: "",
+    county: "",
+    country: "",
+    start_date: null,
+    end_date: null,
+    grand_rank: "",
+    prov_rank: "",
+    unit_rank: "",
+    grand_rank_id: "",
+    prov_rank_id: "",
+    unit_rank_id: "",
+    unit_rank_start: null,
+    prov_rank_start: null,
+    grand_rank_start: null,
+    unit_prefix: "",
+    prov_prefix: "",
+    grand_prefix: "",
+    activity: "",
+    membership_no: "",
+    notes: "",
+  };
+}
+
 function defaultSettings(slug: string): LodgeMembershipSettings {
+  const pilot = slug === FWB_LODGE_SLUG;
   return {
     lodge_slug: slug,
     monthly_pence: 1500,
@@ -28,8 +71,63 @@ function defaultSettings(slug: string): LodgeMembershipSettings {
     bank_sort_code: "",
     bank_account_number: "",
     bank_reference_hint: "",
+    is_pilot: pilot,
+    roster_source: pilot ? "As of 06-06-2022.xlsx" : "",
     active: true,
   };
+}
+
+function loadFwbSeedMembers(): LodgeRosterMember[] {
+  const filePath = path.join(process.cwd(), "content", "memberships", "fwb-roster.json");
+  if (!existsSync(filePath)) return [];
+  const payload = JSON.parse(readFileSync(filePath, "utf8")) as {
+    members: Array<Record<string, unknown>>;
+  };
+  return (payload.members ?? []).map((member, index) => {
+    const brotherNo = String(member.brother_no ?? "");
+    return {
+      ...emptyRosterFields(),
+      id: `fwb-${brotherNo || index}`,
+      lodge_slug: FWB_LODGE_SLUG,
+      brother_no: brotherNo,
+      surname: String(member.surname ?? ""),
+      given_names: String(member.given_names ?? ""),
+      prefix: String(member.prefix ?? ""),
+      initials: String(member.initials ?? ""),
+      title: String(member.title ?? ""),
+      suffix: String(member.suffix ?? ""),
+      full_name: String(member.full_name ?? ""),
+      home_phone: String(member.home_phone ?? ""),
+      mobile: String(member.mobile ?? ""),
+      postcode: String(member.postcode ?? ""),
+      address: String(member.address ?? ""),
+      address2: String(member.address2 ?? ""),
+      address3: String(member.address3 ?? ""),
+      city: String(member.city ?? ""),
+      county: String(member.county ?? ""),
+      email: String(member.email ?? "").toLowerCase(),
+      country: String(member.country ?? ""),
+      start_date: (member.start_date as string | null) ?? null,
+      end_date: (member.end_date as string | null) ?? null,
+      grand_rank: String(member.grand_rank ?? ""),
+      prov_rank: String(member.prov_rank ?? ""),
+      unit_rank: String(member.unit_rank ?? ""),
+      grand_rank_id: String(member.grand_rank_id ?? ""),
+      prov_rank_id: String(member.prov_rank_id ?? ""),
+      unit_rank_id: String(member.unit_rank_id ?? ""),
+      unit_rank_start: (member.unit_rank_start as string | null) ?? null,
+      prov_rank_start: (member.prov_rank_start as string | null) ?? null,
+      grand_rank_start: (member.grand_rank_start as string | null) ?? null,
+      unit_prefix: String(member.unit_prefix ?? ""),
+      prov_prefix: String(member.prov_prefix ?? ""),
+      grand_prefix: String(member.grand_prefix ?? ""),
+      activity: String(member.activity ?? ""),
+      membership_no: brotherNo,
+      notes: String(member.activity ?? ""),
+      active: Boolean(member.active ?? true),
+      created_at: new Date().toISOString(),
+    };
+  });
 }
 
 type MockState = {
@@ -44,18 +142,7 @@ function mock(): MockState {
   if (!g.__mmmMembershipMock) {
     g.__mmmMembershipMock = {
       settings: markSites.map((site) => defaultSettings(site.slug)),
-      roster: [
-        {
-          id: "roster-demo-1",
-          lodge_slug: "gallipoli",
-          full_name: "Demo Brother",
-          email: "demo@example.com",
-          membership_no: "G-1001",
-          notes: "Sample roster row for local testing",
-          active: true,
-          created_at: new Date().toISOString(),
-        },
-      ],
+      roster: loadFwbSeedMembers(),
       memberships: [],
     };
   }
@@ -124,26 +211,74 @@ export async function listRoster(lodgeSlug: string) {
   return (data ?? []) as LodgeRosterMember[];
 }
 
-export async function upsertRosterMember(input: {
+export type RosterUpsertInput = {
   id?: string;
   lodge_slug: string;
   full_name: string;
-  email: string;
+  email?: string;
   membership_no?: string;
+  brother_no?: string;
+  surname?: string;
+  given_names?: string;
+  prefix?: string;
+  initials?: string;
+  title?: string;
+  suffix?: string;
+  home_phone?: string;
+  mobile?: string;
+  postcode?: string;
+  address?: string;
+  address2?: string;
+  address3?: string;
+  city?: string;
+  county?: string;
+  country?: string;
+  start_date?: string | null;
+  end_date?: string | null;
+  grand_rank?: string;
+  prov_rank?: string;
+  unit_rank?: string;
+  activity?: string;
   notes?: string;
   active?: boolean;
-}) {
+};
+
+export async function upsertRosterMember(input: RosterUpsertInput) {
+  const brotherNo = (input.brother_no ?? input.membership_no ?? "").trim();
   const payload = {
+    ...emptyRosterFields(),
     lodge_slug: input.lodge_slug,
+    brother_no: brotherNo,
+    surname: (input.surname ?? "").trim(),
+    given_names: (input.given_names ?? "").trim(),
+    prefix: (input.prefix ?? "").trim(),
+    initials: (input.initials ?? "").trim(),
+    title: (input.title ?? "").trim(),
+    suffix: (input.suffix ?? "").trim(),
     full_name: input.full_name.trim(),
-    email: input.email.trim().toLowerCase(),
-    membership_no: (input.membership_no ?? "").trim(),
+    home_phone: (input.home_phone ?? "").trim(),
+    mobile: (input.mobile ?? "").trim(),
+    postcode: (input.postcode ?? "").trim(),
+    address: (input.address ?? "").trim(),
+    address2: (input.address2 ?? "").trim(),
+    address3: (input.address3 ?? "").trim(),
+    city: (input.city ?? "").trim(),
+    county: (input.county ?? "").trim(),
+    email: (input.email ?? "").trim().toLowerCase(),
+    country: (input.country ?? "").trim(),
+    start_date: input.start_date || null,
+    end_date: input.end_date || null,
+    grand_rank: (input.grand_rank ?? "").trim(),
+    prov_rank: (input.prov_rank ?? "").trim(),
+    unit_rank: (input.unit_rank ?? "").trim(),
+    activity: (input.activity ?? "").trim(),
+    membership_no: brotherNo || (input.membership_no ?? "").trim(),
     notes: (input.notes ?? "").trim(),
     active: input.active ?? true,
     updated_at: new Date().toISOString(),
   };
-  if (!payload.full_name || !payload.email.includes("@")) {
-    return { error: "Name and a valid email are required." };
+  if (!payload.full_name) {
+    return { error: "Name is required." };
   }
 
   if (!usingLive()) {
@@ -192,14 +327,69 @@ export async function findRosterMatch(lodgeSlug: string, email: string, membersh
   const needle = email.trim().toLowerCase();
   const no = (membershipNo ?? "").trim().toLowerCase();
   const roster = await listRoster(lodgeSlug);
-  return (
-    roster.find(
-      (item) =>
-        item.active &&
-        item.email.toLowerCase() === needle &&
-        (!no || !item.membership_no || item.membership_no.toLowerCase() === no),
-    ) ?? null
-  );
+  const active = roster.filter((item) => item.active);
+
+  if (no) {
+    const byBrother = active.find(
+      (item) => item.brother_no.toLowerCase() === no || item.membership_no.toLowerCase() === no,
+    );
+    if (byBrother) {
+      if (needle && byBrother.email && byBrother.email.toLowerCase() !== needle) {
+        // Brother number wins, but email mismatch is still a match for pilot activation.
+        return byBrother;
+      }
+      return byBrother;
+    }
+  }
+
+  if (!needle) return null;
+  const emailMatches = active.filter((item) => item.email && item.email.toLowerCase() === needle);
+  if (emailMatches.length === 1) return emailMatches[0];
+  if (emailMatches.length > 1) {
+    // Ambiguous email — require brother number.
+    return null;
+  }
+  return null;
+}
+
+export async function importFwbRosterSeed() {
+  const seed = loadFwbSeedMembers();
+  if (!seed.length) return { error: "FWB roster seed file is missing.", count: 0 };
+
+  if (!usingLive()) {
+    const store = mock();
+    store.roster = [
+      ...store.roster.filter((item) => item.lodge_slug !== FWB_LODGE_SLUG),
+      ...seed,
+    ];
+    const settings = store.settings.find((item) => item.lodge_slug === FWB_LODGE_SLUG);
+    if (settings) {
+      settings.is_pilot = true;
+      settings.roster_source = "As of 06-06-2022.xlsx";
+      settings.active = true;
+    }
+    return { ok: true as const, count: seed.length };
+  }
+
+  const supabase = createSupabaseAdminClient()!;
+  await supabase.from("lodge_member_roster").delete().eq("lodge_slug", FWB_LODGE_SLUG);
+
+  const chunkSize = 50;
+  for (let i = 0; i < seed.length; i += chunkSize) {
+    const chunk = seed.slice(i, i + chunkSize).map(({ id: _id, created_at: _c, ...rest }) => rest);
+    const { error } = await supabase.from("lodge_member_roster").insert(chunk);
+    if (error) return { error: error.message, count: i };
+  }
+
+  await supabase.from("lodge_membership_settings").upsert({
+    ...defaultSettings(FWB_LODGE_SLUG),
+    is_pilot: true,
+    roster_source: "As of 06-06-2022.xlsx",
+    active: true,
+    updated_at: new Date().toISOString(),
+  });
+
+  return { ok: true as const, count: seed.length };
 }
 
 export async function listMemberships(lodgeSlug: string) {

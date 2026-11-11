@@ -164,8 +164,12 @@ export function MembershipPanel({
               <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
             </label>
             <label>
-              Membership no. <span className="optional">(optional)</span>
-              <input value={membershipNo} onChange={(event) => setMembershipNo(event.target.value)} />
+              BrotherNo / membership no. <span className="optional">(recommended)</span>
+              <input
+                value={membershipNo}
+                onChange={(event) => setMembershipNo(event.target.value)}
+                placeholder="From lodge records"
+              />
             </label>
             <button className="btn" type="button" disabled={pending || !fullName || !email} onClick={register}>
               {pending ? "Checking…" : "Check membership list"}

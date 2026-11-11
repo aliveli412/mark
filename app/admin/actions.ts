@@ -308,7 +308,8 @@ export async function saveMembershipSettingsAction(
   const lodgeSlug = String(formData.get("lodge_slug") ?? "").trim();
   if (!lodgeSlug) return { error: "Lodge is required." };
 
-  const { saveMembershipSettings } = await import("@/lib/data/memberships");
+  const { getMembershipSettings, saveMembershipSettings } = await import("@/lib/data/memberships");
+  const current = await getMembershipSettings(lodgeSlug);
   const result = await saveMembershipSettings({
     lodge_slug: lodgeSlug,
     monthly_pence: Math.round(Number(formData.get("monthly") ?? 0) * 100),
@@ -320,6 +321,8 @@ export async function saveMembershipSettingsAction(
     bank_sort_code: String(formData.get("bank_sort_code") ?? "").trim(),
     bank_account_number: String(formData.get("bank_account_number") ?? "").trim(),
     bank_reference_hint: String(formData.get("bank_reference_hint") ?? "").trim(),
+    is_pilot: current.is_pilot ?? false,
+    roster_source: current.roster_source ?? "",
     active: formData.get("active") === "on",
   });
   if (result.error) return { error: result.error };
@@ -334,19 +337,53 @@ export async function saveRosterMemberAction(
   const session = await requireAdmin();
   if (!session) return { error: "Not authorized.", next: "/admin/login" };
   const lodgeSlug = String(formData.get("lodge_slug") ?? "").trim();
+  const given = String(formData.get("given_names") ?? "").trim();
+  const surname = String(formData.get("surname") ?? "").trim();
+  const fullName =
+    String(formData.get("full_name") ?? "").trim() ||
+    [given, surname].filter(Boolean).join(" ");
   const { upsertRosterMember } = await import("@/lib/data/memberships");
   const result = await upsertRosterMember({
     id: String(formData.get("id") ?? "") || undefined,
     lodge_slug: lodgeSlug,
-    full_name: String(formData.get("full_name") ?? ""),
+    full_name: fullName,
     email: String(formData.get("email") ?? ""),
-    membership_no: String(formData.get("membership_no") ?? ""),
+    membership_no: String(formData.get("brother_no") ?? formData.get("membership_no") ?? ""),
+    brother_no: String(formData.get("brother_no") ?? ""),
+    surname,
+    given_names: given,
+    prefix: String(formData.get("prefix") ?? ""),
+    initials: String(formData.get("initials") ?? ""),
+    title: String(formData.get("title") ?? ""),
+    suffix: String(formData.get("suffix") ?? ""),
+    home_phone: String(formData.get("home_phone") ?? ""),
+    mobile: String(formData.get("mobile") ?? ""),
+    postcode: String(formData.get("postcode") ?? ""),
+    address: String(formData.get("address") ?? ""),
+    address2: String(formData.get("address2") ?? ""),
+    address3: String(formData.get("address3") ?? ""),
+    city: String(formData.get("city") ?? ""),
+    county: String(formData.get("county") ?? ""),
+    country: String(formData.get("country") ?? ""),
+    activity: String(formData.get("activity") ?? ""),
     notes: String(formData.get("notes") ?? ""),
     active: formData.get("active") === "on",
   });
   if (result.error) return { error: result.error };
   revalidatePath(`/admin/memberships/${lodgeSlug}`);
   return { next: `/admin/memberships/${lodgeSlug}` };
+}
+
+export async function importFwbRosterAction(): Promise<{ error?: string; next?: string }> {
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized.", next: "/admin/login" };
+  const { importFwbRosterSeed, FWB_LODGE_SLUG } = await import("@/lib/data/memberships");
+  const result = await importFwbRosterSeed();
+  if (result.error) return { error: result.error };
+  revalidatePath(`/admin/memberships/${FWB_LODGE_SLUG}`);
+  revalidatePath("/admin/memberships");
+  revalidatePath(`/sites/${FWB_LODGE_SLUG}/membership`);
+  return { next: `/admin/memberships/${FWB_LODGE_SLUG}` };
 }
 
 export async function deleteRosterMemberAction(formData: FormData) {

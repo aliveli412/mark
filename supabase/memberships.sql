@@ -12,6 +12,8 @@ create table if not exists public.lodge_membership_settings (
   bank_sort_code text not null default '',
   bank_account_number text not null default '',
   bank_reference_hint text not null default '',
+  is_pilot boolean not null default false,
+  roster_source text not null default '',
   active boolean not null default true,
   updated_at timestamptz not null default now()
 );
@@ -19,8 +21,39 @@ create table if not exists public.lodge_membership_settings (
 create table if not exists public.lodge_member_roster (
   id uuid primary key default gen_random_uuid(),
   lodge_slug text not null,
+  brother_no text not null default '',
+  surname text not null default '',
+  given_names text not null default '',
+  prefix text not null default '',
+  initials text not null default '',
+  title text not null default '',
+  suffix text not null default '',
   full_name text not null,
-  email text not null,
+  home_phone text not null default '',
+  mobile text not null default '',
+  postcode text not null default '',
+  address text not null default '',
+  address2 text not null default '',
+  address3 text not null default '',
+  city text not null default '',
+  county text not null default '',
+  email text not null default '',
+  country text not null default '',
+  start_date date,
+  end_date date,
+  grand_rank text not null default '',
+  prov_rank text not null default '',
+  unit_rank text not null default '',
+  grand_rank_id text not null default '',
+  prov_rank_id text not null default '',
+  unit_rank_id text not null default '',
+  unit_rank_start date,
+  prov_rank_start date,
+  grand_rank_start date,
+  unit_prefix text not null default '',
+  prov_prefix text not null default '',
+  grand_prefix text not null default '',
+  activity text not null default '',
   membership_no text not null default '',
   notes text not null default '',
   active boolean not null default true,
@@ -28,7 +61,10 @@ create table if not exists public.lodge_member_roster (
   updated_at timestamptz not null default now()
 );
 
-create unique index if not exists lodge_member_roster_slug_email_idx
+create unique index if not exists lodge_member_roster_slug_brother_idx
+  on public.lodge_member_roster (lodge_slug, brother_no)
+  where brother_no <> '';
+create index if not exists lodge_member_roster_slug_email_idx
   on public.lodge_member_roster (lodge_slug, lower(email));
 create index if not exists lodge_member_roster_slug_idx
   on public.lodge_member_roster (lodge_slug);
@@ -82,15 +118,17 @@ create policy "Admins manage lodge memberships" on public.lodge_memberships
   for all using (public.is_admin()) with check (public.is_admin());
 
 -- Seed default plans for known Mark Sites (safe upsert).
-insert into public.lodge_membership_settings (lodge_slug, monthly_pence, yearly_pence, standing_order_pence)
+insert into public.lodge_membership_settings (
+  lodge_slug, monthly_pence, yearly_pence, standing_order_pence, is_pilot, roster_source
+)
 values
-  ('gallipoli', 1500, 15000, 1500),
-  ('namik-kemal', 1500, 15000, 1500),
-  ('anadolu', 1500, 15000, 1500),
-  ('freemasons-without-borders', 1500, 15000, 1500),
-  ('ata', 1500, 15000, 1500),
-  ('khalsa', 1500, 15000, 1500),
-  ('mark-enterprise', 1500, 15000, 1500),
-  ('phoenix', 1500, 15000, 1500),
-  ('roentgen', 1500, 15000, 1500)
+  ('gallipoli', 1500, 15000, 1500, false, ''),
+  ('namik-kemal', 1500, 15000, 1500, false, ''),
+  ('anadolu', 1500, 15000, 1500, false, ''),
+  ('freemasons-without-borders', 1500, 15000, 1500, true, 'As of 06-06-2022.xlsx'),
+  ('ata', 1500, 15000, 1500, false, ''),
+  ('khalsa', 1500, 15000, 1500, false, ''),
+  ('mark-enterprise', 1500, 15000, 1500, false, ''),
+  ('phoenix', 1500, 15000, 1500, false, ''),
+  ('roentgen', 1500, 15000, 1500, false, '')
 on conflict (lodge_slug) do nothing;
