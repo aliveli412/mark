@@ -61,7 +61,8 @@ Pilot lodge: **Freemasons Without Borders** (`/sites/freemasons-without-borders/
 2. Seed FWB roster either by running `supabase/seed-fwb-roster.sql` **or** Admin → Memberships → FWB → **Re-import FWB Excel roster**.
 3. Source Excel is stored at `content/memberships/source/As_of_06-06-2022.xlsx` (fields BrotherNo → Activity).
 4. Set monthly/yearly/standing-order prices on the FWB membership admin page.
-5. Members sign in on `/sites/[slug]/membership` (email + access code) to see paid / outstanding by year.
+5. Members sign in on `/sites/[slug]/membership` (email + access code `111111` on local) to see paid / outstanding by year.
+   Roster emails (e.g. from Excel) can sign in directly with `111111` — a membership row is created automatically.
 6. Superadmin can record past-year bank/cash payments under Admin → Memberships → lodge → **Record past / manual payments**.
 7. Keep `STRIPE_SECRET_KEY` / webhook configured so card activations also write payment rows.
 

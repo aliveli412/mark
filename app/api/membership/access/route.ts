@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getMembershipByAccess, getMembershipDashboard } from "@/lib/data/memberships";
+import { getMembershipDashboard, signInWithMembershipAccess } from "@/lib/data/memberships";
 import { setMemberSession } from "@/lib/member-session";
 import { getMarkSite } from "@/lib/mark-sites";
 
@@ -20,11 +20,15 @@ export async function POST(request: Request) {
 
   const email = String(body.email ?? "");
   const accessCode = String(body.access_code ?? "");
-  const membership = await getMembershipByAccess(lodgeSlug, email, accessCode);
-  if (!membership) {
-    return NextResponse.json({ error: "No membership found for that email and access code." }, { status: 404 });
+  const result = await signInWithMembershipAccess(lodgeSlug, email, accessCode);
+  if (result.error || !result.membership) {
+    return NextResponse.json(
+      { error: result.error || "No membership found for that email and access code." },
+      { status: 404 },
+    );
   }
 
+  const membership = result.membership;
   await setMemberSession({
     lodgeSlug,
     membershipId: membership.id,
@@ -34,7 +38,7 @@ export async function POST(request: Request) {
 
   const dashboard = await getMembershipDashboard(membership.id);
   if ("error" in dashboard) {
-    return NextResponse.json({ membership, roster: null });
+    return NextResponse.json({ membership, roster: result.roster ?? null, created: result.created });
   }
-  return NextResponse.json(dashboard);
+  return NextResponse.json({ ...dashboard, created: result.created });
 }

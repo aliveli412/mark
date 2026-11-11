@@ -531,6 +531,51 @@ export async function getMembershipByAccess(lodgeSlug: string, email: string, ac
   return (data as LodgeMembership | null) ?? null;
 }
 
+/**
+ * Sign in with email + access code.
+ * Local/dev (`111111`): if the email is on the lodge roster but has no membership yet,
+ * create the membership automatically so roster members can open the dashboard.
+ */
+export async function signInWithMembershipAccess(lodgeSlug: string, email: string, accessCodeValue: string) {
+  const needle = email.trim().toLowerCase();
+  const code = accessCodeValue.trim();
+  if (!needle.includes("@")) return { error: "Enter a valid email." };
+
+  let membership = await getMembershipByAccess(lodgeSlug, needle, code);
+  if (membership) {
+    const roster = await getMembershipRoster(membership);
+    return { membership, roster, created: false };
+  }
+
+  const allowFixed = useFixedMembershipAccessCode() && code === fixedAccessCode();
+  if (!allowFixed) {
+    return { error: "No membership found for that email and access code." };
+  }
+
+  const rosterMatch = await findRosterMatch(lodgeSlug, needle);
+  if (!rosterMatch) {
+    return {
+      error:
+        "That email is not on this lodge roster yet. Import the Excel roster in Admin, or register with BrotherNo.",
+    };
+  }
+
+  const registered = await registerMembership({
+    lodge_slug: lodgeSlug,
+    full_name: rosterMatch.full_name,
+    email: needle,
+    membership_no: rosterMatch.brother_no || rosterMatch.membership_no,
+  });
+  if (registered.error || !registered.membership) {
+    return { error: registered.error || "Could not open membership for that roster email." };
+  }
+  return {
+    membership: registered.membership,
+    roster: registered.roster ?? rosterMatch,
+    created: true,
+  };
+}
+
 export async function registerMembership(input: {
   lodge_slug: string;
   full_name: string;
