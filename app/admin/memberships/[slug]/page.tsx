@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  deleteRosterMemberAction,
   importFwbRosterAction,
   importRosterExcelAction,
   saveMembershipSettingsAction,
@@ -10,6 +9,7 @@ import {
 } from "@/app/admin/actions";
 import { AdminNavForm } from "@/components/admin/AdminNavForm";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { RosterMembersTable } from "@/components/admin/RosterMembersTable";
 import { adminGate } from "@/lib/admin/gate";
 import {
   FWB_LODGE_SLUG,
@@ -237,80 +237,16 @@ export default async function AdminLodgeMembershipPage({
           <button type="submit">Add member</button>
         </AdminNavForm>
 
-        <div style={{ overflowX: "auto", marginTop: 18 }}>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>BrotherNo</th>
-                <th>Name</th>
-                <th>Contact</th>
-                <th>Address</th>
-                <th>Ranks</th>
-                <th>Dates / activity</th>
-                <th>Status</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {roster.map((member) => {
-                const address = [member.address, member.address2, member.address3, member.city, member.county, member.postcode, member.country]
-                  .filter(Boolean)
-                  .join(", ");
-                const ranks = [
-                  member.unit_rank ? `Unit: ${member.unit_rank}` : null,
-                  member.prov_rank ? `Prov: ${member.prov_rank}` : null,
-                  member.grand_rank ? `Grand: ${member.grand_rank}` : null,
-                ].filter(Boolean);
-                return (
-                  <tr key={member.id}>
-                    <td>{member.brother_no || member.membership_no || "—"}</td>
-                    <td>
-                      <strong>
-                        {[member.prefix, member.full_name].filter(Boolean).join(" ")}
-                      </strong>
-                      <div>
-                        {[member.title, member.initials, member.suffix].filter(Boolean).join(" · ") || "—"}
-                      </div>
-                    </td>
-                    <td>
-                      <div>{member.email || "—"}</div>
-                      <div>{member.mobile ? `M: ${member.mobile}` : "—"}</div>
-                      <div>{member.home_phone ? `H: ${member.home_phone}` : ""}</div>
-                    </td>
-                    <td>{address || "—"}</td>
-                    <td>{ranks.length ? ranks.map((line) => <div key={line}>{line}</div>) : "—"}</td>
-                    <td>
-                      <div>{member.start_date || "—"}{member.end_date ? ` → ${member.end_date}` : ""}</div>
-                      <div>{member.activity || "—"}</div>
-                    </td>
-                    <td>
-                      <span className={`pill ${member.active ? "ok" : "draft"}`}>
-                        {member.active ? "Active" : "Ended"}
-                      </span>
-                    </td>
-                    <td>
-                      <form action={deleteRosterMemberAction}>
-                        <input type="hidden" name="id" value={member.id} />
-                        <input type="hidden" name="lodge_slug" value={slug} />
-                        <button className="danger" type="submit">
-                          Delete
-                        </button>
-                      </form>
-                    </td>
-                  </tr>
-                );
-              })}
-              {roster.length === 0 ? (
-                <tr>
-                  <td colSpan={8}>
-                    {isFwb
-                      ? "No roster loaded yet — click “Re-import bundled FWB Excel” or upload the lodge file."
-                      : "No roster members yet."}
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
+        <div style={{ marginTop: 18 }}>
+          <RosterMembersTable
+            lodgeSlug={slug}
+            roster={roster}
+            emptyHint={
+              isFwb
+                ? "No roster loaded yet — click “Re-import bundled FWB Excel” or upload the lodge file."
+                : "No roster members yet."
+            }
+          />
         </div>
       </section>
 

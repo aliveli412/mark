@@ -113,8 +113,71 @@
 }
 .login-card h1 { margin: 0 0 8px; color: #171a36; }
 .login-card p { margin-top: 0; color: #666; }
+.roster-table-toolbar {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.roster-table-toolbar label {
+  display: grid;
+  gap: 6px;
+  max-width: 420px;
+  font-weight: 700;
+}
+.roster-table-toolbar input {
+  min-height: 40px;
+  border: 1px solid #d7dbe8;
+  border-radius: 8px;
+  padding: 0 12px;
+}
+.roster-detail-row td {
+  background: #f7f8fc;
+  padding: 0 !important;
+}
+.roster-detail {
+  padding: 16px 18px 18px;
+}
+.roster-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px 20px;
+}
+.roster-detail h4 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5b6280;
+}
+.roster-detail section h4 + h4,
+.roster-detail section dl + h4 {
+  margin-top: 16px;
+}
+.roster-detail-field {
+  display: grid;
+  grid-template-columns: 118px 1fr;
+  gap: 4px 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid #e8ebf4;
+}
+.roster-detail-field dt {
+  margin: 0;
+  color: #6b728a;
+  font-size: 12px;
+}
+.roster-detail-field dd {
+  margin: 0;
+  font-weight: 600;
+  color: #1f243a;
+  word-break: break-word;
+}
+@media (max-width: 1100px) {
+  .roster-detail-grid { grid-template-columns: 1fr 1fr; }
+}
 @media (max-width: 900px) {
   .admin-shell { grid-template-columns: 1fr; }
   .admin-side { flex-direction: row; flex-wrap: wrap; align-items: center; }
   .admin-grid { grid-template-columns: 1fr; }
+  .roster-detail-grid { grid-template-columns: 1fr; }
+  .roster-detail-field { grid-template-columns: 1fr; }
 }
