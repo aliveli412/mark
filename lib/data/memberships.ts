@@ -20,7 +20,24 @@ function id(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+/** Temporary local/dev access code for every member. Override with MEMBERSHIP_DEV_ACCESS_CODE. */
+export const LOCAL_MEMBERSHIP_ACCESS_CODE = "111111";
+
+export function useFixedMembershipAccessCode() {
+  if (process.env.MEMBERSHIP_DEV_ACCESS_CODE?.trim()) return true;
+  if (process.env.NODE_ENV !== "production") return true;
+  const site = (process.env.SITE_URL || "").toLowerCase();
+  if (site.includes("localhost") || site.includes("127.0.0.1")) return true;
+  // Mock store (no Supabase) always uses the shared local code.
+  return !usingLive();
+}
+
+function fixedAccessCode() {
+  return (process.env.MEMBERSHIP_DEV_ACCESS_CODE || LOCAL_MEMBERSHIP_ACCESS_CODE).trim() || LOCAL_MEMBERSHIP_ACCESS_CODE;
+}
+
 function accessCode() {
+  if (useFixedMembershipAccessCode()) return fixedAccessCode();
   return Math.random().toString(16).slice(2, 8) + Math.random().toString(16).slice(2, 6);
 }
 
@@ -478,20 +495,32 @@ export async function getMembershipRoster(membership: LodgeMembership) {
   return findRosterMatch(membership.lodge_slug, membership.email, membership.membership_no);
 }
 
-export async function getMembershipByAccess(lodgeSlug: string, email: string, accessCode: string) {
+export async function getMembershipByAccess(lodgeSlug: string, email: string, accessCodeValue: string) {
   const needle = email.trim().toLowerCase();
-  const code = accessCode.trim().toLowerCase();
+  const code = accessCodeValue.trim().toLowerCase();
+  const allowFixed = useFixedMembershipAccessCode() && code === fixedAccessCode().toLowerCase();
+
   if (!usingLive()) {
     return (
-      mock().memberships.find(
-        (item) =>
-          item.lodge_slug === lodgeSlug &&
-          item.email.toLowerCase() === needle &&
-          item.access_code.toLowerCase() === code,
-      ) ?? null
+      mock().memberships.find((item) => {
+        if (item.lodge_slug !== lodgeSlug || item.email.toLowerCase() !== needle) return false;
+        if (allowFixed) return true;
+        return item.access_code.toLowerCase() === code;
+      }) ?? null
     );
   }
+
   const supabase = createSupabaseAdminClient()!;
+  if (allowFixed) {
+    const { data } = await supabase
+      .from("lodge_memberships")
+      .select("*")
+      .eq("lodge_slug", lodgeSlug)
+      .ilike("email", needle)
+      .maybeSingle();
+    return (data as LodgeMembership | null) ?? null;
+  }
+
   const { data } = await supabase
     .from("lodge_memberships")
     .select("*")
@@ -538,7 +567,12 @@ export async function registerMembership(input: {
       (item) => item.lodge_slug === input.lodge_slug && item.email.toLowerCase() === email,
     );
     if (existing) {
-      Object.assign(existing, payload, { id: existing.id, created_at: existing.created_at, access_code: existing.access_code });
+      Object.assign(existing, payload, {
+        id: existing.id,
+        created_at: existing.created_at,
+        // Local/dev: keep forcing the shared access code for every user.
+        access_code: useFixedMembershipAccessCode() ? payload.access_code : existing.access_code,
+      });
       return { membership: existing, matched: Boolean(match), roster: match ?? null };
     }
     const created: LodgeMembership = {
@@ -563,7 +597,9 @@ export async function registerMembership(input: {
       .from("lodge_memberships")
       .update({
         ...payload,
-        access_code: (existing as LodgeMembership).access_code,
+        access_code: useFixedMembershipAccessCode()
+          ? payload.access_code
+          : (existing as LodgeMembership).access_code,
       })
       .eq("id", (existing as LodgeMembership).id)
       .select("*")

@@ -11,6 +11,9 @@ import type {
   MembershipPlan,
 } from "@/lib/types";
 
+/** Temporary shared local access code — keep in sync with lib/data/memberships.ts */
+const LOCAL_ACCESS_CODE = "111111";
+
 type DashboardPayload = {
   membership: LodgeMembership;
   roster: LodgeRosterMember | null;
@@ -320,7 +323,7 @@ export function MembershipPanel({
   const [email, setEmail] = useState(initialMembership?.email ?? "");
   const [membershipNo, setMembershipNo] = useState(initialMembership?.membership_no ?? "");
   const [accessEmail, setAccessEmail] = useState("");
-  const [accessCode, setAccessCode] = useState("");
+  const [accessCode, setAccessCode] = useState(LOCAL_ACCESS_CODE);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [stripeReady, setStripeReady] = useState<boolean | null>(null);
@@ -495,7 +498,10 @@ export function MembershipPanel({
       {mode === "signin" ? (
         <section className="membership-card member-gate-card">
           <h2>Open your membership</h2>
-          <p>Use the email and access code from when you registered.</p>
+          <p>
+            Use your registered email. For local testing the access code is <code>{LOCAL_ACCESS_CODE}</code> for every
+            member.
+          </p>
           <label>
             Email
             <input type="email" value={accessEmail} onChange={(event) => setAccessEmail(event.target.value)} />
