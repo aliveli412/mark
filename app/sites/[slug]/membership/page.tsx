@@ -49,18 +49,24 @@ export default async function LodgeMembershipPage({
 
   const boot = initial && !("error" in initial) ? initial : null;
 
+  const signedIn = Boolean(boot?.membership);
+
   return (
-    <article className="lodge-page membership-page">
-      <h1>Membership</h1>
-      <p>
-        Sign in to see your lodge record, how much you have paid, and what remains for each year. First visit:
-        match with BrotherNo / email to create your access code.
-      </p>
-      <ul className="membership-price-list">
-        <li>Yearly dues: {formatPence(settings.yearly_pence)}</li>
-        <li>Monthly: {formatPence(settings.monthly_pence)}</li>
-        <li>Standing order: {formatPence(settings.standing_order_pence)} / month</li>
-      </ul>
+    <article className={`lodge-page membership-page${signedIn ? " membership-page-dash" : ""}`}>
+      {signedIn ? null : (
+        <>
+          <h1>Membership</h1>
+          <p>
+            Sign in to open your user dashboard: full lodge Excel record, dues paid / outstanding, and payment history.
+            Local access code: <code>111111</code>.
+          </p>
+          <ul className="membership-price-list">
+            <li>Yearly dues: {formatPence(settings.yearly_pence)}</li>
+            <li>Monthly: {formatPence(settings.monthly_pence)}</li>
+            <li>Standing order: {formatPence(settings.standing_order_pence)} / month</li>
+          </ul>
+        </>
+      )}
       {!settings.active ? <p className="error">Membership payments are currently paused for this lodge.</p> : null}
       <MembershipPanel
         lodgeSlug={slug}

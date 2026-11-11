@@ -29,9 +29,10 @@ export function LodgeShell({ site, children }: { site: MarkSite; children: React
   const [open, setOpen] = useState(false);
   const pageTitle = useMemo(() => titleFromPath(site, pathname), [site, pathname]);
   const isHome = pathname === lodgePath(site.slug) || pathname === `${lodgePath(site.slug)}/`;
+  const isMembership = pathname.includes("/membership");
 
   return (
-    <div className="lodge-site">
+    <div className={`lodge-site${isMembership ? " is-membership" : ""}`}>
       <header className="lodge-top">
         <div className="lodge-top-inner">
           <Link className="lodge-brand" href={lodgePath(site.slug)} onClick={() => setOpen(false)}>
@@ -110,36 +111,38 @@ export function LodgeShell({ site, children }: { site: MarkSite; children: React
         </div>
       </div>
 
-      <div className="wrap lodge-layout">
-        <aside className="lodge-side">
-          {site.nav.map((group) => (
-            <div key={group.slug}>
-              <Link
-                className={pathname.includes(`/${group.slug}`) ? "active" : undefined}
-                href={lodgePath(site.slug, group.slug, group.links[0]?.slug)}
-              >
-                {group.label}
+      <div className={`wrap lodge-layout${isMembership ? " lodge-layout-membership" : ""}`}>
+        {isMembership ? null : (
+          <aside className="lodge-side">
+            {site.nav.map((group) => (
+              <div key={group.slug}>
+                <Link
+                  className={pathname.includes(`/${group.slug}`) ? "active" : undefined}
+                  href={lodgePath(site.slug, group.slug, group.links[0]?.slug)}
+                >
+                  {group.label}
+                </Link>
+                <ul>
+                  {group.links.map((link) => (
+                    <li key={link.slug}>
+                      <Link
+                        className={pathname.endsWith(`/${link.slug}`) ? "active" : undefined}
+                        href={lodgePath(site.slug, group.slug, link.slug)}
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            <div>
+              <Link className={pathname.includes("/membership") ? "active" : undefined} href={lodgePath(site.slug, "membership")}>
+                Membership
               </Link>
-              <ul>
-                {group.links.map((link) => (
-                  <li key={link.slug}>
-                    <Link
-                      className={pathname.endsWith(`/${link.slug}`) ? "active" : undefined}
-                      href={lodgePath(site.slug, group.slug, link.slug)}
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
             </div>
-          ))}
-          <div>
-            <Link className={pathname.includes("/membership") ? "active" : undefined} href={lodgePath(site.slug, "membership")}>
-              Membership
-            </Link>
-          </div>
-        </aside>
+          </aside>
+        )}
         <div className="lodge-main">{children}</div>
       </div>
 

@@ -21,6 +21,8 @@ type DashboardPayload = {
   dues: MembershipDuesSummary;
 };
 
+type DashSection = "overview" | "record" | "dues";
+
 function display(value: string | null | undefined) {
   const text = (value ?? "").trim();
   return text || "—";
@@ -39,6 +41,15 @@ function statusLabel(status: string) {
 
 function YearStatus({ status }: { status: string }) {
   return <span className={`member-year-status status-${status}`}>{statusLabel(status)}</span>;
+}
+
+function Field({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div className="member-field">
+      <dt>{label}</dt>
+      <dd>{display(value)}</dd>
+    </div>
+  );
 }
 
 function MemberHome({
@@ -65,7 +76,7 @@ function MemberHome({
   onRefresh: () => void;
 }) {
   const { membership, roster, payments, dues } = data;
-  const [showProfile, setShowProfile] = useState(false);
+  const [section, setSection] = useState<DashSection>("overview");
   const title = roster ? [roster.prefix, roster.full_name].filter(Boolean).join(" ") : membership.full_name;
   const brotherNo = roster?.brother_no || membership.membership_no;
   const current = dues.years.find((row) => row.year === dues.current_year) ?? dues.years[0];
@@ -74,222 +85,325 @@ function MemberHome({
   const showBank =
     Boolean(settings.bank_account_number || settings.bank_sort_code) &&
     (membership.plan === "standing_order" || dues.total_remaining_pence > 0);
-
-  const address = useMemo(() => {
-    if (!roster) return [];
-    return [roster.address, roster.address2, roster.address3, [roster.city, roster.county].filter(Boolean).join(", "), roster.postcode, roster.country]
-      .map((line) => line.trim())
-      .filter(Boolean);
-  }, [roster]);
+  const initials = useMemo(() => {
+    const parts = (roster?.full_name || membership.full_name).split(/\s+/).filter(Boolean);
+    return ((parts[0]?.[0] || "") + (parts[parts.length - 1]?.[0] || "")).toUpperCase() || "M";
+  }, [roster, membership.full_name]);
 
   return (
-    <div className="member-home">
-      <header className="member-home-hero">
-        <div>
-          <p className="member-home-kicker">Member dashboard</p>
-          <h2>{title}</h2>
-          <p className="member-home-meta">
-            {brotherNo ? <span>BrotherNo {brotherNo}</span> : null}
-            {roster?.activity ? <span>{roster.activity}</span> : null}
-            <span className="capitalize">{statusLabel(membership.status)}</span>
-          </p>
-        </div>
-        <div className="member-home-tools">
-          <button type="button" className="member-text-btn" onClick={onRefresh}>
-            Refresh
-          </button>
-          <button type="button" className="member-text-btn" onClick={onSignOut}>
-            Sign out
-          </button>
-        </div>
-      </header>
-
-      {message ? <p className="membership-note">{message}</p> : null}
-      {membership.status === "pending_match" ? (
-        <p className="membership-note">An admin still needs to match you to the lodge roster.</p>
-      ) : null}
-
-      <section className="member-metrics" aria-label="Dues summary">
-        <div>
-          <p className="member-metric-label">Paid to date</p>
-          <p className="member-metric-value">{formatPence(dues.total_paid_pence)}</p>
-        </div>
-        <div>
-          <p className="member-metric-label">Outstanding</p>
-          <p className={`member-metric-value ${dues.total_remaining_pence > 0 ? "is-due" : "is-ok"}`}>
-            {formatPence(dues.total_remaining_pence)}
-          </p>
-        </div>
-        <div>
-          <p className="member-metric-label">{dues.current_year} balance</p>
-          <p className="member-metric-value">
-            {current ? `${formatPence(current.paid_pence)} / ${formatPence(current.due_pence)}` : "—"}
-          </p>
-          {current ? <YearStatus status={current.status} /> : null}
-        </div>
-      </section>
-
-      <section className="member-home-panel">
-        <div className="member-panel-head">
+    <div className="member-dash">
+      <aside className="member-dash-side" aria-label="User dashboard">
+        <div className="member-dash-user">
+          <div className="member-dash-avatar" aria-hidden>
+            {initials}
+          </div>
           <div>
-            <h3>Dues & payments</h3>
-            <p>
-              Annual lodge dues are {formatPence(dues.annual_due_pence)}. Pay by card, or ask an admin to record bank /
-              cash history for earlier years.
-            </p>
+            <p className="member-dash-side-kicker">User dashboard</p>
+            <strong>{title}</strong>
+            <p>{brotherNo ? `BrotherNo ${brotherNo}` : membership.email}</p>
+            <span className={`member-year-status status-${membership.status === "active" ? "paid" : membership.status === "matched" ? "partial" : "due"}`}>
+              {statusLabel(membership.status)}
+            </span>
           </div>
-          {canPay && dues.total_remaining_pence > 0 ? (
-            <div className="membership-plan-actions">
-              {stripeReady === false ? (
-                <p className="error">Card payments are not configured yet.</p>
-              ) : (
-                <>
-                  <button className="btn" type="button" disabled={pending} onClick={() => onPay("yearly")}>
-                    Pay year · {formatPence(settings.yearly_pence)}
-                  </button>
-                  <button className="btn secondary" type="button" disabled={pending} onClick={() => onPay("monthly")}>
-                    Monthly · {formatPence(settings.monthly_pence)}
-                  </button>
-                  <button className="btn secondary" type="button" disabled={pending} onClick={() => onPay("standing_order")}>
-                    Standing order · {formatPence(settings.standing_order_pence)}/mo
-                  </button>
-                </>
-              )}
-            </div>
-          ) : null}
-          {settings.bank_account_number || settings.bank_sort_code ? (
-            <button className="btn secondary" type="button" disabled={pending} onClick={onStandingOrder}>
-              Prefer bank standing order
+        </div>
+
+        <nav className="member-dash-nav">
+          <button type="button" className={section === "overview" ? "active" : ""} onClick={() => setSection("overview")}>
+            Overview
+          </button>
+          <button type="button" className={section === "record" ? "active" : ""} onClick={() => setSection("record")}>
+            My lodge record
+          </button>
+          <button type="button" className={section === "dues" ? "active" : ""} onClick={() => setSection("dues")}>
+            Dues & payments
+          </button>
+        </nav>
+
+        <div className="member-dash-side-meta">
+          <p>
+            Access code <code>{membership.access_code}</code>
+          </p>
+          <p>{membership.email}</p>
+          <div className="member-dash-side-actions">
+            <button type="button" className="member-text-btn" onClick={onRefresh}>
+              Refresh
             </button>
-          ) : null}
-        </div>
-
-        <div className="member-year-table-wrap">
-          <table className="member-year-table">
-            <thead>
-              <tr>
-                <th>Year</th>
-                <th>Due</th>
-                <th>Paid</th>
-                <th>Remaining</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {dues.years.map((row) => (
-                <tr key={row.year}>
-                  <td>{row.year}</td>
-                  <td>{formatPence(row.due_pence)}</td>
-                  <td>{formatPence(row.paid_pence)}</td>
-                  <td>{formatPence(row.remaining_pence)}</td>
-                  <td>
-                    <YearStatus status={row.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {payments.length ? (
-          <div className="member-payment-list">
-            <h4>Payment history</h4>
-            <ul>
-              {payments.map((payment) => (
-                <li key={payment.id}>
-                  <strong>{payment.year}</strong>
-                  <span>{formatPence(payment.amount_pence)}</span>
-                  <span className="capitalize">{payment.method.replaceAll("_", " ")}</span>
-                  <span>{formatDate(payment.paid_on)}</span>
-                  {payment.note ? <em>{payment.note}</em> : null}
-                </li>
-              ))}
-            </ul>
+            <button type="button" className="member-text-btn" onClick={onSignOut}>
+              Sign out
+            </button>
           </div>
-        ) : (
-          <p className="member-empty">No payments recorded yet.</p>
-        )}
+        </div>
+      </aside>
 
-        {showBank ? (
-          <div className="membership-bank">
-            <h4>Bank standing order</h4>
-            {settings.bank_name ? <p>Bank: {settings.bank_name}</p> : null}
-            {settings.bank_account_name ? <p>Account name: {settings.bank_account_name}</p> : null}
-            {settings.bank_sort_code ? <p>Sort code: {settings.bank_sort_code}</p> : null}
-            {settings.bank_account_number ? <p>Account number: {settings.bank_account_number}</p> : null}
-            <p>Amount: {formatPence(settings.standing_order_pence)} monthly</p>
-            <p>Reference: {settings.bank_reference_hint || membership.membership_no || membership.access_code}</p>
-          </div>
+      <div className="member-dash-main">
+        {message ? <p className="membership-note">{message}</p> : null}
+        {membership.status === "pending_match" ? (
+          <p className="membership-note">An admin still needs to match you to the lodge roster.</p>
         ) : null}
 
-        <p className="member-access-hint">
-          Keep your access code <code>{membership.access_code}</code> to sign back in on another device.
-        </p>
-      </section>
+        {section === "overview" ? (
+          <section className="member-dash-panel">
+            <header className="member-dash-panel-head">
+              <h2>Overview</h2>
+              <p>Your dues balance and a snapshot of your lodge record.</p>
+            </header>
 
-      <section className="member-home-panel">
-        <button type="button" className="member-profile-toggle" onClick={() => setShowProfile((value) => !value)}>
-          {showProfile ? "Hide lodge record" : "View lodge record"}
-        </button>
-        {showProfile && roster ? (
-          <div className="member-profile-grid compact">
-            <div>
-              <h4>Identity</h4>
-              <dl>
-                <div><dt>Given names</dt><dd>{display(roster.given_names)}</dd></div>
-                <div><dt>Surname</dt><dd>{display(roster.surname)}</dd></div>
-                <div><dt>Prefix / title</dt><dd>{display([roster.prefix, roster.title].filter(Boolean).join(" · "))}</dd></div>
-                <div><dt>Initials</dt><dd>{display(roster.initials)}</dd></div>
-                <div><dt>Start</dt><dd>{formatDate(roster.start_date)}</dd></div>
-                <div><dt>Activity</dt><dd>{display(roster.activity)}</dd></div>
-              </dl>
-            </div>
-            <div>
-              <h4>Contact</h4>
-              <dl>
-                <div><dt>Email</dt><dd>{display(roster.email || membership.email)}</dd></div>
-                <div><dt>Mobile</dt><dd>{display(roster.mobile)}</dd></div>
-                <div><dt>Home</dt><dd>{display(roster.home_phone)}</dd></div>
-              </dl>
-              <h4>Address</h4>
-              {address.length ? (
-                <address className="member-address">
-                  {address.map((line) => (
-                    <span key={line}>{line}</span>
-                  ))}
-                </address>
-              ) : (
-                <p className="member-empty">No address on file.</p>
-              )}
-            </div>
-            <div className="member-ranks">
-              <h4>Ranks</h4>
-              <div className="member-rank-grid">
-                <div>
-                  <h5>Unit</h5>
-                  <p>{display(roster.unit_rank)}</p>
-                  <small>Prefix {display(roster.unit_prefix)} · Id {display(roster.unit_rank_id)}</small>
-                </div>
-                <div>
-                  <h5>Provincial</h5>
-                  <p>{display(roster.prov_rank)}</p>
-                  <small>Prefix {display(roster.prov_prefix)} · Id {display(roster.prov_rank_id)}</small>
-                </div>
-                <div>
-                  <h5>Grand</h5>
-                  <p>{display(roster.grand_rank)}</p>
-                  <small>Prefix {display(roster.grand_prefix)} · Id {display(roster.grand_rank_id)}</small>
-                </div>
+            <div className="member-metrics" aria-label="Dues summary">
+              <div>
+                <p className="member-metric-label">Paid to date</p>
+                <p className="member-metric-value">{formatPence(dues.total_paid_pence)}</p>
+              </div>
+              <div>
+                <p className="member-metric-label">Outstanding</p>
+                <p className={`member-metric-value ${dues.total_remaining_pence > 0 ? "is-due" : "is-ok"}`}>
+                  {formatPence(dues.total_remaining_pence)}
+                </p>
+              </div>
+              <div>
+                <p className="member-metric-label">{dues.current_year} balance</p>
+                <p className="member-metric-value">
+                  {current ? `${formatPence(current.paid_pence)} / ${formatPence(current.due_pence)}` : "—"}
+                </p>
+                {current ? <YearStatus status={current.status} /> : null}
               </div>
             </div>
-          </div>
-        ) : null}
-        {showProfile && !roster ? (
-          <p className="member-empty">Roster details appear once your membership is matched.</p>
-        ) : null}
-      </section>
 
-      {error ? <p className="error">{error}</p> : null}
+            <div className="member-overview-actions">
+              <button type="button" className="btn" onClick={() => setSection("dues")}>
+                Open dues & payments
+              </button>
+              <button type="button" className="btn secondary" onClick={() => setSection("record")}>
+                View full lodge record
+              </button>
+            </div>
+
+            {roster ? (
+              <div className="member-overview-snap">
+                <h3>Quick details</h3>
+                <dl className="member-field-grid">
+                  <Field label="Email" value={roster.email || membership.email} />
+                  <Field label="Mobile" value={roster.mobile} />
+                  <Field label="Home phone" value={roster.home_phone} />
+                  <Field label="City" value={roster.city} />
+                  <Field label="Country" value={roster.country} />
+                  <Field label="Activity" value={roster.activity} />
+                  <Field label="Unit rank" value={roster.unit_rank} />
+                  <Field label="Prov rank" value={roster.prov_rank} />
+                  <Field label="Grand rank" value={roster.grand_rank} />
+                </dl>
+              </div>
+            ) : null}
+          </section>
+        ) : null}
+
+        {section === "record" ? (
+          <section className="member-dash-panel">
+            <header className="member-dash-panel-head">
+              <h2>My lodge record</h2>
+              <p>Every field imported from the lodge Excel roster.</p>
+            </header>
+
+            {!roster ? (
+              <p className="member-empty">Roster details appear once your membership is matched.</p>
+            ) : (
+              <div className="member-record-sections">
+                <div>
+                  <h3>Identity</h3>
+                  <dl className="member-field-grid">
+                    <Field label="BrotherNo" value={roster.brother_no} />
+                    <Field label="Surname" value={roster.surname} />
+                    <Field label="GivenNames" value={roster.given_names} />
+                    <Field label="Prefix" value={roster.prefix} />
+                    <Field label="Initials" value={roster.initials} />
+                    <Field label="Title" value={roster.title} />
+                    <Field label="Suffix" value={roster.suffix} />
+                    <Field label="Full name" value={roster.full_name} />
+                    <Field label="Activity" value={roster.activity} />
+                    <Field label="Notes" value={roster.notes} />
+                  </dl>
+                </div>
+
+                <div>
+                  <h3>Contact</h3>
+                  <dl className="member-field-grid">
+                    <Field label="Email" value={roster.email || membership.email} />
+                    <Field label="HomePhone" value={roster.home_phone} />
+                    <Field label="Mobile" value={roster.mobile} />
+                  </dl>
+                </div>
+
+                <div>
+                  <h3>Address</h3>
+                  <dl className="member-field-grid">
+                    <Field label="Address" value={roster.address} />
+                    <Field label="Address2" value={roster.address2} />
+                    <Field label="Address3" value={roster.address3} />
+                    <Field label="City" value={roster.city} />
+                    <Field label="County" value={roster.county} />
+                    <Field label="PostCode" value={roster.postcode} />
+                    <Field label="Country" value={roster.country} />
+                  </dl>
+                </div>
+
+                <div>
+                  <h3>Dates</h3>
+                  <dl className="member-field-grid">
+                    <Field label="StartDate" value={formatDate(roster.start_date)} />
+                    <Field label="EndDate" value={formatDate(roster.end_date)} />
+                  </dl>
+                </div>
+
+                <div>
+                  <h3>Unit rank</h3>
+                  <dl className="member-field-grid">
+                    <Field label="UnitRank" value={roster.unit_rank} />
+                    <Field label="UnitRankId" value={roster.unit_rank_id} />
+                    <Field label="UnitPrefix" value={roster.unit_prefix} />
+                    <Field label="UnitRankStart" value={formatDate(roster.unit_rank_start)} />
+                  </dl>
+                </div>
+
+                <div>
+                  <h3>Provincial rank</h3>
+                  <dl className="member-field-grid">
+                    <Field label="ProvRank" value={roster.prov_rank} />
+                    <Field label="ProvRankId" value={roster.prov_rank_id} />
+                    <Field label="ProvPrefix" value={roster.prov_prefix} />
+                    <Field label="ProvRankStart" value={formatDate(roster.prov_rank_start)} />
+                  </dl>
+                </div>
+
+                <div>
+                  <h3>Grand rank</h3>
+                  <dl className="member-field-grid">
+                    <Field label="GrandRank" value={roster.grand_rank} />
+                    <Field label="GrandRankId" value={roster.grand_rank_id} />
+                    <Field label="GrandPrefix" value={roster.grand_prefix} />
+                    <Field label="GrandRankStart" value={formatDate(roster.grand_rank_start)} />
+                  </dl>
+                </div>
+              </div>
+            )}
+          </section>
+        ) : null}
+
+        {section === "dues" ? (
+          <section className="member-dash-panel">
+            <header className="member-dash-panel-head">
+              <h2>Dues & payments</h2>
+              <p>
+                Annual lodge dues are {formatPence(dues.annual_due_pence)}. Pay by card, or ask an admin to record bank /
+                cash history for earlier years.
+              </p>
+            </header>
+
+            <div className="member-metrics" aria-label="Dues summary">
+              <div>
+                <p className="member-metric-label">Paid to date</p>
+                <p className="member-metric-value">{formatPence(dues.total_paid_pence)}</p>
+              </div>
+              <div>
+                <p className="member-metric-label">Outstanding</p>
+                <p className={`member-metric-value ${dues.total_remaining_pence > 0 ? "is-due" : "is-ok"}`}>
+                  {formatPence(dues.total_remaining_pence)}
+                </p>
+              </div>
+              <div>
+                <p className="member-metric-label">{dues.current_year} balance</p>
+                <p className="member-metric-value">
+                  {current ? `${formatPence(current.paid_pence)} / ${formatPence(current.due_pence)}` : "—"}
+                </p>
+                {current ? <YearStatus status={current.status} /> : null}
+              </div>
+            </div>
+
+            {canPay && dues.total_remaining_pence > 0 ? (
+              <div className="membership-plan-actions">
+                {stripeReady === false ? (
+                  <p className="error">Card payments are not configured yet.</p>
+                ) : (
+                  <>
+                    <button className="btn" type="button" disabled={pending} onClick={() => onPay("yearly")}>
+                      Pay year · {formatPence(settings.yearly_pence)}
+                    </button>
+                    <button className="btn secondary" type="button" disabled={pending} onClick={() => onPay("monthly")}>
+                      Monthly · {formatPence(settings.monthly_pence)}
+                    </button>
+                    <button className="btn secondary" type="button" disabled={pending} onClick={() => onPay("standing_order")}>
+                      Standing order · {formatPence(settings.standing_order_pence)}/mo
+                    </button>
+                  </>
+                )}
+              </div>
+            ) : null}
+            {settings.bank_account_number || settings.bank_sort_code ? (
+              <button className="btn secondary" type="button" disabled={pending} onClick={onStandingOrder}>
+                Prefer bank standing order
+              </button>
+            ) : null}
+
+            <div className="member-year-table-wrap">
+              <table className="member-year-table">
+                <thead>
+                  <tr>
+                    <th>Year</th>
+                    <th>Due</th>
+                    <th>Paid</th>
+                    <th>Remaining</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dues.years.map((row) => (
+                    <tr key={row.year}>
+                      <td>{row.year}</td>
+                      <td>{formatPence(row.due_pence)}</td>
+                      <td>{formatPence(row.paid_pence)}</td>
+                      <td>{formatPence(row.remaining_pence)}</td>
+                      <td>
+                        <YearStatus status={row.status} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {payments.length ? (
+              <div className="member-payment-list">
+                <h3>Payment history</h3>
+                <ul>
+                  {payments.map((payment) => (
+                    <li key={payment.id}>
+                      <strong>{payment.year}</strong>
+                      <span>{formatPence(payment.amount_pence)}</span>
+                      <span className="capitalize">{payment.method.replaceAll("_", " ")}</span>
+                      <span>{formatDate(payment.paid_on)}</span>
+                      {payment.note ? <em>{payment.note}</em> : null}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="member-empty">No payments recorded yet.</p>
+            )}
+
+            {showBank ? (
+              <div className="membership-bank">
+                <h3>Bank standing order</h3>
+                {settings.bank_name ? <p>Bank: {settings.bank_name}</p> : null}
+                {settings.bank_account_name ? <p>Account name: {settings.bank_account_name}</p> : null}
+                {settings.bank_sort_code ? <p>Sort code: {settings.bank_sort_code}</p> : null}
+                {settings.bank_account_number ? <p>Account number: {settings.bank_account_number}</p> : null}
+                <p>Amount: {formatPence(settings.standing_order_pence)} monthly</p>
+                <p>Reference: {settings.bank_reference_hint || membership.membership_no || membership.access_code}</p>
+              </div>
+            ) : null}
+          </section>
+        ) : null}
+
+        {error ? <p className="error">{error}</p> : null}
+      </div>
     </div>
   );
 }
