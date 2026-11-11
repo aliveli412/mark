@@ -38,6 +38,19 @@ npm run dev
 
 Open http://localhost:3000 and admin at http://localhost:3000/admin/login
 
+### Site looks unstyled / `Cannot find module …\.next\…\page.js`
+
+That means the local `.next` cache is corrupt (often after a missing-package error). Stop the terminal (`Ctrl+C`), then:
+
+```powershell
+cd D:\projects\mark
+git pull
+npm install
+npm run clean
+npm run dev
+```
+
+Hard-refresh the browser (`Ctrl+Shift+R`). Do not keep an old `npm run dev` running while cleaning.
 ## Lodge memberships (Mark Sites)
 
 Pilot lodge: **Freemasons Without Borders** (`/sites/freemasons-without-borders/membership`).
