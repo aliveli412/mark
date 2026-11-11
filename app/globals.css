@@ -1308,6 +1308,45 @@ button, input, select, textarea { font: inherit; }
   flex-wrap: wrap;
   gap: 10px;
 }
+.member-download-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.member-download-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.member-download-list strong {
+  display: block;
+  color: var(--navy-deep);
+  margin-bottom: 4px;
+}
+.member-download-list p {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.member-download-meta {
+  color: var(--muted);
+  font-size: 12px;
+}
+.member-download-list .btn {
+  flex-shrink: 0;
+  text-decoration: none;
+}
+@media (max-width: 700px) {
+  .member-download-list li {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
 .member-record-sections {
   display: grid;
   gap: 22px;

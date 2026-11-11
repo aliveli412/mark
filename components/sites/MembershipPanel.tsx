@@ -21,7 +21,19 @@ type DashboardPayload = {
   dues: MembershipDuesSummary;
 };
 
-type DashSection = "overview" | "record" | "dues";
+type DashSection = "overview" | "record" | "dues" | "downloads";
+
+type MemberFileListItem = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  file_name: string;
+  size_label: string;
+  storage_backend: "local" | "supabase";
+  download_count: number;
+  download_url: string;
+};
 
 function display(value: string | null | undefined) {
   const text = (value ?? "").trim();
@@ -77,6 +89,9 @@ function MemberHome({
 }) {
   const { membership, roster, payments, dues } = data;
   const [section, setSection] = useState<DashSection>("overview");
+  const [files, setFiles] = useState<MemberFileListItem[]>([]);
+  const [filesError, setFilesError] = useState("");
+  const [filesLoading, setFilesLoading] = useState(false);
   const title = roster ? [roster.prefix, roster.full_name].filter(Boolean).join(" ") : membership.full_name;
   const brotherNo = roster?.brother_no || membership.membership_no;
   const current = dues.years.find((row) => row.year === dues.current_year) ?? dues.years[0];
@@ -89,6 +104,28 @@ function MemberHome({
     const parts = (roster?.full_name || membership.full_name).split(/\s+/).filter(Boolean);
     return ((parts[0]?.[0] || "") + (parts[parts.length - 1]?.[0] || "")).toUpperCase() || "M";
   }, [roster, membership.full_name]);
+
+  useEffect(() => {
+    if (section !== "downloads") return;
+    let cancelled = false;
+    setFilesLoading(true);
+    setFilesError("");
+    fetch(`/api/sites/${membership.lodge_slug}/files`)
+      .then(async (response) => {
+        const payload = (await response.json()) as { files?: MemberFileListItem[]; error?: string };
+        if (!response.ok) throw new Error(payload.error || "Could not load downloads.");
+        if (!cancelled) setFiles(payload.files ?? []);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setFilesError(err instanceof Error ? err.message : "Could not load downloads.");
+      })
+      .finally(() => {
+        if (!cancelled) setFilesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [section, membership.lodge_slug]);
 
   return (
     <div className="member-dash">
@@ -116,6 +153,13 @@ function MemberHome({
           </button>
           <button type="button" className={section === "dues" ? "active" : ""} onClick={() => setSection("dues")}>
             Dues & payments
+          </button>
+          <button
+            type="button"
+            className={section === "downloads" ? "active" : ""}
+            onClick={() => setSection("downloads")}
+          >
+            Downloads
           </button>
         </nav>
 
@@ -174,6 +218,9 @@ function MemberHome({
               </button>
               <button type="button" className="btn secondary" onClick={() => setSection("record")}>
                 View full lodge record
+              </button>
+              <button type="button" className="btn secondary" onClick={() => setSection("downloads")}>
+                Member downloads
               </button>
             </div>
 
@@ -284,6 +331,43 @@ function MemberHome({
                 </div>
               </div>
             )}
+          </section>
+        ) : null}
+
+        {section === "downloads" ? (
+          <section className="member-dash-panel">
+            <header className="member-dash-panel-head">
+              <h2>Downloads</h2>
+              <p>
+                Member-only PDFs and archives. Small files use private Supabase storage; large packs stay on the server
+                disk (Hostinger) and are never in a public URL.
+              </p>
+            </header>
+
+            {filesLoading ? <p className="member-empty">Loading files…</p> : null}
+            {filesError ? <p className="error">{filesError}</p> : null}
+
+            {!filesLoading && !filesError && files.length === 0 ? (
+              <p className="member-empty">No member files published for this lodge yet.</p>
+            ) : null}
+
+            <ul className="member-download-list">
+              {files.map((file) => (
+                <li key={file.id}>
+                  <div>
+                    <strong>{file.title}</strong>
+                    <p>{file.description || file.file_name}</p>
+                    <span className="member-download-meta">
+                      {file.size_label} · {file.storage_backend === "supabase" ? "Supabase private" : "Server private"} ·{" "}
+                      {file.download_count} downloads
+                    </span>
+                  </div>
+                  <a className="btn" href={file.download_url}>
+                    Download
+                  </a>
+                </li>
+              ))}
+            </ul>
           </section>
         ) : null}
 

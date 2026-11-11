@@ -66,6 +66,15 @@ Pilot lodge: **Freemasons Without Borders** (`/sites/freemasons-without-borders/
 6. Superadmin can record past-year bank/cash payments under Admin → Memberships → lodge → **Record past / manual payments**.
 7. Keep `STRIPE_SECRET_KEY` / webhook configured so card activations also write payment rows.
 
+## Member-only photos / PDFs (hybrid)
+
+- **Public images** → `public/sites/<lodge>/media/`
+- **Small PDFs** (summons, etc.) → Supabase Storage private bucket `member-files` + row in `lodge_member_files` (`supabase/member-files.sql`)
+- **Large RAR / photo packs** → Hostinger disk under `private-media/<lodge>/...` (`storage_backend = local`)
+- Members download from dashboard **Downloads** (API checks membership; no public URL)
+
+See `content/member-files/README.md`.
+
 ## Shop products + Stripe
 
 1. Sign in at `/admin/login`.

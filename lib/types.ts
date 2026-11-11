@@ -182,3 +182,24 @@ export type MembershipDuesSummary = {
   total_remaining_pence: number;
   years: MembershipYearDues[];
 };
+
+export type MemberFileStorageBackend = "local" | "supabase";
+export type MemberFileVisibility = "members" | "matched" | "active";
+
+export type LodgeMemberFile = {
+  id: string;
+  lodge_slug: string;
+  slug: string;
+  title: string;
+  description: string;
+  file_name: string;
+  mime_type: string;
+  size_bytes: number;
+  storage_backend: MemberFileStorageBackend;
+  storage_path: string;
+  visibility: MemberFileVisibility;
+  sort_order: number;
+  download_count: number;
+  active: boolean;
+  created_at: string;
+};
