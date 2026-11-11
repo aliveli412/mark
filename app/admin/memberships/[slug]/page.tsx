@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import {
   deleteRosterMemberAction,
   importFwbRosterAction,
+  importRosterExcelAction,
   saveMembershipSettingsAction,
   saveRosterMemberAction,
   setMembershipStatusAction,
@@ -48,17 +49,36 @@ export default async function AdminLodgeMembershipPage({
         </Link>
         {isFwb ? (
           <AdminNavForm action={importFwbRosterAction}>
-            <button type="submit">Re-import FWB Excel roster ({roster.length || 265})</button>
+            <button type="submit">Re-import bundled FWB Excel ({roster.length || 265})</button>
           </AdminNavForm>
         ) : null}
       </div>
 
-      {isFwb ? (
-        <p className="lede" style={{ marginTop: 0 }}>
-          Pilot roster source: <code>As of 06-06-2022.xlsx</code> — BrotherNo, name, phones, full address,
-          ranks and activity. Matching uses BrotherNo and/or email.
+      <section className="admin-card" style={{ marginBottom: 18 }}>
+        <h2 style={{ marginTop: 0 }}>Import Excel roster</h2>
+        <p>
+          Same column format as FWB: <code>BrotherNo, Surname, GivenNames, Prefix, Email, Address…</code>
+          {settings.roster_source ? (
+            <>
+              {" "}
+              Current source: <code>{settings.roster_source}</code> ({roster.length} members).
+            </>
+          ) : null}
         </p>
-      ) : null}
+        <AdminNavForm className="admin-form" action={importRosterExcelAction}>
+          <input type="hidden" name="lodge_slug" value={slug} />
+          <label>
+            Excel file (.xlsx)
+            <input name="file" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required />
+          </label>
+          <button type="submit">Import / replace roster</button>
+        </AdminNavForm>
+        {isFwb ? (
+          <p className="note" style={{ marginTop: 12 }}>
+            Pilot lodge. Bundled file: <code>As of 06-06-2022.xlsx</code>. Matching uses BrotherNo and/or email.
+          </p>
+        ) : null}
+      </section>
 
       <section className="admin-card" style={{ marginBottom: 18 }}>
         <h2 style={{ marginTop: 0 }}>Dues plans</h2>

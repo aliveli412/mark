@@ -30,8 +30,11 @@ Edit `.env.local` with your Supabase Project Settings → API values:
 Then:
 
 ```powershell
+npm install
 npm run dev
 ```
+
+`npm install` is required after pull so packages like `stripe` and `xlsx` are present.
 
 Open http://localhost:3000 and admin at http://localhost:3000/admin/login
 

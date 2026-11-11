@@ -352,44 +352,84 @@ export async function findRosterMatch(lodgeSlug: string, email: string, membersh
   return null;
 }
 
-export async function importFwbRosterSeed() {
-  const seed = loadFwbSeedMembers();
-  if (!seed.length) return { error: "FWB roster seed file is missing.", count: 0 };
+export async function replaceLodgeRoster(input: {
+  lodgeSlug: string;
+  members: LodgeRosterMember[];
+  sourceName: string;
+  markPilot?: boolean;
+}) {
+  const { lodgeSlug, members, sourceName, markPilot } = input;
+  if (!members.length) return { error: "No members to import.", count: 0 };
 
   if (!usingLive()) {
     const store = mock();
     store.roster = [
-      ...store.roster.filter((item) => item.lodge_slug !== FWB_LODGE_SLUG),
-      ...seed,
+      ...store.roster.filter((item) => item.lodge_slug !== lodgeSlug),
+      ...members.map((member) => ({ ...member, lodge_slug: lodgeSlug })),
     ];
-    const settings = store.settings.find((item) => item.lodge_slug === FWB_LODGE_SLUG);
+    const settings = store.settings.find((item) => item.lodge_slug === lodgeSlug);
     if (settings) {
-      settings.is_pilot = true;
-      settings.roster_source = "As of 06-06-2022.xlsx";
+      settings.roster_source = sourceName;
       settings.active = true;
+      if (markPilot) settings.is_pilot = true;
+    } else {
+      store.settings.push({
+        ...defaultSettings(lodgeSlug),
+        roster_source: sourceName,
+        is_pilot: Boolean(markPilot),
+        active: true,
+      });
     }
-    return { ok: true as const, count: seed.length };
+    return { ok: true as const, count: members.length };
   }
 
   const supabase = createSupabaseAdminClient()!;
-  await supabase.from("lodge_member_roster").delete().eq("lodge_slug", FWB_LODGE_SLUG);
+  await supabase.from("lodge_member_roster").delete().eq("lodge_slug", lodgeSlug);
 
   const chunkSize = 50;
-  for (let i = 0; i < seed.length; i += chunkSize) {
-    const chunk = seed.slice(i, i + chunkSize).map(({ id: _id, created_at: _c, ...rest }) => rest);
+  for (let i = 0; i < members.length; i += chunkSize) {
+    const chunk = members.slice(i, i + chunkSize).map(({ id: _id, created_at: _c, ...rest }) => ({
+      ...rest,
+      lodge_slug: lodgeSlug,
+    }));
     const { error } = await supabase.from("lodge_member_roster").insert(chunk);
     if (error) return { error: error.message, count: i };
   }
 
+  const current = await getMembershipSettings(lodgeSlug);
   await supabase.from("lodge_membership_settings").upsert({
-    ...defaultSettings(FWB_LODGE_SLUG),
-    is_pilot: true,
-    roster_source: "As of 06-06-2022.xlsx",
+    ...current,
+    lodge_slug: lodgeSlug,
+    roster_source: sourceName,
+    is_pilot: markPilot ? true : Boolean(current.is_pilot),
     active: true,
     updated_at: new Date().toISOString(),
   });
 
-  return { ok: true as const, count: seed.length };
+  return { ok: true as const, count: members.length };
+}
+
+export async function importFwbRosterSeed() {
+  const seed = loadFwbSeedMembers();
+  if (!seed.length) return { error: "FWB roster seed file is missing.", count: 0 };
+  return replaceLodgeRoster({
+    lodgeSlug: FWB_LODGE_SLUG,
+    members: seed,
+    sourceName: "As of 06-06-2022.xlsx",
+    markPilot: true,
+  });
+}
+
+export async function importLodgeRosterExcel(lodgeSlug: string, fileName: string, buffer: ArrayBuffer | Buffer) {
+  const { parseMembershipExcel } = await import("@/lib/membership-excel");
+  const parsed = parseMembershipExcel(buffer, lodgeSlug);
+  if (parsed.error) return { error: parsed.error, count: 0 };
+  return replaceLodgeRoster({
+    lodgeSlug,
+    members: parsed.members,
+    sourceName: fileName,
+    markPilot: lodgeSlug === FWB_LODGE_SLUG,
+  });
 }
 
 export async function listMemberships(lodgeSlug: string) {

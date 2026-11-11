@@ -386,6 +386,35 @@ export async function importFwbRosterAction(): Promise<{ error?: string; next?: 
   return { next: `/admin/memberships/${FWB_LODGE_SLUG}` };
 }
 
+export async function importRosterExcelAction(
+  formData: FormData,
+): Promise<{ error?: string; next?: string }> {
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized.", next: "/admin/login" };
+
+  const lodgeSlug = String(formData.get("lodge_slug") ?? "").trim();
+  const file = formData.get("file");
+  if (!lodgeSlug) return { error: "Lodge is required." };
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Choose an Excel (.xlsx) file to import." };
+  }
+
+  const name = file.name.toLowerCase();
+  if (!name.endsWith(".xlsx") && !name.endsWith(".xls") && !name.endsWith(".csv")) {
+    return { error: "Upload an .xlsx / .xls / .csv file in the FWB Excel column format." };
+  }
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const { importLodgeRosterExcel } = await import("@/lib/data/memberships");
+  const result = await importLodgeRosterExcel(lodgeSlug, file.name, buffer);
+  if (result.error) return { error: `${result.error}${result.count ? ` (stopped after ${result.count})` : ""}` };
+
+  revalidatePath(`/admin/memberships/${lodgeSlug}`);
+  revalidatePath("/admin/memberships");
+  revalidatePath(`/sites/${lodgeSlug}/membership`);
+  return { next: `/admin/memberships/${lodgeSlug}` };
+}
+
 export async function deleteRosterMemberAction(formData: FormData) {
   const session = await requireAdmin();
   if (!session) return;
