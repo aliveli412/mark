@@ -21,39 +21,8 @@ create table if not exists public.lodge_membership_settings (
 create table if not exists public.lodge_member_roster (
   id uuid primary key default gen_random_uuid(),
   lodge_slug text not null,
-  brother_no text not null default '',
-  surname text not null default '',
-  given_names text not null default '',
-  prefix text not null default '',
-  initials text not null default '',
-  title text not null default '',
-  suffix text not null default '',
   full_name text not null,
-  home_phone text not null default '',
-  mobile text not null default '',
-  postcode text not null default '',
-  address text not null default '',
-  address2 text not null default '',
-  address3 text not null default '',
-  city text not null default '',
-  county text not null default '',
   email text not null default '',
-  country text not null default '',
-  start_date date,
-  end_date date,
-  grand_rank text not null default '',
-  prov_rank text not null default '',
-  unit_rank text not null default '',
-  grand_rank_id text not null default '',
-  prov_rank_id text not null default '',
-  unit_rank_id text not null default '',
-  unit_rank_start date,
-  prov_rank_start date,
-  grand_rank_start date,
-  unit_prefix text not null default '',
-  prov_prefix text not null default '',
-  grand_prefix text not null default '',
-  activity text not null default '',
   membership_no text not null default '',
   notes text not null default '',
   active boolean not null default true,
@@ -61,6 +30,50 @@ create table if not exists public.lodge_member_roster (
   updated_at timestamptz not null default now()
 );
 
+-- Upgrade path: older installs created the table without Excel fields.
+-- CREATE TABLE IF NOT EXISTS will not add columns, so alter explicitly.
+alter table public.lodge_membership_settings
+  add column if not exists is_pilot boolean not null default false,
+  add column if not exists roster_source text not null default '';
+
+alter table public.lodge_member_roster
+  add column if not exists brother_no text not null default '',
+  add column if not exists surname text not null default '',
+  add column if not exists given_names text not null default '',
+  add column if not exists prefix text not null default '',
+  add column if not exists initials text not null default '',
+  add column if not exists title text not null default '',
+  add column if not exists suffix text not null default '',
+  add column if not exists home_phone text not null default '',
+  add column if not exists mobile text not null default '',
+  add column if not exists postcode text not null default '',
+  add column if not exists address text not null default '',
+  add column if not exists address2 text not null default '',
+  add column if not exists address3 text not null default '',
+  add column if not exists city text not null default '',
+  add column if not exists county text not null default '',
+  add column if not exists country text not null default '',
+  add column if not exists start_date date,
+  add column if not exists end_date date,
+  add column if not exists grand_rank text not null default '',
+  add column if not exists prov_rank text not null default '',
+  add column if not exists unit_rank text not null default '',
+  add column if not exists grand_rank_id text not null default '',
+  add column if not exists prov_rank_id text not null default '',
+  add column if not exists unit_rank_id text not null default '',
+  add column if not exists unit_rank_start date,
+  add column if not exists prov_rank_start date,
+  add column if not exists grand_rank_start date,
+  add column if not exists unit_prefix text not null default '',
+  add column if not exists prov_prefix text not null default '',
+  add column if not exists grand_prefix text not null default '',
+  add column if not exists activity text not null default '';
+
+-- Ensure email has a default for inserts that omit it.
+alter table public.lodge_member_roster
+  alter column email set default '';
+
+drop index if exists lodge_member_roster_slug_email_idx;
 create unique index if not exists lodge_member_roster_slug_brother_idx
   on public.lodge_member_roster (lodge_slug, brother_no)
   where brother_no <> '';

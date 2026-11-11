@@ -39,7 +39,8 @@ Open http://localhost:3000 and admin at http://localhost:3000/admin/login
 
 Pilot lodge: **Freemasons Without Borders** (`/sites/freemasons-without-borders/membership`).
 
-1. Run `supabase/memberships.sql` once, then `supabase/memberships-fwb-roster.sql`.
+1. Run `supabase/memberships.sql` once (it upgrades older roster tables too).
+   If you already hit `column "brother_no" does not exist`, run `supabase/fix-memberships-brother-no.sql` first, then re-run `memberships.sql`.
 2. Seed FWB roster either by running `supabase/seed-fwb-roster.sql` **or** Admin → Memberships → FWB → **Re-import FWB Excel roster**.
 3. Source Excel is stored at `content/memberships/source/As_of_06-06-2022.xlsx` (fields BrotherNo → Activity).
 4. Set monthly/yearly/standing-order prices on the FWB membership admin page.
