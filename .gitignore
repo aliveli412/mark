@@ -7,8 +7,11 @@ out
 .env.local
 .env.*.local
 
-# Member-only binaries (keep folder + README in git)
+# Member-only binaries (keep layout docs + .gitkeep in git)
 private-media/**
+!private-media/**/
 !private-media/README.md
-!private-media/.gitkeep
+!private-media/MANIFEST.json
 !private-media/**/.gitkeep
+!private-media/**/README.md
+*.tsbuildinfo

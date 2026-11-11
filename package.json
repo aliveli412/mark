@@ -5,6 +5,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "seed:private-media": "node scripts/seed-private-media.mjs",
     "clean": "node -e \"const fs=require('fs');for (const p of ['.next','node_modules/.cache']) { try { fs.rmSync(p,{recursive:true,force:true}); console.log('removed',p);} catch(e){ console.log('skip',p);} }\""
   },
   "dependencies": {

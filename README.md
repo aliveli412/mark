@@ -69,11 +69,17 @@ Pilot lodge: **Freemasons Without Borders** (`/sites/freemasons-without-borders/
 ## Member-only photos / PDFs (hybrid)
 
 - **Public images** → `public/sites/<lodge>/media/`
-- **Small PDFs** (summons, etc.) → Supabase Storage private bucket `member-files` + row in `lodge_member_files` (`supabase/member-files.sql`)
-- **Large RAR / photo packs** → Hostinger disk under `private-media/<lodge>/...` (`storage_backend = local`)
+- **Small PDFs** (summons, etc.) → Supabase Storage private bucket `member-files` + row in `lodge_member_files`
+- **Large RAR / photo packs** → Hostinger disk under `$PRIVATE_MEDIA_ROOT/<lodge>/archives/` (`storage_backend = local`)
 - Members download from dashboard **Downloads** (API checks membership; no public URL)
 
-See `content/member-files/README.md`.
+```bash
+npm run seed:private-media          # local placeholder PDF + RAR stubs
+# then on Supabase: member-files.sql → seed-member-files.sql → upload real PDF
+# on Hostinger: set PRIVATE_MEDIA_ROOT outside public_html; replace RAR with the real archive
+```
+
+See `private-media/README.md`, `private-media/MANIFEST.json`, and `content/member-files/README.md`.
 
 ## Shop products + Stripe
 

@@ -41,3 +41,6 @@ create policy "Admins manage member files" on public.lodge_member_files
 -- SQL helper (run if you use Storage API policies via SQL later):
 -- insert into storage.buckets (id, name, public) values ('member-files', 'member-files', false)
 -- on conflict (id) do nothing;
+--
+-- After this file, run supabase/seed-member-files.sql for FWB catalog rows.
+-- Disk layout: private-media/README.md (Hostinger PRIVATE_MEDIA_ROOT).
