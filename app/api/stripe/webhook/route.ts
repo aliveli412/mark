@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
+import { activateMembershipBySession, setMembershipStatus, getMembershipById } from "@/lib/data/memberships";
 import { markOrderPaidBySession } from "@/lib/data/orders";
 import { getStripe, getStripeConfig } from "@/lib/stripe";
 
@@ -29,8 +30,28 @@ export async function POST(request: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    if (session.payment_status === "paid" || session.status === "complete") {
+    if (session.metadata?.kind === "lodge_membership") {
+      const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
+      await activateMembershipBySession(session.id, subscriptionId);
+    } else if (session.payment_status === "paid" || session.status === "complete") {
       await markOrderPaidBySession(session.id, session.customer_details?.email ?? session.customer_email);
+    }
+  }
+
+  if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
+    const subscription = event.data.object as Stripe.Subscription;
+    const membershipId = subscription.metadata?.membership_id;
+    if (membershipId) {
+      const membership = await getMembershipById(membershipId);
+      if (membership) {
+        if (subscription.status === "active" || subscription.status === "trialing") {
+          await setMembershipStatus(membershipId, "active");
+        } else if (subscription.status === "past_due" || subscription.status === "unpaid") {
+          await setMembershipStatus(membershipId, "past_due");
+        } else if (subscription.status === "canceled" || subscription.status === "incomplete_expired") {
+          await setMembershipStatus(membershipId, "cancelled");
+        }
+      }
     }
   }
 

@@ -9,6 +9,7 @@ const links = [
   { href: "/admin/news", label: "News" },
   { href: "/admin/shop", label: "Shop" },
   { href: "/admin/orders", label: "Orders" },
+  { href: "/admin/memberships", label: "Memberships" },
 ];
 
 export function AdminShell({

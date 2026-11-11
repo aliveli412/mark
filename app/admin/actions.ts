@@ -299,3 +299,81 @@ export async function deleteProductAction(formData: FormData) {
   revalidatePath("/admin/shop");
   revalidatePath("/shop");
 }
+
+export async function saveMembershipSettingsAction(
+  formData: FormData,
+): Promise<{ error?: string; next?: string }> {
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized.", next: "/admin/login" };
+  const lodgeSlug = String(formData.get("lodge_slug") ?? "").trim();
+  if (!lodgeSlug) return { error: "Lodge is required." };
+
+  const { saveMembershipSettings } = await import("@/lib/data/memberships");
+  const result = await saveMembershipSettings({
+    lodge_slug: lodgeSlug,
+    monthly_pence: Math.round(Number(formData.get("monthly") ?? 0) * 100),
+    yearly_pence: Math.round(Number(formData.get("yearly") ?? 0) * 100),
+    standing_order_pence: Math.round(Number(formData.get("standing_order") ?? 0) * 100),
+    currency: "gbp",
+    bank_name: String(formData.get("bank_name") ?? "").trim(),
+    bank_account_name: String(formData.get("bank_account_name") ?? "").trim(),
+    bank_sort_code: String(formData.get("bank_sort_code") ?? "").trim(),
+    bank_account_number: String(formData.get("bank_account_number") ?? "").trim(),
+    bank_reference_hint: String(formData.get("bank_reference_hint") ?? "").trim(),
+    active: formData.get("active") === "on",
+  });
+  if (result.error) return { error: result.error };
+  revalidatePath(`/admin/memberships/${lodgeSlug}`);
+  revalidatePath(`/sites/${lodgeSlug}/membership`);
+  return { next: `/admin/memberships/${lodgeSlug}` };
+}
+
+export async function saveRosterMemberAction(
+  formData: FormData,
+): Promise<{ error?: string; next?: string }> {
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized.", next: "/admin/login" };
+  const lodgeSlug = String(formData.get("lodge_slug") ?? "").trim();
+  const { upsertRosterMember } = await import("@/lib/data/memberships");
+  const result = await upsertRosterMember({
+    id: String(formData.get("id") ?? "") || undefined,
+    lodge_slug: lodgeSlug,
+    full_name: String(formData.get("full_name") ?? ""),
+    email: String(formData.get("email") ?? ""),
+    membership_no: String(formData.get("membership_no") ?? ""),
+    notes: String(formData.get("notes") ?? ""),
+    active: formData.get("active") === "on",
+  });
+  if (result.error) return { error: result.error };
+  revalidatePath(`/admin/memberships/${lodgeSlug}`);
+  return { next: `/admin/memberships/${lodgeSlug}` };
+}
+
+export async function deleteRosterMemberAction(formData: FormData) {
+  const session = await requireAdmin();
+  if (!session) return;
+  const id = String(formData.get("id") ?? "");
+  const lodgeSlug = String(formData.get("lodge_slug") ?? "");
+  if (!id) return;
+  const { deleteRosterMember } = await import("@/lib/data/memberships");
+  await deleteRosterMember(id);
+  revalidatePath(`/admin/memberships/${lodgeSlug}`);
+}
+
+export async function setMembershipStatusAction(formData: FormData) {
+  const session = await requireAdmin();
+  if (!session) return;
+  const id = String(formData.get("id") ?? "");
+  const lodgeSlug = String(formData.get("lodge_slug") ?? "");
+  const status = String(formData.get("status") ?? "") as
+    | "pending_match"
+    | "matched"
+    | "active"
+    | "past_due"
+    | "cancelled";
+  if (!id || !status) return;
+  const { setMembershipStatus } = await import("@/lib/data/memberships");
+  await setMembershipStatus(id, status);
+  revalidatePath(`/admin/memberships/${lodgeSlug}`);
+  revalidatePath(`/sites/${lodgeSlug}/membership`);
+}

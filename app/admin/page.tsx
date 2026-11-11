@@ -37,6 +37,7 @@ export default async function AdminDashboardPage() {
         <ol>
           <li>Manage events, news and shop from the links above.</li>
           <li>Mark Sites microsites live under /sites (menu: Mark Sites).</li>
+          <li>Lodge memberships: Admin → Memberships (roster + dues plans).</li>
           <li>Shop checkout uses Stripe — add STRIPE_SECRET_KEY locally, then open Admin → Shop.</li>
         </ol>
       </div>

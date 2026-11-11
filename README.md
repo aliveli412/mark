@@ -35,6 +35,14 @@ npm run dev
 
 Open http://localhost:3000 and admin at http://localhost:3000/admin/login
 
+## Lodge memberships (Mark Sites)
+
+1. Run `supabase/memberships.sql` once in the Supabase SQL editor.
+2. Admin → **Memberships** → choose a lodge → add roster emails/names and set monthly/yearly/standing-order prices.
+3. On each lodge site open `/sites/<slug>/membership`.
+4. Members register with an email on the roster → match → pay via Stripe (monthly/yearly/standing-order subscription) or request bank standing order.
+5. Keep `STRIPE_SECRET_KEY` / webhook configured so activations update automatically.
+
 ## Shop products + Stripe
 
 1. Sign in at `/admin/login`.

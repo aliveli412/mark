@@ -1187,3 +1187,66 @@ button, input, select, textarea { font: inherit; }
 @media (max-width: 640px) {
   .lodge-float-img { float: none; width: 100%; margin: 0 0 16px; }
 }
+
+.membership-page .membership-price-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 22px;
+  font-weight: 700;
+  color: #2a2f6d;
+}
+.membership-panel { display: grid; gap: 16px; }
+.membership-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.membership-card {
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 18px;
+}
+.membership-card h2 { margin: 0 0 8px; color: #2a2f6d; font-size: 22px; }
+.membership-card h3 { margin: 18px 0 10px; font-size: 16px; }
+.membership-card label {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+  margin: 12px 0;
+}
+.membership-card input {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  padding: 0 12px;
+  font: inherit;
+}
+.membership-card .optional { font-weight: 500; color: var(--muted); }
+.membership-card .btn { margin-top: 8px; }
+.membership-card .btn.secondary {
+  background: #fff;
+  color: var(--navy);
+  border: 1px solid var(--line);
+  margin-left: 8px;
+}
+.membership-plan-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.membership-note {
+  background: #f3f7ff;
+  border: 1px solid #d7e3f7;
+  padding: 10px 12px;
+}
+.membership-bank {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+@media (max-width: 800px) {
+  .membership-grid { grid-template-columns: 1fr; }
+}

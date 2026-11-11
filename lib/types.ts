@@ -54,3 +54,55 @@ export type ProductRecord = {
   image_path: string;
   active: boolean;
 };
+
+export type MembershipPlan = "monthly" | "yearly" | "standing_order";
+
+export type MembershipStatus =
+  | "pending_match"
+  | "matched"
+  | "active"
+  | "past_due"
+  | "cancelled";
+
+export type LodgeMembershipSettings = {
+  lodge_slug: string;
+  monthly_pence: number;
+  yearly_pence: number;
+  standing_order_pence: number;
+  currency: string;
+  bank_name: string;
+  bank_account_name: string;
+  bank_sort_code: string;
+  bank_account_number: string;
+  bank_reference_hint: string;
+  active: boolean;
+};
+
+export type LodgeRosterMember = {
+  id: string;
+  lodge_slug: string;
+  full_name: string;
+  email: string;
+  membership_no: string;
+  notes: string;
+  active: boolean;
+  created_at: string;
+};
+
+export type LodgeMembership = {
+  id: string;
+  lodge_slug: string;
+  roster_id: string | null;
+  full_name: string;
+  email: string;
+  membership_no: string;
+  status: MembershipStatus;
+  plan: MembershipPlan | null;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  stripe_session_id: string | null;
+  access_code: string;
+  matched_at: string | null;
+  activated_at: string | null;
+  created_at: string;
+};

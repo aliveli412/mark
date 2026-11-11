@@ -11,6 +11,7 @@ function titleFromPath(site: MarkSite, pathname: string) {
     return site.fullName;
   }
   if (pathname.endsWith("/contact")) return "Contact Us";
+  if (pathname.includes("/membership")) return "Membership";
   for (const group of site.nav) {
     for (const link of group.links) {
       if (pathname.endsWith(`/${group.slug}/${link.slug}`)) return link.label;
@@ -75,6 +76,9 @@ export function LodgeShell({ site, children }: { site: MarkSite; children: React
                 ))}
               </div>
             </div>
+            <Link href={lodgePath(site.slug, "membership")} onClick={() => setOpen(false)}>
+              Membership
+            </Link>
             <Link href={lodgePath(site.slug, "contact")} onClick={() => setOpen(false)}>
               Contact Us
             </Link>
@@ -130,6 +134,11 @@ export function LodgeShell({ site, children }: { site: MarkSite; children: React
               </ul>
             </div>
           ))}
+          <div>
+            <Link className={pathname.includes("/membership") ? "active" : undefined} href={lodgePath(site.slug, "membership")}>
+              Membership
+            </Link>
+          </div>
         </aside>
         <div className="lodge-main">{children}</div>
       </div>
