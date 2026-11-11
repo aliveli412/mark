@@ -57,11 +57,13 @@ Pilot lodge: **Freemasons Without Borders** (`/sites/freemasons-without-borders/
 
 1. Run `supabase/memberships.sql` once (it upgrades older roster tables too).
    If you already hit `column "brother_no" does not exist`, run `supabase/fix-memberships-brother-no.sql` first, then re-run `memberships.sql`.
+   For payment history only on an existing DB, you can also run `supabase/membership-payments.sql`.
 2. Seed FWB roster either by running `supabase/seed-fwb-roster.sql` **or** Admin → Memberships → FWB → **Re-import FWB Excel roster**.
 3. Source Excel is stored at `content/memberships/source/As_of_06-06-2022.xlsx` (fields BrotherNo → Activity).
 4. Set monthly/yearly/standing-order prices on the FWB membership admin page.
-5. Members register on the lodge site with email and/or BrotherNo → match → pay via Stripe or bank standing order.
-6. Keep `STRIPE_SECRET_KEY` / webhook configured so activations update automatically.
+5. Members sign in on `/sites/[slug]/membership` (email + access code) to see paid / outstanding by year.
+6. Superadmin can record past-year bank/cash payments under Admin → Memberships → lodge → **Record past / manual payments**.
+7. Keep `STRIPE_SECRET_KEY` / webhook configured so card activations also write payment rows.
 
 ## Shop products + Stripe
 

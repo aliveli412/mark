@@ -4,10 +4,14 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 import type {
   LodgeMembership,
+  LodgeMembershipPayment,
   LodgeMembershipSettings,
   LodgeRosterMember,
+  MembershipPaymentMethod,
+  MembershipPaymentStatus,
   MembershipPlan,
 } from "@/lib/types";
+import { buildDuesSummary } from "@/lib/membership-dues";
 import { markSites } from "@/lib/mark-sites";
 
 export const FWB_LODGE_SLUG = "freemasons-without-borders";
@@ -134,6 +138,7 @@ type MockState = {
   settings: LodgeMembershipSettings[];
   roster: LodgeRosterMember[];
   memberships: LodgeMembership[];
+  payments: LodgeMembershipPayment[];
 };
 
 const g = globalThis as typeof globalThis & { __mmmMembershipMock?: MockState };
@@ -144,8 +149,10 @@ function mock(): MockState {
       settings: markSites.map((site) => defaultSettings(site.slug)),
       roster: loadFwbSeedMembers(),
       memberships: [],
+      payments: [],
     };
   }
+  if (!g.__mmmMembershipMock.payments) g.__mmmMembershipMock.payments = [];
   return g.__mmmMembershipMock;
 }
 
@@ -599,30 +606,6 @@ export async function attachMembershipCheckout(input: {
   return { membership: data as LodgeMembership };
 }
 
-export async function activateMembershipBySession(sessionId: string, subscriptionId?: string | null) {
-  const patch = {
-    status: "active" as const,
-    stripe_subscription_id: subscriptionId ?? null,
-    activated_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
-  if (!usingLive()) {
-    const item = mock().memberships.find((row) => row.stripe_session_id === sessionId);
-    if (!item) return { error: "Membership not found." };
-    Object.assign(item, patch);
-    return { membership: item };
-  }
-  const supabase = createSupabaseAdminClient()!;
-  const { data, error } = await supabase
-    .from("lodge_memberships")
-    .update(patch)
-    .eq("stripe_session_id", sessionId)
-    .select("*")
-    .maybeSingle();
-  if (error) return { error: error.message };
-  return { membership: data as LodgeMembership | null };
-}
-
 export async function setMembershipStatus(idValue: string, status: LodgeMembership["status"]) {
   const patch = {
     status,
@@ -663,4 +646,170 @@ export async function markStandingOrderRequested(membershipId: string) {
     .single();
   if (error) return { error: error.message };
   return { membership: data as LodgeMembership };
+}
+
+export async function listMembershipPayments(membershipId: string) {
+  if (!usingLive()) {
+    return mock()
+      .payments.filter((item) => item.membership_id === membershipId)
+      .sort((a, b) => b.year - a.year || (b.paid_on || "").localeCompare(a.paid_on || ""));
+  }
+  const supabase = createSupabaseAdminClient()!;
+  const { data } = await supabase
+    .from("lodge_membership_payments")
+    .select("*")
+    .eq("membership_id", membershipId)
+    .order("year", { ascending: false })
+    .order("paid_on", { ascending: false });
+  return (data ?? []) as LodgeMembershipPayment[];
+}
+
+export async function listLodgePayments(lodgeSlug: string) {
+  if (!usingLive()) {
+    return mock()
+      .payments.filter((item) => item.lodge_slug === lodgeSlug)
+      .sort((a, b) => b.year - a.year || (b.created_at || "").localeCompare(a.created_at || ""));
+  }
+  const supabase = createSupabaseAdminClient()!;
+  const { data } = await supabase
+    .from("lodge_membership_payments")
+    .select("*")
+    .eq("lodge_slug", lodgeSlug)
+    .order("year", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(200);
+  return (data ?? []) as LodgeMembershipPayment[];
+}
+
+export async function recordMembershipPayment(input: {
+  membership_id: string;
+  year: number;
+  amount_pence: number;
+  method?: MembershipPaymentMethod;
+  status?: MembershipPaymentStatus;
+  paid_on?: string | null;
+  note?: string;
+  recorded_by?: string;
+  stripe_session_id?: string | null;
+}) {
+  const membership = await getMembershipById(input.membership_id);
+  if (!membership) return { error: "Membership not found." };
+  if (!input.year || input.amount_pence < 0) return { error: "Year and amount are required." };
+
+  const now = new Date().toISOString();
+  const payload = {
+    lodge_slug: membership.lodge_slug,
+    membership_id: membership.id,
+    roster_id: membership.roster_id,
+    year: input.year,
+    amount_pence: Math.round(input.amount_pence),
+    method: input.method ?? "admin",
+    status: input.status ?? "paid",
+    paid_on: input.paid_on || now.slice(0, 10),
+    note: (input.note ?? "").trim(),
+    recorded_by: (input.recorded_by ?? "admin").trim(),
+    stripe_session_id: input.stripe_session_id ?? null,
+    updated_at: now,
+  };
+
+  if (!usingLive()) {
+    const created: LodgeMembershipPayment = {
+      id: id("payment"),
+      created_at: now,
+      ...payload,
+    };
+    mock().payments.unshift(created);
+    if (payload.status === "paid" || payload.status === "partial") {
+      const item = mock().memberships.find((row) => row.id === membership.id);
+      if (item && item.status !== "cancelled") {
+        item.status = "active";
+        item.activated_at = item.activated_at || now;
+      }
+    }
+    return { payment: created };
+  }
+
+  const supabase = createSupabaseAdminClient()!;
+  const { data, error } = await supabase.from("lodge_membership_payments").insert(payload).select("*").single();
+  if (error) return { error: error.message };
+
+  if (payload.status === "paid" || payload.status === "partial") {
+    await supabase
+      .from("lodge_memberships")
+      .update({
+        status: "active",
+        activated_at: membership.activated_at || now,
+        updated_at: now,
+      })
+      .eq("id", membership.id)
+      .neq("status", "cancelled");
+  }
+
+  return { payment: data as LodgeMembershipPayment };
+}
+
+export async function getMembershipDashboard(membershipId: string) {
+  const membership = await getMembershipById(membershipId);
+  if (!membership) return { error: "Membership not found." as const };
+  const [roster, settings, payments] = await Promise.all([
+    getMembershipRoster(membership),
+    getMembershipSettings(membership.lodge_slug),
+    listMembershipPayments(membership.id),
+  ]);
+  const dues = buildDuesSummary({ membership, roster, settings, payments });
+  return { membership, roster, settings, payments, dues };
+}
+
+export async function activateMembershipBySession(sessionId: string, subscriptionId?: string | null) {
+  const patch = {
+    status: "active" as const,
+    stripe_subscription_id: subscriptionId ?? null,
+    activated_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+  let membership: LodgeMembership | null = null;
+  if (!usingLive()) {
+    const item = mock().memberships.find((row) => row.stripe_session_id === sessionId);
+    if (!item) return { error: "Membership not found." };
+    Object.assign(item, patch);
+    membership = item;
+  } else {
+    const supabase = createSupabaseAdminClient()!;
+    const { data, error } = await supabase
+      .from("lodge_memberships")
+      .update(patch)
+      .eq("stripe_session_id", sessionId)
+      .select("*")
+      .maybeSingle();
+    if (error) return { error: error.message };
+    membership = (data as LodgeMembership | null) ?? null;
+  }
+
+  if (membership) {
+    const settings = await getMembershipSettings(membership.lodge_slug);
+    const amount =
+      membership.plan === "yearly"
+        ? settings.yearly_pence
+        : membership.plan === "standing_order"
+          ? settings.standing_order_pence
+          : settings.monthly_pence;
+    const already = (await listMembershipPayments(membership.id)).some(
+      (payment) => payment.stripe_session_id === sessionId,
+    );
+    if (!already && amount > 0) {
+      await recordMembershipPayment({
+        membership_id: membership.id,
+        year: new Date().getFullYear(),
+        amount_pence: amount,
+        method: "stripe",
+        status: "paid",
+        paid_on: new Date().toISOString().slice(0, 10),
+        note: `Stripe ${membership.plan || "dues"} payment`,
+        recorded_by: "stripe",
+        stripe_session_id: sessionId,
+      });
+    }
+  }
+
+  return { membership };
 }

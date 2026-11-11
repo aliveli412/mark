@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import {
   importFwbRosterAction,
   importRosterExcelAction,
+  recordMembershipPaymentAction,
   saveMembershipSettingsAction,
   saveRosterMemberAction,
   setMembershipStatusAction,
@@ -14,6 +15,7 @@ import { adminGate } from "@/lib/admin/gate";
 import {
   FWB_LODGE_SLUG,
   getMembershipSettings,
+  listLodgePayments,
   listMemberships,
   listRoster,
 } from "@/lib/data/memberships";
@@ -31,12 +33,16 @@ export default async function AdminLodgeMembershipPage({
   const site = getMarkSite(slug);
   if (!site) notFound();
 
-  const [settings, roster, memberships] = await Promise.all([
+  const [settings, roster, memberships, payments] = await Promise.all([
     getMembershipSettings(slug),
     listRoster(slug),
     listMemberships(slug),
+    listLodgePayments(slug),
   ]);
   const isFwb = slug === FWB_LODGE_SLUG;
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: currentYear - 2015 + 1 }, (_, index) => currentYear - index);
+  const membershipById = new Map(memberships.map((item) => [item.id, item]));
 
   return (
     <AdminShell title={`${site.brand} membership`} email={gate.session.user.email}>
@@ -320,6 +326,118 @@ export default async function AdminLodgeMembershipPage({
           Current dues: monthly {formatPence(settings.monthly_pence)} · yearly {formatPence(settings.yearly_pence)} ·
           standing order {formatPence(settings.standing_order_pence)}
         </p>
+      </section>
+
+      <section className="admin-card" style={{ marginTop: 18 }}>
+        <h2 style={{ marginTop: 0 }}>Record past / manual payments</h2>
+        <p>
+          Superadmin can enter older years (bank, cash, standing order) so the member dashboard shows paid vs
+          remaining correctly.
+        </p>
+        <AdminNavForm className="admin-form" action={recordMembershipPaymentAction}>
+          <input type="hidden" name="lodge_slug" value={slug} />
+          <label>
+            Member registration
+            <select name="membership_id" required defaultValue="">
+              <option value="" disabled>
+                Select member…
+              </option>
+              {memberships.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.full_name} · {item.email}
+                  {item.membership_no ? ` · ${item.membership_no}` : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="row-2">
+            <label>
+              Year
+              <select name="year" defaultValue={String(currentYear)} required>
+                {yearOptions.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Amount (£)
+              <input
+                name="amount"
+                type="number"
+                min="0"
+                step="0.01"
+                defaultValue={(settings.yearly_pence / 100).toFixed(2)}
+                required
+              />
+            </label>
+          </div>
+          <div className="row-2">
+            <label>
+              Method
+              <select name="method" defaultValue="bank">
+                <option value="bank">Bank</option>
+                <option value="cash">Cash</option>
+                <option value="standing_order">Standing order</option>
+                <option value="stripe">Stripe</option>
+                <option value="admin">Admin adjustment</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label>
+              Paid on
+              <input name="paid_on" type="date" defaultValue={`${currentYear}-01-01`} />
+            </label>
+          </div>
+          <label>
+            Note
+            <input name="note" placeholder="e.g. 2022 dues received by lodge treasurer" />
+          </label>
+          <button type="submit" disabled={memberships.length === 0}>
+            Save payment
+          </button>
+        </AdminNavForm>
+
+        <div style={{ overflowX: "auto", marginTop: 18 }}>
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Year</th>
+                <th>Member</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Paid on</th>
+                <th>By</th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payments.map((payment) => {
+                const member = membershipById.get(payment.membership_id);
+                return (
+                  <tr key={payment.id}>
+                    <td>{payment.year}</td>
+                    <td>
+                      <strong>{member?.full_name || payment.membership_id}</strong>
+                      <div>{member?.email || ""}</div>
+                    </td>
+                    <td>{formatPence(payment.amount_pence)}</td>
+                    <td>{payment.method}</td>
+                    <td>{payment.paid_on || "—"}</td>
+                    <td>{payment.recorded_by || "—"}</td>
+                    <td>{payment.note || "—"}</td>
+                  </tr>
+                );
+              })}
+              {payments.length === 0 ? (
+                <tr>
+                  <td colSpan={7}>No payments recorded yet for this lodge.</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
       </section>
     </AdminShell>
   );

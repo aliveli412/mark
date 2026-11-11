@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { registerMembership } from "@/lib/data/memberships";
+import { getMembershipDashboard, registerMembership } from "@/lib/data/memberships";
+import { setMemberSession } from "@/lib/member-session";
 import { getMarkSite } from "@/lib/mark-sites";
 
 export const dynamic = "force-dynamic";
@@ -28,9 +29,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: result.error || "Registration failed." }, { status: 400 });
   }
 
+  await setMemberSession({
+    lodgeSlug,
+    membershipId: result.membership.id,
+    email: result.membership.email,
+    accessCode: result.membership.access_code,
+  });
+
+  const dashboard = await getMembershipDashboard(result.membership.id);
+  if ("error" in dashboard) {
+    return NextResponse.json({
+      membership: result.membership,
+      roster: result.roster ?? null,
+      matched: result.matched,
+    });
+  }
+
   return NextResponse.json({
-    membership: result.membership,
-    roster: result.roster ?? null,
+    ...dashboard,
     matched: result.matched,
   });
 }

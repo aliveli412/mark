@@ -139,3 +139,46 @@ export type LodgeMembership = {
   activated_at: string | null;
   created_at: string;
 };
+
+export type MembershipPaymentMethod =
+  | "stripe"
+  | "bank"
+  | "cash"
+  | "standing_order"
+  | "admin"
+  | "other";
+
+export type MembershipPaymentStatus = "paid" | "partial" | "due" | "waived";
+
+export type LodgeMembershipPayment = {
+  id: string;
+  lodge_slug: string;
+  membership_id: string;
+  roster_id: string | null;
+  year: number;
+  amount_pence: number;
+  method: MembershipPaymentMethod;
+  status: MembershipPaymentStatus;
+  paid_on: string | null;
+  note: string;
+  recorded_by: string;
+  stripe_session_id: string | null;
+  created_at: string;
+};
+
+export type MembershipYearDues = {
+  year: number;
+  due_pence: number;
+  paid_pence: number;
+  remaining_pence: number;
+  status: "paid" | "partial" | "due" | "waived";
+};
+
+export type MembershipDuesSummary = {
+  current_year: number;
+  annual_due_pence: number;
+  total_due_pence: number;
+  total_paid_pence: number;
+  total_remaining_pence: number;
+  years: MembershipYearDues[];
+};

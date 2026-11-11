@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 import { MembershipPanel } from "@/components/sites/MembershipPanel";
 import {
   getMembershipByAccess,
-  getMembershipRoster,
+  getMembershipDashboard,
   getMembershipSettings,
 } from "@/lib/data/memberships";
 import { formatPence } from "@/lib/format";
+import { readMemberSession } from "@/lib/member-session";
 import { getMarkSite } from "@/lib/mark-sites";
 
 export async function generateMetadata({
@@ -32,28 +33,42 @@ export default async function LodgeMembershipPage({
   if (!site) notFound();
 
   const settings = await getMembershipSettings(slug);
-  const initial =
-    query.email && query.code ? await getMembershipByAccess(slug, query.email, query.code) : null;
-  const initialRoster = initial ? await getMembershipRoster(initial) : null;
+
+  let initial = null as Awaited<ReturnType<typeof getMembershipDashboard>> | null;
+  if (query.email && query.code) {
+    const membership = await getMembershipByAccess(slug, query.email, query.code);
+    if (membership) initial = await getMembershipDashboard(membership.id);
+  }
+  if ((!initial || "error" in initial) ) {
+    const session = await readMemberSession(slug);
+    if (session) {
+      const fromCookie = await getMembershipDashboard(session.membershipId);
+      if (!("error" in fromCookie)) initial = fromCookie;
+    }
+  }
+
+  const boot = initial && !("error" in initial) ? initial : null;
 
   return (
     <article className="lodge-page membership-page">
       <h1>Membership</h1>
       <p>
-        Register with the name, email and BrotherNo held on the {site.brand} member list. Once matched, your
-        full lodge record opens here — then activate dues by monthly, yearly, or standing order.
+        Sign in to see your lodge record, how much you have paid, and what remains for each year. First visit:
+        match with BrotherNo / email to create your access code.
       </p>
       <ul className="membership-price-list">
+        <li>Yearly dues: {formatPence(settings.yearly_pence)}</li>
         <li>Monthly: {formatPence(settings.monthly_pence)}</li>
-        <li>Yearly: {formatPence(settings.yearly_pence)}</li>
         <li>Standing order: {formatPence(settings.standing_order_pence)} / month</li>
       </ul>
       {!settings.active ? <p className="error">Membership payments are currently paused for this lodge.</p> : null}
       <MembershipPanel
         lodgeSlug={slug}
         settings={settings}
-        initialMembership={initial}
-        initialRoster={initialRoster}
+        initialMembership={boot?.membership ?? null}
+        initialRoster={boot?.roster ?? null}
+        initialPayments={boot?.payments ?? []}
+        initialDues={boot?.dues ?? null}
       />
     </article>
   );

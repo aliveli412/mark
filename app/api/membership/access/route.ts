@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getMembershipByAccess, getMembershipRoster } from "@/lib/data/memberships";
+import { getMembershipByAccess, getMembershipDashboard } from "@/lib/data/memberships";
+import { setMemberSession } from "@/lib/member-session";
 import { getMarkSite } from "@/lib/mark-sites";
 
 export const dynamic = "force-dynamic";
@@ -17,14 +18,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unknown lodge site." }, { status: 404 });
   }
 
-  const membership = await getMembershipByAccess(
-    lodgeSlug,
-    String(body.email ?? ""),
-    String(body.access_code ?? ""),
-  );
+  const email = String(body.email ?? "");
+  const accessCode = String(body.access_code ?? "");
+  const membership = await getMembershipByAccess(lodgeSlug, email, accessCode);
   if (!membership) {
     return NextResponse.json({ error: "No membership found for that email and access code." }, { status: 404 });
   }
-  const roster = await getMembershipRoster(membership);
-  return NextResponse.json({ membership, roster });
+
+  await setMemberSession({
+    lodgeSlug,
+    membershipId: membership.id,
+    email: membership.email,
+    accessCode: membership.access_code,
+  });
+
+  const dashboard = await getMembershipDashboard(membership.id);
+  if ("error" in dashboard) {
+    return NextResponse.json({ membership, roster: null });
+  }
+  return NextResponse.json(dashboard);
 }

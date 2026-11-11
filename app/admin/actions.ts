@@ -446,3 +446,45 @@ export async function setMembershipStatusAction(formData: FormData) {
   revalidatePath(`/admin/memberships/${lodgeSlug}`);
   revalidatePath(`/sites/${lodgeSlug}/membership`);
 }
+
+export async function recordMembershipPaymentAction(
+  formData: FormData,
+): Promise<{ error?: string; next?: string }> {
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized.", next: "/admin/login" };
+
+  const lodgeSlug = String(formData.get("lodge_slug") ?? "").trim();
+  const membershipId = String(formData.get("membership_id") ?? "").trim();
+  const year = Number(formData.get("year") ?? 0);
+  const amountPounds = Number(formData.get("amount") ?? 0);
+  const method = String(formData.get("method") ?? "admin") as
+    | "stripe"
+    | "bank"
+    | "cash"
+    | "standing_order"
+    | "admin"
+    | "other";
+  const paidOn = String(formData.get("paid_on") ?? "").trim() || null;
+  const note = String(formData.get("note") ?? "").trim();
+
+  if (!membershipId) return { error: "Choose a member registration." };
+  if (!year || year < 1990) return { error: "Enter a valid membership year." };
+  if (!(amountPounds >= 0)) return { error: "Enter an amount in pounds." };
+
+  const { recordMembershipPayment } = await import("@/lib/data/memberships");
+  const result = await recordMembershipPayment({
+    membership_id: membershipId,
+    year,
+    amount_pence: Math.round(amountPounds * 100),
+    method,
+    status: "paid",
+    paid_on: paidOn,
+    note,
+    recorded_by: session.user.email || "super_admin",
+  });
+  if (result.error) return { error: result.error };
+
+  revalidatePath(`/admin/memberships/${lodgeSlug}`);
+  revalidatePath(`/sites/${lodgeSlug}/membership`);
+  return { next: `/admin/memberships/${lodgeSlug}` };
+}
