@@ -1468,6 +1468,28 @@ button, input, select, textarea { font: inherit; }
 .member-accordion-body {
   padding: 8px 16px 14px;
 }
+.member-address-form {
+  display: grid;
+  gap: 12px;
+  max-width: 520px;
+}
+.member-address-form label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 14px;
+}
+.member-address-form input {
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  font: inherit;
+}
+.member-address-form .optional {
+  font-weight: 500;
+  color: var(--muted);
+}
 .member-field-grid {
   margin: 0;
   display: grid;

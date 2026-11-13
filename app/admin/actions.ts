@@ -488,3 +488,23 @@ export async function recordMembershipPaymentAction(
   revalidatePath(`/sites/${lodgeSlug}/membership`);
   return { next: `/admin/memberships/${lodgeSlug}` };
 }
+
+export async function reviewAddressChangeRequestAction(formData: FormData) {
+  const session = await requireAdmin();
+  if (!session) return;
+  const lodgeSlug = String(formData.get("lodge_slug") ?? "").trim();
+  const requestId = String(formData.get("request_id") ?? "").trim();
+  const decision = String(formData.get("decision") ?? "").trim() as "approved" | "rejected";
+  const adminNote = String(formData.get("admin_note") ?? "").trim();
+  if (!lodgeSlug || !requestId || (decision !== "approved" && decision !== "rejected")) return;
+
+  const { reviewAddressChangeRequest } = await import("@/lib/data/memberships");
+  await reviewAddressChangeRequest({
+    requestId,
+    decision,
+    reviewedBy: session.user.email || "super_admin",
+    adminNote,
+  });
+  revalidatePath(`/admin/memberships/${lodgeSlug}`);
+  revalidatePath(`/sites/${lodgeSlug}/membership`);
+}

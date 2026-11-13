@@ -137,10 +137,12 @@ function FullLodgeRecord({
   roster,
   membershipEmail,
   openAddress = false,
+  onEditAddress,
 }: {
   roster: LodgeRosterMember;
   membershipEmail: string;
   openAddress?: boolean;
+  onEditAddress?: () => void;
 }) {
   return (
     <div className="member-accordion-list" aria-label="Full lodge Excel record">
@@ -177,6 +179,14 @@ function FullLodgeRecord({
           <Field label="PostCode" value={roster.postcode} />
           <Field label="Country" value={roster.country} />
         </dl>
+        {onEditAddress ? (
+          <p className="member-accordion-hint">
+            Address changes need lodge admin approval.{" "}
+            <button type="button" className="member-inline-link" onClick={onEditAddress}>
+              Request address change
+            </button>
+          </p>
+        ) : null}
       </AccordionSection>
 
       <AccordionSection title="Dates">
@@ -216,6 +226,144 @@ function FullLodgeRecord({
   );
 }
 
+function AddressChangeRequestForm({
+  roster,
+  pending,
+  error,
+  message,
+  pendingRequest,
+  onSubmit,
+}: {
+  roster: LodgeRosterMember;
+  pending: boolean;
+  error: string;
+  message: string;
+  pendingRequest: boolean;
+  onSubmit: (patch: {
+    address: string;
+    address2: string;
+    address3: string;
+    city: string;
+    county: string;
+    postcode: string;
+    country: string;
+    member_note: string;
+  }) => void;
+}) {
+  const [address, setAddress] = useState(roster.address);
+  const [address2, setAddress2] = useState(roster.address2);
+  const [address3, setAddress3] = useState(roster.address3);
+  const [city, setCity] = useState(roster.city);
+  const [county, setCounty] = useState(roster.county);
+  const [postcode, setPostcode] = useState(roster.postcode);
+  const [country, setCountry] = useState(roster.country);
+  const [note, setNote] = useState("");
+
+  useEffect(() => {
+    setAddress(roster.address);
+    setAddress2(roster.address2);
+    setAddress3(roster.address3);
+    setCity(roster.city);
+    setCounty(roster.county);
+    setPostcode(roster.postcode);
+    setCountry(roster.country);
+  }, [roster]);
+
+  return (
+    <form
+      className="member-address-form"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit({ address, address2, address3, city, county, postcode, country, member_note: note });
+      }}
+    >
+      <p className="member-accordion-hint">
+        Request a postal address change. A lodge admin must approve it before your roster record is updated.
+      </p>
+      {pendingRequest ? (
+        <p className="membership-note">You already have a pending address-change request awaiting admin approval.</p>
+      ) : null}
+      <label>
+        Address
+        <input
+          value={address}
+          onChange={(event) => setAddress(event.target.value)}
+          autoComplete="address-line1"
+          disabled={pendingRequest || pending}
+        />
+      </label>
+      <label>
+        Address 2
+        <input
+          value={address2}
+          onChange={(event) => setAddress2(event.target.value)}
+          autoComplete="address-line2"
+          disabled={pendingRequest || pending}
+        />
+      </label>
+      <label>
+        Address 3
+        <input
+          value={address3}
+          onChange={(event) => setAddress3(event.target.value)}
+          autoComplete="address-line3"
+          disabled={pendingRequest || pending}
+        />
+      </label>
+      <label>
+        City
+        <input
+          value={city}
+          onChange={(event) => setCity(event.target.value)}
+          autoComplete="address-level2"
+          disabled={pendingRequest || pending}
+        />
+      </label>
+      <label>
+        County
+        <input
+          value={county}
+          onChange={(event) => setCounty(event.target.value)}
+          autoComplete="address-level1"
+          disabled={pendingRequest || pending}
+        />
+      </label>
+      <label>
+        PostCode
+        <input
+          value={postcode}
+          onChange={(event) => setPostcode(event.target.value)}
+          autoComplete="postal-code"
+          disabled={pendingRequest || pending}
+        />
+      </label>
+      <label>
+        Country
+        <input
+          value={country}
+          onChange={(event) => setCountry(event.target.value)}
+          autoComplete="country-name"
+          disabled={pendingRequest || pending}
+        />
+      </label>
+      <label>
+        Note for admin <span className="optional">(optional)</span>
+        <input
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+          disabled={pendingRequest || pending}
+          placeholder="Moved house, new postcode, etc."
+        />
+      </label>
+      {message ? <p className="membership-note">{message}</p> : null}
+      {error ? <p className="error">{error}</p> : null}
+      <button className="btn" type="submit" disabled={pending || pendingRequest}>
+        {pending ? "Sending…" : "Request address change"}
+      </button>
+    </form>
+  );
+}
+
 function isPdfFile(file: MemberFileListItem) {
   return (
     (file.mime_type || "").includes("pdf") ||
@@ -236,6 +384,11 @@ function MemberHome({
   onStandingOrder,
   onSignOut,
   onRefresh,
+  onRequestAddressChange,
+  addressPending,
+  addressError,
+  addressMessage,
+  hasPendingAddressRequest,
 }: {
   data: DashboardPayload;
   settings: LodgeMembershipSettings;
@@ -247,7 +400,21 @@ function MemberHome({
   onPay: (plan: MembershipPlan) => void;
   onStandingOrder: () => void;
   onSignOut: () => void;
-  onRefresh: () => void;
+  onRefresh: () => void | Promise<void>;
+  onRequestAddressChange: (patch: {
+    address: string;
+    address2: string;
+    address3: string;
+    city: string;
+    county: string;
+    postcode: string;
+    country: string;
+    member_note: string;
+  }) => Promise<void>;
+  addressPending: boolean;
+  addressError: string;
+  addressMessage: string;
+  hasPendingAddressRequest: boolean;
 }) {
   const { membership, roster, payments, dues } = data;
   const [section, setSection] = useState<DashSection>("account");
@@ -423,7 +590,11 @@ function MemberHome({
                 <p className="member-accordion-hint">
                   Open each section for the full Excel roster fields (identity, contact, address, dates, ranks).
                 </p>
-                <FullLodgeRecord roster={roster} membershipEmail={membership.email} />
+                <FullLodgeRecord
+                  roster={roster}
+                  membershipEmail={membership.email}
+                  onEditAddress={() => setSection("addresses")}
+                />
               </div>
             ) : (
               <p className="member-empty">Full lodge details appear once your membership is matched to the roster.</p>
@@ -441,7 +612,11 @@ function MemberHome({
             {!roster ? (
               <p className="member-empty">Roster details appear once your membership is matched.</p>
             ) : (
-              <FullLodgeRecord roster={roster} membershipEmail={membership.email} />
+              <FullLodgeRecord
+                roster={roster}
+                membershipEmail={membership.email}
+                onEditAddress={() => setSection("addresses")}
+              />
             )}
           </section>
         ) : null}
@@ -658,13 +833,45 @@ function MemberHome({
           <section className="member-dash-panel">
             <header className="member-dash-panel-head">
               <h2>Addresses</h2>
-              <p>Contact and postal details from the lodge roster. Ask an admin if something needs updating.</p>
+              <p>Request a postal address change. An admin must approve before the lodge roster is updated.</p>
             </header>
 
             {!roster ? (
               <p className="member-empty">Address details appear once your membership is matched to the roster.</p>
             ) : (
-              <FullLodgeRecord roster={roster} membershipEmail={membership.email} openAddress />
+              <>
+                <div className="member-overview-snap">
+                  <h3>Contact (read-only)</h3>
+                  <dl className="member-field-grid">
+                    <Field label="Email" value={roster.email || membership.email} />
+                    <Field label="HomePhone" value={roster.home_phone} />
+                    <Field label="Mobile" value={roster.mobile} />
+                  </dl>
+                </div>
+                <div className="member-overview-snap">
+                  <h3>Current postal address</h3>
+                  <dl className="member-field-grid">
+                    <Field label="Address" value={roster.address} />
+                    <Field label="Address2" value={roster.address2} />
+                    <Field label="Address3" value={roster.address3} />
+                    <Field label="City" value={roster.city} />
+                    <Field label="County" value={roster.county} />
+                    <Field label="PostCode" value={roster.postcode} />
+                    <Field label="Country" value={roster.country} />
+                  </dl>
+                </div>
+                <div className="member-overview-snap">
+                  <h3>Request address change</h3>
+                  <AddressChangeRequestForm
+                    roster={roster}
+                    pending={addressPending}
+                    error={addressError}
+                    message={addressMessage}
+                    pendingRequest={hasPendingAddressRequest}
+                    onSubmit={onRequestAddressChange}
+                  />
+                </div>
+              </>
             )}
           </section>
         ) : null}
@@ -780,6 +987,10 @@ export function MembershipPanel({
   const [stripeReady, setStripeReady] = useState<boolean | null>(null);
   const [message, setMessage] = useState("");
   const [mode, setMode] = useState<"signin" | "register">("signin");
+  const [addressPending, setAddressPending] = useState(false);
+  const [addressError, setAddressError] = useState("");
+  const [addressMessage, setAddressMessage] = useState("");
+  const [hasPendingAddressRequest, setHasPendingAddressRequest] = useState(false);
 
   useEffect(() => {
     fetch("/api/membership/checkout")
@@ -787,6 +998,28 @@ export function MembershipPanel({
       .then((data: { stripeConfigured?: boolean }) => setStripeReady(Boolean(data.stripeConfigured)))
       .catch(() => setStripeReady(false));
   }, []);
+
+  useEffect(() => {
+    if (!dashboard) {
+      setHasPendingAddressRequest(false);
+      return;
+    }
+    let cancelled = false;
+    fetch("/api/membership/address")
+      .then(async (response) => {
+        const payload = (await response.json()) as {
+          requests?: Array<{ status: string }>;
+        };
+        if (!response.ok || cancelled) return;
+        setHasPendingAddressRequest((payload.requests ?? []).some((item) => item.status === "pending"));
+      })
+      .catch(() => {
+        if (!cancelled) setHasPendingAddressRequest(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [dashboard]);
 
   async function loadDashboard(membershipId: string) {
     const response = await fetch(`/api/membership/dashboard?membershipId=${encodeURIComponent(membershipId)}`);
@@ -916,6 +1149,42 @@ export function MembershipPanel({
     setDashboard(null);
     setMessage("");
     setError("");
+    setAddressError("");
+    setAddressMessage("");
+    setHasPendingAddressRequest(false);
+  }
+
+  async function requestAddressChange(patch: {
+    address: string;
+    address2: string;
+    address3: string;
+    city: string;
+    county: string;
+    postcode: string;
+    country: string;
+    member_note: string;
+  }) {
+    setAddressPending(true);
+    setAddressError("");
+    setAddressMessage("");
+    try {
+      const response = await fetch("/api/membership/address", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      const data = (await response.json()) as { error?: string; request?: { id: string } };
+      if (!response.ok || !data.request) {
+        setAddressError(data.error || "Could not submit address-change request.");
+        setAddressPending(false);
+        return;
+      }
+      setHasPendingAddressRequest(true);
+      setAddressMessage("Address-change request sent. A lodge admin will review and approve it.");
+    } catch {
+      setAddressError("Could not submit address-change request.");
+    }
+    setAddressPending(false);
   }
 
   if (dashboard) {
@@ -932,6 +1201,11 @@ export function MembershipPanel({
         onStandingOrder={requestStandingOrderBank}
         onSignOut={signOut}
         onRefresh={() => loadDashboard(dashboard.membership.id)}
+        onRequestAddressChange={requestAddressChange}
+        addressPending={addressPending}
+        addressError={addressError}
+        addressMessage={addressMessage}
+        hasPendingAddressRequest={hasPendingAddressRequest}
       />
     );
   }
