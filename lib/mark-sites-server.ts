@@ -75,8 +75,21 @@ function navFromContent(siteSlug: string, brand: string): LodgeNavGroup[] {
   }
 
   for (const group of groups) {
+    if (group.slug === "members") {
+      group.links.unshift({
+        label: "Members Page",
+        slug: "membership",
+        key: "membership",
+        href: "membership",
+      });
+    }
     const order = preferred[group.slug] ?? [];
     group.links.sort((a, b) => {
+      // Keep Members Page first in the Members menu.
+      if (group.slug === "members") {
+        if (a.slug === "membership") return -1;
+        if (b.slug === "membership") return 1;
+      }
       const ai = order.indexOf(a.slug);
       const bi = order.indexOf(b.slug);
       const av = ai === -1 ? 900 + a.slug.localeCompare(b.slug) : ai;

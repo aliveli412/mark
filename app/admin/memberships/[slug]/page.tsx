@@ -4,6 +4,7 @@ import {
   importFwbRosterAction,
   importRosterExcelAction,
   recordMembershipPaymentAction,
+  reviewAddressChangeRequestAction,
   saveMembershipSettingsAction,
   saveRosterMemberAction,
   setMembershipStatusAction,
@@ -15,6 +16,7 @@ import { adminGate } from "@/lib/admin/gate";
 import {
   FWB_LODGE_SLUG,
   getMembershipSettings,
+  listAddressChangeRequests,
   listLodgePayments,
   listMemberships,
   listRoster,
@@ -33,11 +35,12 @@ export default async function AdminLodgeMembershipPage({
   const site = getMarkSite(slug);
   if (!site) notFound();
 
-  const [settings, roster, memberships, payments] = await Promise.all([
+  const [settings, roster, memberships, payments, addressRequests] = await Promise.all([
     getMembershipSettings(slug),
     listRoster(slug),
     listMemberships(slug),
     listLodgePayments(slug),
+    listAddressChangeRequests(slug, { status: "pending" }),
   ]);
   const isFwb = slug === FWB_LODGE_SLUG;
   const currentYear = new Date().getFullYear();
@@ -142,6 +145,66 @@ export default async function AdminLodgeMembershipPage({
           </label>
           <button type="submit">Save plans</button>
         </AdminNavForm>
+      </section>
+
+      <section className="admin-card" style={{ marginBottom: 18 }}>
+        <h2 style={{ marginTop: 0 }}>Address change requests · {addressRequests.length}</h2>
+        {addressRequests.length === 0 ? (
+          <p className="note">No pending address-change requests.</p>
+        ) : (
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>Current</th>
+                  <th>Requested</th>
+                  <th>Note</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {addressRequests.map((req) => (
+                  <tr key={req.id}>
+                    <td>
+                      <strong>{req.member_name}</strong>
+                      <div className="note">{req.member_email}</div>
+                    </td>
+                    <td>
+                      {[req.current_address, req.current_address2, req.current_address3, req.current_city, req.current_county, req.current_postcode, req.current_country]
+                        .filter(Boolean)
+                        .join(", ") || "—"}
+                    </td>
+                    <td>
+                      {[req.requested_address, req.requested_address2, req.requested_address3, req.requested_city, req.requested_county, req.requested_postcode, req.requested_country]
+                        .filter(Boolean)
+                        .join(", ") || "—"}
+                    </td>
+                    <td>{req.member_note || "—"}</td>
+                    <td>
+                      <AdminNavForm action={reviewAddressChangeRequestAction}>
+                        <input type="hidden" name="lodge_slug" value={slug} />
+                        <input type="hidden" name="request_id" value={req.id} />
+                        <label>
+                          Admin note
+                          <input name="admin_note" placeholder="Optional" />
+                        </label>
+                        <div className="admin-actions" style={{ marginTop: 8 }}>
+                          <button type="submit" name="decision" value="approved">
+                            Approve
+                          </button>
+                          <button type="submit" name="decision" value="rejected" className="secondary">
+                            Reject
+                          </button>
+                        </div>
+                      </AdminNavForm>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       <section className="admin-card" style={{ marginBottom: 18 }}>

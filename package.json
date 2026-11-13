@@ -5,6 +5,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "seed:private-media": "node scripts/seed-private-media.mjs",
+    "filter:wp-media": "node scripts/filter-wp-media.mjs",
+    "migrate:apply-catalogs": "node scripts/apply-migration-catalogs.mjs",
+    "migrate:upload-pdfs": "node scripts/upload-member-pdfs-to-supabase.mjs",
     "clean": "node -e \"const fs=require('fs');for (const p of ['.next','node_modules/.cache']) { try { fs.rmSync(p,{recursive:true,force:true}); console.log('removed',p);} catch(e){ console.log('skip',p);} }\""
   },
   "dependencies": {

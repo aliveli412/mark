@@ -3,6 +3,8 @@ import path from "path";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 import type {
+  AddressChangeStatus,
+  LodgeAddressChangeRequest,
   LodgeMembership,
   LodgeMembershipPayment,
   LodgeMembershipSettings,
@@ -156,6 +158,7 @@ type MockState = {
   roster: LodgeRosterMember[];
   memberships: LodgeMembership[];
   payments: LodgeMembershipPayment[];
+  addressRequests: LodgeAddressChangeRequest[];
 };
 
 const g = globalThis as typeof globalThis & { __mmmMembershipMock?: MockState };
@@ -167,9 +170,11 @@ function mock(): MockState {
       roster: loadFwbSeedMembers(),
       memberships: [],
       payments: [],
+      addressRequests: [],
     };
   }
   if (!g.__mmmMembershipMock.payments) g.__mmmMembershipMock.payments = [];
+  if (!g.__mmmMembershipMock.addressRequests) g.__mmmMembershipMock.addressRequests = [];
   return g.__mmmMembershipMock;
 }
 
@@ -839,6 +844,236 @@ export async function getMembershipDashboard(membershipId: string) {
   ]);
   const dues = buildDuesSummary({ membership, roster, settings, payments });
   return { membership, roster, settings, payments, dues };
+}
+
+export type MemberAddressPatch = {
+  address: string;
+  address2: string;
+  address3: string;
+  city: string;
+  county: string;
+  postcode: string;
+  country: string;
+};
+
+function normalizeAddressPatch(patch: MemberAddressPatch): MemberAddressPatch {
+  return {
+    address: String(patch.address ?? "").trim(),
+    address2: String(patch.address2 ?? "").trim(),
+    address3: String(patch.address3 ?? "").trim(),
+    city: String(patch.city ?? "").trim(),
+    county: String(patch.county ?? "").trim(),
+    postcode: String(patch.postcode ?? "").trim(),
+    country: String(patch.country ?? "").trim(),
+  };
+}
+
+function addressChanged(current: MemberAddressPatch, next: MemberAddressPatch) {
+  return (
+    current.address !== next.address ||
+    current.address2 !== next.address2 ||
+    current.address3 !== next.address3 ||
+    current.city !== next.city ||
+    current.county !== next.county ||
+    current.postcode !== next.postcode ||
+    current.country !== next.country
+  );
+}
+
+/** Member submits an address-change request; roster is unchanged until admin approval. */
+export async function requestMemberAddressChange(
+  membershipId: string,
+  patch: MemberAddressPatch,
+  memberNote = "",
+) {
+  const membership = await getMembershipById(membershipId);
+  if (!membership) return { error: "Membership not found." as const };
+  if (membership.status === "cancelled") return { error: "This membership is cancelled." as const };
+
+  const roster = await getMembershipRoster(membership);
+  if (!roster) {
+    return { error: "Your membership is not matched to the lodge roster yet." as const };
+  }
+
+  const next = normalizeAddressPatch(patch);
+  const current: MemberAddressPatch = {
+    address: roster.address,
+    address2: roster.address2,
+    address3: roster.address3,
+    city: roster.city,
+    county: roster.county,
+    postcode: roster.postcode,
+    country: roster.country,
+  };
+  if (!addressChanged(current, next)) {
+    return { error: "No address changes to submit." as const };
+  }
+
+  const pending = await listAddressChangeRequests(membership.lodge_slug, {
+    membershipId: membership.id,
+    status: "pending",
+  });
+  if (pending.length > 0) {
+    return { error: "You already have a pending address-change request." as const };
+  }
+
+  const now = new Date().toISOString();
+  const row: LodgeAddressChangeRequest = {
+    id: id("addr"),
+    lodge_slug: membership.lodge_slug,
+    membership_id: membership.id,
+    roster_id: roster.id,
+    member_name: roster.full_name || membership.full_name,
+    member_email: membership.email,
+    current_address: current.address,
+    current_address2: current.address2,
+    current_address3: current.address3,
+    current_city: current.city,
+    current_county: current.county,
+    current_postcode: current.postcode,
+    current_country: current.country,
+    requested_address: next.address,
+    requested_address2: next.address2,
+    requested_address3: next.address3,
+    requested_city: next.city,
+    requested_county: next.county,
+    requested_postcode: next.postcode,
+    requested_country: next.country,
+    member_note: String(memberNote ?? "").trim(),
+    admin_note: "",
+    status: "pending",
+    reviewed_by: "",
+    reviewed_at: null,
+    created_at: now,
+  };
+
+  if (!usingLive()) {
+    mock().addressRequests.unshift(row);
+    return { request: row };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return { error: "Supabase is not configured." as const };
+
+  const { id: _mockId, ...insertRow } = row;
+  void _mockId;
+  const { data, error } = await supabase
+    .from("lodge_address_change_requests")
+    .insert(insertRow)
+    .select("*")
+    .single();
+  if (error) return { error: error.message };
+  return { request: data as LodgeAddressChangeRequest };
+}
+
+export async function listAddressChangeRequests(
+  lodgeSlug: string,
+  opts?: { status?: AddressChangeStatus; membershipId?: string },
+) {
+  if (!usingLive()) {
+    return mock()
+      .addressRequests.filter((item) => {
+        if (item.lodge_slug !== lodgeSlug) return false;
+        if (opts?.status && item.status !== opts.status) return false;
+        if (opts?.membershipId && item.membership_id !== opts.membershipId) return false;
+        return true;
+      })
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return [];
+  let query = supabase
+    .from("lodge_address_change_requests")
+    .select("*")
+    .eq("lodge_slug", lodgeSlug)
+    .order("created_at", { ascending: false });
+  if (opts?.status) query = query.eq("status", opts.status);
+  if (opts?.membershipId) query = query.eq("membership_id", opts.membershipId);
+  const { data, error } = await query;
+  if (error) return [];
+  return (data ?? []) as LodgeAddressChangeRequest[];
+}
+
+export async function reviewAddressChangeRequest(input: {
+  requestId: string;
+  decision: "approved" | "rejected";
+  reviewedBy: string;
+  adminNote?: string;
+}) {
+  const decision = input.decision;
+  const reviewedBy = String(input.reviewedBy ?? "").trim() || "admin";
+  const adminNote = String(input.adminNote ?? "").trim();
+  const now = new Date().toISOString();
+
+  if (!usingLive()) {
+    const req = mock().addressRequests.find((item) => item.id === input.requestId);
+    if (!req) return { error: "Request not found." as const };
+    if (req.status !== "pending") return { error: "This request was already reviewed." as const };
+    req.status = decision;
+    req.reviewed_by = reviewedBy;
+    req.reviewed_at = now;
+    req.admin_note = adminNote;
+    if (decision === "approved") {
+      const roster = mock().roster.find((item) => item.id === req.roster_id);
+      if (roster) {
+        roster.address = req.requested_address;
+        roster.address2 = req.requested_address2;
+        roster.address3 = req.requested_address3;
+        roster.city = req.requested_city;
+        roster.county = req.requested_county;
+        roster.postcode = req.requested_postcode;
+        roster.country = req.requested_country;
+      }
+    }
+    return { request: req };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return { error: "Supabase is not configured." as const };
+
+  const { data: existing, error: loadError } = await supabase
+    .from("lodge_address_change_requests")
+    .select("*")
+    .eq("id", input.requestId)
+    .maybeSingle();
+  if (loadError) return { error: loadError.message };
+  if (!existing) return { error: "Request not found." as const };
+  const req = existing as LodgeAddressChangeRequest;
+  if (req.status !== "pending") return { error: "This request was already reviewed." as const };
+
+  if (decision === "approved") {
+    const { error: rosterError } = await supabase
+      .from("lodge_member_roster")
+      .update({
+        address: req.requested_address,
+        address2: req.requested_address2,
+        address3: req.requested_address3,
+        city: req.requested_city,
+        county: req.requested_county,
+        postcode: req.requested_postcode,
+        country: req.requested_country,
+        updated_at: now,
+      })
+      .eq("id", req.roster_id)
+      .eq("lodge_slug", req.lodge_slug);
+    if (rosterError) return { error: rosterError.message };
+  }
+
+  const { data, error } = await supabase
+    .from("lodge_address_change_requests")
+    .update({
+      status: decision,
+      reviewed_by: reviewedBy,
+      reviewed_at: now,
+      admin_note: adminNote,
+      updated_at: now,
+    })
+    .eq("id", req.id)
+    .select("*")
+    .single();
+  if (error) return { error: error.message };
+  return { request: data as LodgeAddressChangeRequest };
 }
 
 export async function activateMembershipBySession(sessionId: string, subscriptionId?: string | null) {

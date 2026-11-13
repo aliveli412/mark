@@ -171,20 +171,36 @@ export async function openMemberFileStream(file: LodgeMemberFile): Promise<
 > {
   if (file.storage_backend === "supabase") {
     const supabase = createSupabaseAdminClient();
-    if (!supabase) {
-      return {
-        error: "Supabase is not configured for private file downloads. Use local storage or add service role key.",
-        status: 503,
-      };
+    if (supabase) {
+      const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(file.storage_path, 60 * 10);
+      if (error || !data?.signedUrl) {
+        return { error: error?.message || "Could not create a secure download link.", status: 404 };
+      }
+      return { kind: "redirect", url: data.signedUrl };
     }
-    const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(file.storage_path, 60 * 10);
-    if (error || !data?.signedUrl) {
-      return { error: error?.message || "Could not create a secure download link.", status: 404 };
-    }
-    return { kind: "redirect", url: data.signedUrl };
+    // Local/dev fallback: same relative path under PRIVATE_MEDIA_ROOT after npm run seed:private-media
+    const localFallback = openLocalMemberFile(file);
+    if (!("error" in localFallback)) return localFallback;
+    return {
+      error:
+        "Supabase is not configured for private file downloads. Run `npm run seed:private-media` or add SUPABASE_SERVICE_ROLE_KEY.",
+      status: 503,
+    };
   }
 
   // local / Hostinger private disk
+  return openLocalMemberFile(file);
+}
+
+function openLocalMemberFile(file: LodgeMemberFile):
+  | { error: string; status: number }
+  | {
+      kind: "stream";
+      stream: ReadableStream | Readable;
+      contentType: string;
+      contentLength?: number;
+      fileName: string;
+    } {
   const absolute = path.resolve(privateMediaRoot(), file.storage_path);
   const root = path.resolve(privateMediaRoot());
   if (!absolute.startsWith(root + path.sep) && absolute !== root) {

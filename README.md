@@ -69,11 +69,18 @@ Pilot lodge: **Freemasons Without Borders** (`/sites/freemasons-without-borders/
 ## Member-only photos / PDFs (hybrid)
 
 - **Public images** → `public/sites/<lodge>/media/`
-- **Small PDFs** (summons, etc.) → Supabase Storage private bucket `member-files` + row in `lodge_member_files` (`supabase/member-files.sql`)
-- **Large RAR / photo packs** → Hostinger disk under `private-media/<lodge>/...` (`storage_backend = local`)
+- **Small PDFs** (summons, etc.) → Supabase Storage private bucket `member-files` + row in `lodge_member_files`
+- **Large photo packs / ZIP** → Hostinger disk under `$PRIVATE_MEDIA_ROOT/<lodge>/archives/` (`storage_backend = local`)
+- WP rule: **one large original per photo** (skip `-WxH` variants) — see `content/member-files/WP-MIGRATION.md`
 - Members download from dashboard **Downloads** (API checks membership; no public URL)
 
-See `content/member-files/README.md`.
+```bash
+npm run seed:private-media          # local placeholder stubs
+# Hostinger live: PRIVATE_MEDIA_ROOT=/home/u557964768/domains/markmastermasons.com/private-media
+# Supabase: member-files.sql → seed-member-files-all.sql → npm run migrate:upload-pdfs
+```
+
+See `private-media/README.md`, `private-media/MANIFEST.json`, and `content/member-files/README.md`.
 
 ## Shop products + Stripe
 

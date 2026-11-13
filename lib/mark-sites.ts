@@ -2,6 +2,8 @@ export type LodgeNavLink = {
   label: string;
   slug: string;
   key: string;
+  /** Absolute lodge path when the page is not under this nav group (e.g. Members Page). */
+  href?: string;
 };
 
 export type LodgeNavGroup = {
@@ -61,6 +63,7 @@ function defaultNav(brand: string): LodgeNavGroup[] {
       label: "Members",
       slug: "members",
       links: [
+        { label: "Members Page", slug: "membership", key: "membership", href: "membership" },
         { label: "Honorary Members", slug: "honorary-members", key: "members/honorary-members" },
         { label: "Past Masters", slug: "past-masters", key: "members/past-masters" },
         { label: "Founding Members", slug: "founding-members", key: "members/founding-members" },
