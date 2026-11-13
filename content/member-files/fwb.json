@@ -27,7 +27,7 @@
     },
     {
       "slug": "photos-2021",
-      "title": "Photo archive \u2014 2021",
+      "title": "Photo archive — 2021",
       "description": "Migrated from WordPress uploads (photo-archive).",
       "file_name": "freemasons-without-borders-photos-2021.zip",
       "mime_type": "application/zip",
@@ -99,7 +99,7 @@
     },
     {
       "slug": "photos-2022",
-      "title": "Photo archive \u2014 2022",
+      "title": "Photo archive — 2022",
       "description": "Migrated from WordPress uploads (photo-archive).",
       "file_name": "freemasons-without-borders-photos-2022.zip",
       "mime_type": "application/zip",
@@ -231,7 +231,7 @@
     },
     {
       "slug": "photos-2023",
-      "title": "Photo archive \u2014 2023",
+      "title": "Photo archive — 2023",
       "description": "Migrated from WordPress uploads (photo-archive).",
       "file_name": "freemasons-without-borders-photos-2023.zip",
       "mime_type": "application/zip",
@@ -286,6 +286,18 @@
       "size_bytes": 114594,
       "storage_backend": "supabase",
       "storage_path": "freemasons-without-borders/pdfs/2024/FWB-Minutes-6th-Regular-300923.pdf",
+      "visibility": "members",
+      "sort_order": 202401
+    },
+    {
+      "slug": "photos-2024",
+      "title": "Photo archive — 2024",
+      "description": "Migrated from WordPress uploads (photo-archive).",
+      "file_name": "freemasons-without-borders-photos-2024.zip",
+      "mime_type": "application/zip",
+      "size_bytes": 80636785,
+      "storage_backend": "local",
+      "storage_path": "freemasons-without-borders/archives/2024/freemasons-without-borders-photos-2024.zip",
       "visibility": "members",
       "sort_order": 202401
     },
@@ -375,7 +387,7 @@
     },
     {
       "slug": "photos-2025",
-      "title": "Photo archive \u2014 2025",
+      "title": "Photo archive — 2025",
       "description": "Migrated from WordPress uploads (photo-archive).",
       "file_name": "freemasons-without-borders-photos-2025.zip",
       "mime_type": "application/zip",

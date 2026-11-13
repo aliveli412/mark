@@ -1,11 +1,21 @@
 -- Auto-generated from WP migration catalogs. Safe to re-run (upsert).
 -- Prerequisites: supabase/member-files.sql + private bucket member-files
--- PDFs: upload to Storage at storage_path (npm run migrate:upload-pdfs) or disk fallback via PRIVATE_MEDIA_ROOT
--- Archives: on Hostinger under PRIVATE_MEDIA_ROOT (outside public_html)
+-- PDFs: upload objects to Storage at storage_path (or rely on PRIVATE_MEDIA_ROOT disk fallback)
+-- Archives: already on Hostinger under PRIVATE_MEDIA_ROOT
 
 insert into public.lodge_member_files (
-  lodge_slug, slug, title, description, file_name, mime_type, size_bytes,
-  storage_backend, storage_path, visibility, sort_order, active
+  lodge_slug,
+  slug,
+  title,
+  description,
+  file_name,
+  mime_type,
+  size_bytes,
+  storage_backend,
+  storage_path,
+  visibility,
+  sort_order,
+  active
 ) values
   (
     'anadolu',
@@ -17,6 +27,34 @@ insert into public.lodge_member_files (
     2077993,
     'supabase',
     'anadolu/pdfs/2022/Anadolu-Consecration-Summon-V1.pdf',
+    'members',
+    202201,
+    true
+  ),
+  (
+    'anadolu',
+    'photos-2022',
+    'Photo archive — 2022',
+    'Migrated from WordPress uploads (photo-archive).',
+    'anadolu-photos-2022.zip',
+    'application/zip',
+    3501413,
+    'local',
+    'anadolu/archives/2022/anadolu-photos-2022.zip',
+    'members',
+    202201,
+    true
+  ),
+  (
+    'ata',
+    'photos-2022',
+    'Photo archive — 2022',
+    'Migrated from WordPress uploads (photo-archive).',
+    'ata-photos-2022.zip',
+    'application/zip',
+    3090397,
+    'local',
+    'ata/archives/2022/ata-photos-2022.zip',
     'members',
     202201,
     true
@@ -359,6 +397,20 @@ insert into public.lodge_member_files (
   ),
   (
     'freemasons-without-borders',
+    'photos-2024',
+    'Photo archive — 2024',
+    'Migrated from WordPress uploads (photo-archive).',
+    'freemasons-without-borders-photos-2024.zip',
+    'application/zip',
+    80636785,
+    'local',
+    'freemasons-without-borders/archives/2024/freemasons-without-borders-photos-2024.zip',
+    'members',
+    202401,
+    true
+  ),
+  (
+    'freemasons-without-borders',
     'fwb-10th-reg-march-2025',
     'FWB 10th Reg March 2025',
     'Migrated from WordPress uploads (pdf).',
@@ -493,6 +545,20 @@ insert into public.lodge_member_files (
     911616636,
     'local',
     'khalsa/archives/2022/khalsa-photos-2022.zip',
+    'members',
+    202201,
+    true
+  ),
+  (
+    'namik-kemal',
+    'photos-2022',
+    'Photo archive — 2022',
+    'Migrated from WordPress uploads (photo-archive).',
+    'namik-kemal-photos-2022.zip',
+    'application/zip',
+    3039467,
+    'local',
+    'namik-kemal/archives/2022/namik-kemal-photos-2022.zip',
     'members',
     202201,
     true

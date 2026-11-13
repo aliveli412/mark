@@ -22,19 +22,24 @@ PRIVATE_MEDIA_ROOT=/home/u557964768/domains/markmastermasons.com/private-media
 
 WP her foto için `-150x150`, `-300x300`, `-768x1024`, `-scaled`, … üretir.
 
-**Foto başına yalnızca bir büyük dosya:**
+**Foto başına yalnızca bir büyük dosya** (normal / “member gallery” photos):
 
 | Al | Atlama |
 |---|---|
 | `photo.jpg` (orijinal) | `photo-150x150.jpg`, … |
 | Orijinal yoksa `photo-scaled.jpg` | Orijinal varken `-scaled` |
+| Sibling `.webp` when the raster original exists | — |
 | PDF / ZIP / RAR | — |
+
+Filtered originals are zipped into `$PRIVATE_MEDIA_ROOT/<lodge>/archives/<year>/<lodge>-photos-<year>.zip` (Hostinger disk, member download — not Supabase, not `public_html`).
 
 ```bash
 npm run filter:wp-media -- /path/to/wp-folder
 # or on Hostinger (full migrate):
-python3 ~/migrate-wp-uploads.py
+python3 ~/migrate-wp-uploads.py --all-photo-years
 ```
+
+`--all-photo-years` also archives smaller years (not only 80MB+ packs). Existing zips are reused.
 
 ## Bulk migrate (SSH)
 
@@ -65,16 +70,17 @@ Until step 4 runs, the download API falls back to disk when the same relative pa
 
 ## What was migrated (2026-11-13)
 
-| Lodge | PDFs → private-media (Supabase path) | Photo archives → private-media |
+| Lodge | PDFs → private-media (Supabase path) | Photo archives → private-media (1 large original / photo) |
 |---|---|---|
-| freemasons-without-borders | 27 summons/minutes (+ canonical Consecration Summon) | 2021, 2022, 2023 (~1.3GB), 2025 + `FWB_Consecration.zip` |
-| gallipoli | — (no member PDFs outside invoices) | 2022 (~126MB) |
-| khalsa | — | 2022 (~870MB) |
-| anadolu | Consecration Summon V1 | — |
-| namik-kemal | — | — (below archive threshold) |
-| ata | — | — |
+| freemasons-without-borders | 27 summons/minutes (+ canonical Consecration Summon) | 2021–2025 + `FWB_Consecration.zip` |
+| gallipoli | — (no member PDFs outside invoices) | 2022 (~126MB, 111 files) |
+| khalsa | — | 2022 (~870MB, 254 files) |
+| anadolu | Consecration Summon V1 | 2022 (~3MB, 18 files) |
+| namik-kemal | — | 2022 (~3MB, 13 files) |
+| ata | — | 2022 (~3MB, 11 files) |
 
-WxH variants skipped (approx): FWB ~10k, Gallipoli ~1.9k, Khalsa ~2.7k.
+WxH variants skipped (approx): FWB ~10k, Gallipoli ~1.9k, Khalsa ~2.7k.  
+Follow-up: `python3 ~/migrate-wp-uploads.py --all-photo-years` filled smaller years (FWB 2024, Anadolu/ATA/Namık Kemal 2022).
 
 ## Katalog
 

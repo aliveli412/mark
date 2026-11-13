@@ -5,15 +5,27 @@
   "hostinger_recommendation": "Place this tree as a sibling of the web root (not under public_html/public). Point PRIVATE_MEDIA_ROOT at the absolute path.",
   "hostinger_live_path": "/home/u557964768/domains/markmastermasons.com/private-media",
   "migration": {
-    "script": "scripts/migrate-wp-uploads.py",
-    "photo_rule": "Keep one large original per photo; skip -WxH variants; prefer original over -scaled",
+    "script": "scripts/migrate-wp-uploads.py --all-photo-years",
+    "photo_rule": "Keep one large original per photo; skip -WxH variants; prefer original over -scaled; skip sibling .webp when raster exists",
     "pdf_rule": "Member PDFs → <lodge>/pdfs/<year>/… (Supabase object key = same path; disk fallback under PRIVATE_MEDIA_ROOT)",
-    "archive_rule": "Large photo packs / zip/rar → <lodge>/archives/<year>/… on Hostinger only"
+    "archive_rule": "Filtered photo packs → <lodge>/archives/<year>/<lodge>-photos-<year>.zip on Hostinger only (not Supabase)"
   },
   "lodges": [
     {
       "slug": "freemasons-without-borders",
-      "folders": ["pdfs", "archives", "pdfs/2022", "pdfs/2023", "pdfs/2024", "pdfs/2025", "archives/2021", "archives/2022", "archives/2023", "archives/2025"],
+      "folders": [
+        "pdfs",
+        "archives",
+        "pdfs/2022",
+        "pdfs/2023",
+        "pdfs/2024",
+        "pdfs/2025",
+        "archives/2021",
+        "archives/2022",
+        "archives/2023",
+        "archives/2024",
+        "archives/2025"
+      ],
       "files": [
         {
           "role": "small_pdf",
@@ -31,7 +43,7 @@
           "local_disk_path": "freemasons-without-borders/archives/FWB_Consecration.zip",
           "seed_source": "content/member-files/seeds/FWB_Consecration.placeholder.rar",
           "approx_size": "~1.3GB production (zip of filtered 2023 originals)",
-          "notes": "Built on Hostinger from WP uploads (WxH skipped). Year packs also under archives/2021|2022|2023|2025/."
+          "notes": "Built on Hostinger from WP uploads (WxH skipped). Year packs under archives/2021–2025/."
         }
       ]
     },
@@ -44,20 +56,27 @@
           "production_backend": "local",
           "storage_path": "gallipoli/archives/2022/gallipoli-photos-2022.zip",
           "local_disk_path": "gallipoli/archives/2022/gallipoli-photos-2022.zip",
-          "notes": "Filtered WP originals (~126MB). No member PDFs found outside pdf-invoices."
+          "notes": "Filtered WP originals (~126MB, 111 files). No member PDFs found outside pdf-invoices."
         }
       ],
-      "migration": "Ran scripts/migrate-wp-uploads.py over SSH; catalog in content/member-files/gallipoli.json"
+      "migration": "Ran scripts/migrate-wp-uploads.py --all-photo-years; catalog in content/member-files/gallipoli.json"
     },
     {
       "slug": "namik-kemal",
-      "folders": ["pdfs", "archives"],
-      "files": [],
-      "migration": "No member PDFs / large photo packs above threshold"
+      "folders": ["pdfs", "archives", "archives/2022"],
+      "files": [
+        {
+          "role": "large_archive",
+          "production_backend": "local",
+          "storage_path": "namik-kemal/archives/2022/namik-kemal-photos-2022.zip",
+          "local_disk_path": "namik-kemal/archives/2022/namik-kemal-photos-2022.zip",
+          "notes": "Filtered WP originals (~3MB, 13 files)"
+        }
+      ]
     },
     {
       "slug": "anadolu",
-      "folders": ["pdfs", "archives", "pdfs/2022"],
+      "folders": ["pdfs", "archives", "pdfs/2022", "archives/2022"],
       "files": [
         {
           "role": "small_pdf",
@@ -65,14 +84,28 @@
           "bucket": "member-files",
           "storage_path": "anadolu/pdfs/2022/Anadolu-Consecration-Summon-V1.pdf",
           "local_disk_path": "anadolu/pdfs/2022/Anadolu-Consecration-Summon-V1.pdf"
+        },
+        {
+          "role": "large_archive",
+          "production_backend": "local",
+          "storage_path": "anadolu/archives/2022/anadolu-photos-2022.zip",
+          "local_disk_path": "anadolu/archives/2022/anadolu-photos-2022.zip",
+          "notes": "Filtered WP originals (~3.3MB, 18 files)"
         }
       ]
     },
     {
       "slug": "ata",
-      "folders": ["pdfs", "archives"],
-      "files": [],
-      "migration": "No member PDFs / large photo packs above threshold"
+      "folders": ["pdfs", "archives", "archives/2022"],
+      "files": [
+        {
+          "role": "large_archive",
+          "production_backend": "local",
+          "storage_path": "ata/archives/2022/ata-photos-2022.zip",
+          "local_disk_path": "ata/archives/2022/ata-photos-2022.zip",
+          "notes": "Filtered WP originals (~2.9MB, 11 files)"
+        }
+      ]
     },
     {
       "slug": "khalsa",
@@ -84,7 +117,7 @@
           "storage_path": "khalsa/archives/2022/khalsa-photos-2022.zip",
           "local_disk_path": "khalsa/archives/2022/khalsa-photos-2022.zip",
           "approx_size": "~870MB",
-          "notes": "Filtered WP originals only"
+          "notes": "Filtered WP originals only (254 files)"
         }
       ]
     }
