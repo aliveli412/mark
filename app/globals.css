@@ -900,6 +900,127 @@ button, input, select, textarea { font: inherit; }
   cursor: pointer;
   padding: 6px 4px;
 }
+.lodge-burger {
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  min-height: 36px;
+  font-size: 22px;
+  line-height: 1;
+  border-radius: 6px;
+}
+.lodge-burger:hover,
+.lodge-tools a:hover {
+  color: #c8102e;
+}
+.lodge-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 28;
+  border: 0;
+  background: rgba(17, 17, 17, 0.28);
+  cursor: pointer;
+}
+.lodge-drawer {
+  position: absolute;
+  top: calc(100% + 1px);
+  right: 0;
+  z-index: 40;
+  width: min(360px, calc(100vw - 24px));
+  max-height: min(78vh, 640px);
+  overflow: auto;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.16);
+  padding: 16px 16px 20px;
+}
+.lodge-drawer h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #2a2f6d;
+}
+.lodge-drawer-note,
+.lodge-drawer-hello {
+  margin: 0 0 12px;
+  color: #555;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.lodge-drawer-member-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.lodge-drawer-member-nav a,
+.lodge-drawer-logout {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: none;
+  color: #222;
+  font: inherit;
+  font-weight: 650;
+  font-size: 14px;
+  padding: 10px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.lodge-drawer-member-nav a:hover,
+.lodge-drawer-logout:hover {
+  background: #f4f5f8;
+  color: #c8102e;
+}
+.lodge-drawer-logout {
+  margin-top: 6px;
+  color: #8a1f2d;
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 6px 6px;
+}
+.lodge-drawer-signin {
+  display: grid;
+  gap: 10px;
+}
+.lodge-drawer-signin label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #444;
+}
+.lodge-drawer-signin input {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 10px;
+  font: inherit;
+}
+.lodge-drawer-error {
+  margin: 0;
+  color: #b42318;
+  font-size: 13px;
+}
+.lodge-drawer-guest-links {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.lodge-drawer-guest-links a {
+  font-weight: 700;
+  font-size: 13px;
+  color: #2a2f6d;
+}
+.lodge-drawer-guest-links a:hover {
+  color: #c8102e;
+}
+.lodge-drawer-site-nav {
+  display: none;
+}
 .lodge-titlebar {
   background: #2a2f6d;
   color: #fff;
@@ -1126,20 +1247,39 @@ button, input, select, textarea { font: inherit; }
   .lodge-posts { grid-template-columns: 1fr; }
   .lodge-footer-grid { grid-template-columns: 1fr 1fr; }
   .lodge-nav { display: none; }
-  .lodge-nav.open {
+  .lodge-top-inner { position: relative; }
+  .lodge-drawer {
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: min(82vh, 720px);
+    border-left: 0;
+    border-right: 0;
+    box-shadow: 0 16px 28px rgba(0, 0, 0, 0.12);
+  }
+  .lodge-drawer-site-nav {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    position: absolute;
-    top: 64px;
-    left: 0;
-    right: 0;
-    background: #fff;
-    border-bottom: 1px solid var(--line);
-    padding: 8px 12px 16px;
+    gap: 2px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
   }
-  .lodge-top-inner { position: relative; }
-  .lodge-submenu { position: static; display: block; box-shadow: none; border: 0; }
+  .lodge-drawer-site-nav .lodge-submenu {
+    position: static;
+    display: block;
+    box-shadow: none;
+    border: 0;
+  }
+  .lodge-drawer-site-nav a,
+  .lodge-drawer-site-nav .lodge-nav-label {
+    color: #333;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 8px 10px;
+    display: block;
+  }
   .submenu.sites-menu { background: #2b2b2b; }
 }
 @media (max-width: 640px) {

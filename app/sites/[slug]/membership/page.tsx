@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { MembershipPanel } from "@/components/sites/MembershipPanel";
 import {
   getMembershipByAccess,
@@ -68,23 +69,25 @@ export default async function LodgeMembershipPage({
         </>
       )}
       {!settings.active ? <p className="error">Membership payments are currently paused for this lodge.</p> : null}
-      <MembershipPanel
-        lodgeSlug={slug}
-        settings={settings}
-        meeting={{
-          label: site.nextMeetingLabel,
-          at: site.nextMeetingAt,
-          bookingHref: site.bookingHref.startsWith("#")
-            ? `${lodgePath(slug)}${site.bookingHref}`
-            : site.bookingHref,
-          event: site.event,
-          meetingsHref: lodgePath(slug, "meetings", "regular-meetings"),
-        }}
-        initialMembership={boot?.membership ?? null}
-        initialRoster={boot?.roster ?? null}
-        initialPayments={boot?.payments ?? []}
-        initialDues={boot?.dues ?? null}
-      />
+      <Suspense fallback={<p className="membership-note">Loading members page…</p>}>
+        <MembershipPanel
+          lodgeSlug={slug}
+          settings={settings}
+          meeting={{
+            label: site.nextMeetingLabel,
+            at: site.nextMeetingAt,
+            bookingHref: site.bookingHref.startsWith("#")
+              ? `${lodgePath(slug)}${site.bookingHref}`
+              : site.bookingHref,
+            event: site.event,
+            meetingsHref: lodgePath(slug, "meetings", "regular-meetings"),
+          }}
+          initialMembership={boot?.membership ?? null}
+          initialRoster={boot?.roster ?? null}
+          initialPayments={boot?.payments ?? []}
+          initialDues={boot?.dues ?? null}
+        />
+      </Suspense>
     </article>
   );
 }

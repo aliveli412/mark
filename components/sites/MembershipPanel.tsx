@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Countdown } from "@/components/sites/Countdown";
 import { formatPence } from "@/lib/format";
@@ -34,6 +35,23 @@ type DashSection =
   | "subscriptions"
   | "tickets"
   | "password";
+
+const DASH_SECTIONS: DashSection[] = [
+  "account",
+  "record",
+  "meeting",
+  "summons",
+  "payments",
+  "addresses",
+  "subscriptions",
+  "tickets",
+  "password",
+];
+
+function parseDashSection(value: string | null | undefined): DashSection | null {
+  if (!value) return null;
+  return DASH_SECTIONS.includes(value as DashSection) ? (value as DashSection) : null;
+}
 
 type MeetingInfo = {
   label: string;
@@ -389,6 +407,7 @@ function MemberHome({
   addressError,
   addressMessage,
   hasPendingAddressRequest,
+  initialSection = "account",
 }: {
   data: DashboardPayload;
   settings: LodgeMembershipSettings;
@@ -415,12 +434,17 @@ function MemberHome({
   addressError: string;
   addressMessage: string;
   hasPendingAddressRequest: boolean;
+  initialSection?: DashSection;
 }) {
   const { membership, roster, payments, dues } = data;
-  const [section, setSection] = useState<DashSection>("account");
+  const [section, setSection] = useState<DashSection>(initialSection);
   const [files, setFiles] = useState<MemberFileListItem[]>([]);
   const [filesError, setFilesError] = useState("");
   const [filesLoading, setFilesLoading] = useState(false);
+
+  useEffect(() => {
+    setSection(initialSection);
+  }, [initialSection]);
   const title = roster ? [roster.prefix, roster.full_name].filter(Boolean).join(" ") : membership.full_name;
   const firstName = (roster?.given_names || membership.full_name).split(/\s+/)[0] || "Brother";
   const brotherNo = roster?.brother_no || membership.membership_no;
@@ -967,6 +991,9 @@ export function MembershipPanel({
   initialPayments?: LodgeMembershipPayment[];
   initialDues?: MembershipDuesSummary | null;
 }) {
+  const searchParams = useSearchParams();
+  const requestedSection = parseDashSection(searchParams.get("section")) ?? "account";
+  const requestedMode = searchParams.get("mode") === "register" ? "register" : "signin";
   const [dashboard, setDashboard] = useState<DashboardPayload | null>(
     initialMembership && initialDues
       ? {
@@ -986,11 +1013,15 @@ export function MembershipPanel({
   const [error, setError] = useState("");
   const [stripeReady, setStripeReady] = useState<boolean | null>(null);
   const [message, setMessage] = useState("");
-  const [mode, setMode] = useState<"signin" | "register">("signin");
+  const [mode, setMode] = useState<"signin" | "register">(requestedMode);
   const [addressPending, setAddressPending] = useState(false);
   const [addressError, setAddressError] = useState("");
   const [addressMessage, setAddressMessage] = useState("");
   const [hasPendingAddressRequest, setHasPendingAddressRequest] = useState(false);
+
+  useEffect(() => {
+    setMode(requestedMode);
+  }, [requestedMode]);
 
   useEffect(() => {
     fetch("/api/membership/checkout")
@@ -1206,6 +1237,7 @@ export function MembershipPanel({
         addressError={addressError}
         addressMessage={addressMessage}
         hasPendingAddressRequest={hasPendingAddressRequest}
+        initialSection={requestedSection}
       />
     );
   }
