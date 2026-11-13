@@ -1,4 +1,17 @@
 {
   "lodge_slug": "namik-kemal",
-  "files": []
+  "files": [
+    {
+      "slug": "photos-2022",
+      "title": "Photo archive — 2022",
+      "description": "Migrated from WordPress uploads (photo-archive).",
+      "file_name": "namik-kemal-photos-2022.zip",
+      "mime_type": "application/zip",
+      "size_bytes": 3039467,
+      "storage_backend": "local",
+      "storage_path": "namik-kemal/archives/2022/namik-kemal-photos-2022.zip",
+      "visibility": "members",
+      "sort_order": 202201
+    }
+  ]
 }

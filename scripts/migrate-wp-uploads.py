@@ -88,6 +88,9 @@ PHOTO_ARCHIVE_MIN_BYTES = 80 * 1024 * 1024  # 80 MB
 # Or many files AND at least 40 MB (avoid tiny icon packs)
 PHOTO_ARCHIVE_MIN_FILES = 40
 PHOTO_ARCHIVE_MIN_BYTES_WITH_COUNT = 40 * 1024 * 1024
+# With --all-photo-years: archive any year that has at least one kept original
+# above this tiny floor (skips empty / icon-only folders).
+PHOTO_ARCHIVE_ALL_YEARS_MIN_BYTES = 256 * 1024  # 256 KB
 
 
 def is_size_variant(name: str) -> bool:
@@ -306,7 +309,13 @@ def catalog_entry(
     }
 
 
-def migrate_lodge(wp_name: str, lodge_slug: str, dry_run: bool, skip_archives: bool) -> dict:
+def migrate_lodge(
+    wp_name: str,
+    lodge_slug: str,
+    dry_run: bool,
+    skip_archives: bool,
+    all_photo_years: bool = False,
+) -> dict:
     uploads = WP_ROOT / wp_name / "wp-content" / "uploads"
     report: dict = {
         "wp": wp_name,
@@ -397,15 +406,29 @@ def migrate_lodge(wp_name: str, lodge_slug: str, dry_run: bool, skip_archives: b
             total = sum(p.stat().st_size for p in kept)
             large = total >= PHOTO_ARCHIVE_MIN_BYTES
             many = len(kept) >= PHOTO_ARCHIVE_MIN_FILES and total >= PHOTO_ARCHIVE_MIN_BYTES_WITH_COUNT
-            if not (large or many):
+            any_year = all_photo_years and len(kept) > 0 and total >= PHOTO_ARCHIVE_ALL_YEARS_MIN_BYTES
+            if not (large or many or any_year):
                 continue
             zip_name = f"{lodge_slug}-photos-{year}.zip"
             storage_path = f"{lodge_slug}/archives/{year}/{zip_name}"
             dest = PRIVATE_ROOT / storage_path
             try:
-                if not dry_run and dest.exists():
-                    # refresh if source total differs significantly
-                    pass
+                if not dry_run and dest.exists() and dest.stat().st_size > 0:
+                    # Keep existing filtered zip; still catalog it.
+                    size = dest.stat().st_size
+                    entry = catalog_entry(
+                        lodge_slug=lodge_slug,
+                        file_name=zip_name,
+                        storage_path=storage_path,
+                        storage_backend="local",
+                        size_bytes=size,
+                        year=year,
+                        kind="photo-archive",
+                    )
+                    report["photo_archives"].append(
+                        {**entry, "source_files": len(kept), "source_bytes": total, "reused": True}
+                    )
+                    continue
                 zip_files(kept, dest, uploads / year, dry_run)
                 size = dest.stat().st_size if dest.exists() and not dry_run else total
                 entry = catalog_entry(
@@ -438,6 +461,11 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--skip-archives", action="store_true", help="Skip building year photo zips")
     parser.add_argument(
+        "--all-photo-years",
+        action="store_true",
+        help="Archive every year with kept originals (one large file per photo; skip WxH), not only large packs",
+    )
+    parser.add_argument(
         "--private-root",
         default=str(DEFAULT_PRIVATE_ROOT),
         help="PRIVATE_MEDIA_ROOT on Hostinger",
@@ -455,7 +483,10 @@ def main() -> int:
 
     print(f"WP_ROOT={WP_ROOT}")
     print(f"PRIVATE_MEDIA_ROOT={PRIVATE_ROOT}")
-    print(f"dry_run={args.dry_run} skip_archives={args.skip_archives}")
+    print(
+        f"dry_run={args.dry_run} skip_archives={args.skip_archives} all_photo_years={args.all_photo_years}"
+    )
+    print("Photo rule: one large original per image (skip -WxH; prefer original over -scaled)")
     print("")
 
     ensure_dir(PRIVATE_ROOT, args.dry_run)
@@ -464,7 +495,13 @@ def main() -> int:
 
     for wp_name, lodge_slug in LODGES.items():
         print(f"======== {wp_name} → {lodge_slug} ========")
-        report = migrate_lodge(wp_name, lodge_slug, args.dry_run, args.skip_archives)
+        report = migrate_lodge(
+            wp_name,
+            lodge_slug,
+            args.dry_run,
+            args.skip_archives,
+            all_photo_years=args.all_photo_years,
+        )
         reports.append(report)
         print(json.dumps(report["stats"], indent=2))
         if report["errors"]:
@@ -476,7 +513,9 @@ def main() -> int:
             if sp in seen_paths:
                 continue
             seen_paths.add(sp)
-            files.append({k: row[k] for k in row if k not in {"source", "source_files", "source_bytes"}})
+            files.append(
+                {k: row[k] for k in row if k not in {"source", "source_files", "source_bytes", "reused"}}
+            )
         catalogs[lodge_slug] = {"lodge_slug": lodge_slug, "files": files}
         print("")
 
