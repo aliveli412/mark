@@ -1417,6 +1417,57 @@ button, input, select, textarea { font: inherit; }
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
+.member-accordion-hint {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.member-accordion-list {
+  display: grid;
+  gap: 0;
+  border: 1px solid #e5e5e5;
+  background: #fff;
+}
+.member-accordion {
+  border-bottom: 1px solid #e5e5e5;
+}
+.member-accordion:last-child {
+  border-bottom: 0;
+}
+.member-accordion > summary {
+  list-style: none;
+  cursor: pointer;
+  min-height: 48px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 700;
+  color: #111;
+  background: #fafafa;
+  user-select: none;
+}
+.member-accordion > summary::-webkit-details-marker {
+  display: none;
+}
+.member-accordion > summary::after {
+  content: "+";
+  font-size: 18px;
+  font-weight: 700;
+  color: #666;
+  line-height: 1;
+}
+.member-accordion[open] > summary {
+  background: #ececec;
+  border-bottom: 1px solid #e5e5e5;
+}
+.member-accordion[open] > summary::after {
+  content: "–";
+}
+.member-accordion-body {
+  padding: 8px 16px 14px;
+}
 .member-field-grid {
   margin: 0;
   display: grid;

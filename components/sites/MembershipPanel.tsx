@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Countdown } from "@/components/sites/Countdown";
 import { formatPence } from "@/lib/format";
 import { lodgePath, type LodgeEvent } from "@/lib/mark-sites";
@@ -26,6 +26,7 @@ type DashboardPayload = {
 
 type DashSection =
   | "account"
+  | "record"
   | "meeting"
   | "summons"
   | "payments"
@@ -57,6 +58,7 @@ type MemberFileListItem = {
 
 const NAV_ITEMS: { id: DashSection; label: string }[] = [
   { id: "account", label: "My Account" },
+  { id: "record", label: "My lodge record" },
   { id: "meeting", label: "Next Regular Meeting" },
   { id: "summons", label: "Summons & Minutes" },
   { id: "payments", label: "Payment methods" },
@@ -110,6 +112,106 @@ function Field({ label, value }: { label: string; value: string | null | undefin
     <div className="member-field">
       <dt>{label}</dt>
       <dd>{display(value)}</dd>
+    </div>
+  );
+}
+
+function AccordionSection({
+  title,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <details className="member-accordion" open={defaultOpen || undefined}>
+      <summary>{title}</summary>
+      <div className="member-accordion-body">{children}</div>
+    </details>
+  );
+}
+
+function FullLodgeRecord({
+  roster,
+  membershipEmail,
+  openAddress = false,
+}: {
+  roster: LodgeRosterMember;
+  membershipEmail: string;
+  openAddress?: boolean;
+}) {
+  return (
+    <div className="member-accordion-list" aria-label="Full lodge Excel record">
+      <AccordionSection title="Identity" defaultOpen>
+        <dl className="member-field-grid">
+          <Field label="BrotherNo" value={roster.brother_no} />
+          <Field label="Surname" value={roster.surname} />
+          <Field label="GivenNames" value={roster.given_names} />
+          <Field label="Prefix" value={roster.prefix} />
+          <Field label="Initials" value={roster.initials} />
+          <Field label="Title" value={roster.title} />
+          <Field label="Suffix" value={roster.suffix} />
+          <Field label="Full name" value={roster.full_name} />
+          <Field label="Activity" value={roster.activity} />
+          <Field label="Notes" value={roster.notes} />
+        </dl>
+      </AccordionSection>
+
+      <AccordionSection title="Contact">
+        <dl className="member-field-grid">
+          <Field label="Email" value={roster.email || membershipEmail} />
+          <Field label="HomePhone" value={roster.home_phone} />
+          <Field label="Mobile" value={roster.mobile} />
+        </dl>
+      </AccordionSection>
+
+      <AccordionSection title="Address" defaultOpen={openAddress}>
+        <dl className="member-field-grid">
+          <Field label="Address" value={roster.address} />
+          <Field label="Address2" value={roster.address2} />
+          <Field label="Address3" value={roster.address3} />
+          <Field label="City" value={roster.city} />
+          <Field label="County" value={roster.county} />
+          <Field label="PostCode" value={roster.postcode} />
+          <Field label="Country" value={roster.country} />
+        </dl>
+      </AccordionSection>
+
+      <AccordionSection title="Dates">
+        <dl className="member-field-grid">
+          <Field label="StartDate" value={formatDate(roster.start_date)} />
+          <Field label="EndDate" value={formatDate(roster.end_date)} />
+        </dl>
+      </AccordionSection>
+
+      <AccordionSection title="Unit rank">
+        <dl className="member-field-grid">
+          <Field label="UnitRank" value={roster.unit_rank} />
+          <Field label="UnitRankId" value={roster.unit_rank_id} />
+          <Field label="UnitPrefix" value={roster.unit_prefix} />
+          <Field label="UnitRankStart" value={formatDate(roster.unit_rank_start)} />
+        </dl>
+      </AccordionSection>
+
+      <AccordionSection title="Provincial rank">
+        <dl className="member-field-grid">
+          <Field label="ProvRank" value={roster.prov_rank} />
+          <Field label="ProvRankId" value={roster.prov_rank_id} />
+          <Field label="ProvPrefix" value={roster.prov_prefix} />
+          <Field label="ProvRankStart" value={formatDate(roster.prov_rank_start)} />
+        </dl>
+      </AccordionSection>
+
+      <AccordionSection title="Grand rank">
+        <dl className="member-field-grid">
+          <Field label="GrandRank" value={roster.grand_rank} />
+          <Field label="GrandRankId" value={roster.grand_rank_id} />
+          <Field label="GrandPrefix" value={roster.grand_prefix} />
+          <Field label="GrandRankStart" value={formatDate(roster.grand_rank_start)} />
+        </dl>
+      </AccordionSection>
     </div>
   );
 }
@@ -301,7 +403,10 @@ function MemberHome({
             </div>
 
             <div className="member-overview-actions">
-              <button type="button" className="btn" onClick={() => setSection("summons")}>
+              <button type="button" className="btn" onClick={() => setSection("record")}>
+                My lodge record
+              </button>
+              <button type="button" className="btn secondary" onClick={() => setSection("summons")}>
                 Summons &amp; Minutes
               </button>
               <button type="button" className="btn secondary" onClick={() => setSection("meeting")}>
@@ -314,20 +419,30 @@ function MemberHome({
 
             {roster ? (
               <div className="member-overview-snap">
-                <h3>Quick details</h3>
-                <dl className="member-field-grid">
-                  <Field label="Email" value={roster.email || membership.email} />
-                  <Field label="Mobile" value={roster.mobile} />
-                  <Field label="Home phone" value={roster.home_phone} />
-                  <Field label="City" value={roster.city} />
-                  <Field label="Country" value={roster.country} />
-                  <Field label="Activity" value={roster.activity} />
-                  <Field label="Unit rank" value={roster.unit_rank} />
-                  <Field label="Prov rank" value={roster.prov_rank} />
-                  <Field label="Grand rank" value={roster.grand_rank} />
-                </dl>
+                <h3>Your lodge details</h3>
+                <p className="member-accordion-hint">
+                  Open each section for the full Excel roster fields (identity, contact, address, dates, ranks).
+                </p>
+                <FullLodgeRecord roster={roster} membershipEmail={membership.email} />
               </div>
-            ) : null}
+            ) : (
+              <p className="member-empty">Full lodge details appear once your membership is matched to the roster.</p>
+            )}
+          </section>
+        ) : null}
+
+        {section === "record" ? (
+          <section className="member-dash-panel">
+            <header className="member-dash-panel-head">
+              <h2>My lodge record</h2>
+              <p>Every field imported from the lodge Excel roster. Expand a section to view the details.</p>
+            </header>
+
+            {!roster ? (
+              <p className="member-empty">Roster details appear once your membership is matched.</p>
+            ) : (
+              <FullLodgeRecord roster={roster} membershipEmail={membership.email} />
+            )}
           </section>
         ) : null}
 
@@ -549,28 +664,7 @@ function MemberHome({
             {!roster ? (
               <p className="member-empty">Address details appear once your membership is matched to the roster.</p>
             ) : (
-              <div className="member-record-sections">
-                <div>
-                  <h3>Contact</h3>
-                  <dl className="member-field-grid">
-                    <Field label="Email" value={roster.email || membership.email} />
-                    <Field label="HomePhone" value={roster.home_phone} />
-                    <Field label="Mobile" value={roster.mobile} />
-                  </dl>
-                </div>
-                <div>
-                  <h3>Address</h3>
-                  <dl className="member-field-grid">
-                    <Field label="Address" value={roster.address} />
-                    <Field label="Address2" value={roster.address2} />
-                    <Field label="Address3" value={roster.address3} />
-                    <Field label="City" value={roster.city} />
-                    <Field label="County" value={roster.county} />
-                    <Field label="PostCode" value={roster.postcode} />
-                    <Field label="Country" value={roster.country} />
-                  </dl>
-                </div>
-              </div>
+              <FullLodgeRecord roster={roster} membershipEmail={membership.email} openAddress />
             )}
           </section>
         ) : null}
