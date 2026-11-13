@@ -140,6 +140,37 @@ export type LodgeMembership = {
   created_at: string;
 };
 
+export type AddressChangeStatus = "pending" | "approved" | "rejected";
+
+export type LodgeAddressChangeRequest = {
+  id: string;
+  lodge_slug: string;
+  membership_id: string;
+  roster_id: string;
+  member_name: string;
+  member_email: string;
+  current_address: string;
+  current_address2: string;
+  current_address3: string;
+  current_city: string;
+  current_county: string;
+  current_postcode: string;
+  current_country: string;
+  requested_address: string;
+  requested_address2: string;
+  requested_address3: string;
+  requested_city: string;
+  requested_county: string;
+  requested_postcode: string;
+  requested_country: string;
+  member_note: string;
+  admin_note: string;
+  status: AddressChangeStatus;
+  reviewed_by: string;
+  reviewed_at: string | null;
+  created_at: string;
+};
+
 export type MembershipPaymentMethod =
   | "stripe"
   | "bank"
