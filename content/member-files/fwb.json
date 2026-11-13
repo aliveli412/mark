@@ -1,0 +1,29 @@
+{
+  "lodge_slug": "freemasons-without-borders",
+  "files": [
+    {
+      "slug": "consecration-summon",
+      "title": "Consecration Summon",
+      "description": "Member-only PDF previously behind WordPress download login.",
+      "file_name": "FWB-Consecration-Summon.pdf",
+      "mime_type": "application/pdf",
+      "size_bytes": 2243952,
+      "storage_backend": "supabase",
+      "storage_path": "freemasons-without-borders/pdfs/FWB-Consecration-Summon.pdf",
+      "visibility": "members",
+      "sort_order": 10
+    },
+    {
+      "slug": "consecration-photos-archive",
+      "title": "Consecration photos archive",
+      "description": "Large photo pack (~1.5GB). Keep on Hostinger private disk, not Supabase.",
+      "file_name": "FWB_Consecration.rar",
+      "mime_type": "application/vnd.rar",
+      "size_bytes": 1610612736,
+      "storage_backend": "local",
+      "storage_path": "freemasons-without-borders/archives/FWB_Consecration.rar",
+      "visibility": "members",
+      "sort_order": 20
+    }
+  ]
+}

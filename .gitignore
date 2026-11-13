@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+*.log
+.DS_Store
+.env
+.env.local
+.env.*.local
+
+# Member-only binaries (keep folder + README in git)
+private-media/**
+!private-media/README.md
+!private-media/.gitkeep
+!private-media/**/.gitkeep
