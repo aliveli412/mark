@@ -21,6 +21,7 @@ export default async function AdminEventsPage() {
           <thead>
             <tr>
               <th>Title</th>
+              <th>Lodge</th>
               <th>When</th>
               <th>Location</th>
               <th>RSVP</th>
@@ -35,6 +36,7 @@ export default async function AdminEventsPage() {
                   <strong>{event.title}</strong>
                   <div>{event.category || event.slug}</div>
                 </td>
+                <td>{event.lodge_slug || "Portal"}</td>
                 <td>{formatEventWhen(event.starts_at, event.ends_at)}</td>
                 <td>{event.location || "—"}</td>
                 <td>{event.rsvp_enabled ? "Open" : "Closed"}</td>

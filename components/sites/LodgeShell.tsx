@@ -9,7 +9,7 @@ import { lodgePath, markSites } from "@/lib/mark-sites";
 const MEMBER_MENU: { section: string; label: string }[] = [
   { section: "account", label: "My Account" },
   { section: "record", label: "My lodge record" },
-  { section: "meeting", label: "Next Regular Meeting" },
+  { section: "meeting", label: "Regular Meetings" },
   { section: "summons", label: "Summons & Minutes" },
   { section: "payments", label: "Payment methods" },
   { section: "addresses", label: "Addresses" },

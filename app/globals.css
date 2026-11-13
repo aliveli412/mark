@@ -283,6 +283,12 @@ button, input, select, textarea { font: inherit; }
 .field span { font-weight: 600; color: var(--navy-deep); }
 .req { color: var(--crimson); }
 .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.admin-help {
+  margin: 0 0 12px;
+  color: #555;
+  font-size: 13px;
+  line-height: 1.45;
+}
 .form button, .btn {
   background: var(--navy);
   color: #fff;
@@ -1063,6 +1069,221 @@ button, input, select, textarea { font: inherit; }
   font-size: 14px;
 }
 .lodge-side li a.active { color: #c8102e; }
+.lodge-home {
+  display: grid;
+  gap: 28px;
+  padding-bottom: 12px;
+}
+.lodge-home-kicker {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8a1f2d;
+}
+.lodge-home-kicker-light {
+  color: rgba(255, 255, 255, 0.72);
+}
+.lodge-home-hero {
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  border-radius: 18px;
+  padding: clamp(28px, 5vw, 48px);
+  background:
+    radial-gradient(1200px 420px at 12% -10%, rgba(200, 16, 46, 0.35), transparent 55%),
+    linear-gradient(145deg, #1a1f4d 0%, #2a2f6d 48%, #12152f 100%);
+  animation: lodge-home-in 700ms ease-out both;
+}
+.lodge-home-hero-glow {
+  position: absolute;
+  inset: auto -20% -40% auto;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent 68%);
+  pointer-events: none;
+  animation: lodge-home-glow 8s ease-in-out infinite alternate;
+}
+.lodge-home-hero h2 {
+  position: relative;
+  margin: 0 0 10px;
+  max-width: 18ch;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(30px, 5vw, 48px);
+  line-height: 1.08;
+  font-weight: 700;
+}
+.lodge-home-hero-lead {
+  position: relative;
+  margin: 0 0 22px;
+  max-width: 46ch;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.lodge-home-hero .lodge-countdown {
+  position: relative;
+  margin: 0 0 22px;
+}
+.lodge-home-hero .lodge-count-grid {
+  max-width: 560px;
+}
+.lodge-home-hero .lodge-count-grid strong {
+  color: #fff;
+  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  animation: lodge-count-pulse 1.2s ease-in-out infinite;
+}
+.lodge-home-hero .lodge-count-grid span {
+  color: rgba(255, 255, 255, 0.7);
+}
+.lodge-home-cta,
+.lodge-home-cta-ghost,
+.lodge-home-cal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+}
+.lodge-home-cta {
+  background: #c8102e;
+  color: #fff !important;
+  box-shadow: 0 10px 24px rgba(200, 16, 46, 0.28);
+}
+.lodge-home-cta:hover {
+  background: #a50d25;
+}
+.lodge-home-cta-on-dark {
+  position: relative;
+}
+.lodge-home-cta-ghost {
+  background: transparent;
+  color: #2a2f6d !important;
+  border: 1px solid rgba(42, 47, 109, 0.28);
+}
+.lodge-home-cal {
+  padding: 0;
+  min-height: auto;
+  color: #2a2f6d;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.lodge-home-featured {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(240px, 0.9fr);
+  gap: 22px;
+  align-items: start;
+  animation: lodge-home-in 800ms ease-out both;
+  animation-delay: 80ms;
+}
+.lodge-home-featured-main {
+  padding: 8px 4px 0;
+}
+.lodge-home-featured-date {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #c8102e;
+}
+.lodge-home-featured-main h2 {
+  margin: 0 0 8px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(26px, 3.4vw, 36px);
+  line-height: 1.15;
+  color: #171a33;
+}
+.lodge-home-featured-sub {
+  margin: 0 0 18px;
+  color: #555;
+  font-size: 15px;
+}
+.lodge-home-featured-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+  margin: 0 0 22px;
+}
+.lodge-home-featured-meta dt {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #777;
+}
+.lodge-home-featured-meta dd {
+  margin: 0;
+  color: #2a2a2a;
+  line-height: 1.45;
+}
+.lodge-home-featured-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  align-items: center;
+}
+.lodge-home-upcoming {
+  padding: 18px 18px 8px;
+  border-left: 1px solid var(--line);
+}
+.lodge-home-upcoming h3 {
+  margin: 0 0 12px;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #2a2f6d;
+}
+.lodge-home-upcoming ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.lodge-home-upcoming li + li {
+  border-top: 1px solid var(--line);
+}
+.lodge-home-upcoming a {
+  display: grid;
+  gap: 2px;
+  padding: 12px 0;
+  color: inherit;
+  text-decoration: none;
+}
+.lodge-home-upcoming a:hover .lodge-home-upcoming-title {
+  color: #c8102e;
+}
+.lodge-home-upcoming-when {
+  font-size: 12px;
+  font-weight: 700;
+  color: #8a1f2d;
+}
+.lodge-home-upcoming-title {
+  font-weight: 700;
+  color: #222;
+}
+.lodge-home-upcoming-place {
+  font-size: 13px;
+  color: #666;
+}
+@keyframes lodge-home-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes lodge-home-glow {
+  from { transform: translate3d(0, 0, 0) scale(1); opacity: 0.7; }
+  to { transform: translate3d(-24px, -18px, 0) scale(1.08); opacity: 1; }
+}
+@keyframes lodge-count-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.88; }
+}
+
 .lodge-countdown h2 {
   margin: 0 0 18px;
   font-size: clamp(28px, 4vw, 42px);
@@ -1129,73 +1350,92 @@ button, input, select, textarea { font: inherit; }
   font-weight: 700;
   font-size: 14px;
 }
-.lodge-event {
-  border: 1px solid #d9e7ef;
-  background: #fff;
-  overflow: hidden;
+.member-meetings-list-block {
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
 }
-.lodge-event-head {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 14px;
-  align-items: center;
-  background: #5bc0de;
-  color: #fff;
-  padding: 14px 16px;
+.member-meetings-list-block h3 {
+  margin: 0 0 14px;
+  font-size: 18px;
+  color: #2a2f6d;
 }
-.lodge-event-date {
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-.lodge-event-head h2 {
+.member-meetings-list {
+  list-style: none;
   margin: 0;
-  font-size: 20px;
-  text-transform: uppercase;
-}
-.lodge-event-head p {
-  margin: 4px 0 0;
-  opacity: 0.95;
-}
-.lodge-event-rows {
+  padding: 0;
   display: grid;
   gap: 10px;
-  padding: 14px;
-  background: #f3f3f3;
 }
-.lodge-event-rows article {
-  background: #ececec;
-  border-radius: 8px;
-  padding: 14px 16px;
+.member-meetings-list li {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 14px;
+  padding: 14px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
 }
-.lodge-event-rows h3 {
-  margin: 0 0 6px;
-  font-size: 15px;
-  color: #333;
+.member-meetings-list li.is-next {
+  border-color: rgba(200, 16, 46, 0.35);
+  background: #fff8f9;
 }
-.lodge-event-rows p { margin: 0 0 10px; color: #444; }
-.lodge-pill {
+.member-meetings-list-date {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+.member-meetings-list-date span {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a1f2d;
+}
+.member-meetings-list-date strong {
+  font-size: 14px;
+  color: #222;
+}
+.member-meetings-list-title {
+  margin: 0 0 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-weight: 700;
+  color: #171a33;
+}
+.member-meetings-list-badge {
   display: inline-flex;
   align-items: center;
-  min-height: 32px;
-  padding: 0 12px;
-  background: #5bc0de;
-  color: #fff !important;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #c8102e;
+  color: #fff;
+  font-size: 11px;
   font-weight: 700;
-  font-size: 12px;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  border-radius: 4px;
 }
-.lodge-cal-links {
+.member-meetings-list-summary,
+.member-meetings-list-meta {
+  margin: 0 0 6px;
+  color: #555;
+  font-size: 14px;
+}
+.member-meetings-list-actions {
   display: flex;
   gap: 14px;
   flex-wrap: wrap;
-}
-.lodge-cal-links a {
-  color: #2a2f6d;
-  font-weight: 800;
-  text-transform: uppercase;
   font-size: 13px;
+  font-weight: 700;
+}
+.member-meetings-list-actions a {
+  color: #2a2f6d;
+}
+.member-meetings-list-actions span {
+  color: #888;
 }
 .lodge-page h1 {
   margin: 0 0 14px;
@@ -1245,6 +1485,18 @@ button, input, select, textarea { font: inherit; }
   .lodge-layout { grid-template-columns: 1fr; }
   .lodge-side { display: none; }
   .lodge-posts { grid-template-columns: 1fr; }
+  .lodge-home-featured {
+    grid-template-columns: 1fr;
+  }
+  .lodge-home-upcoming {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .lodge-home-featured-meta {
+    grid-template-columns: 1fr;
+  }
   .lodge-footer-grid { grid-template-columns: 1fr 1fr; }
   .lodge-nav { display: none; }
   .lodge-top-inner { position: relative; }
@@ -1285,6 +1537,9 @@ button, input, select, textarea { font: inherit; }
 @media (max-width: 640px) {
   .lodge-count-grid { grid-template-columns: repeat(2, 1fr); }
   .lodge-footer-grid { grid-template-columns: 1fr; }
+  .member-meetings-list li {
+    grid-template-columns: 1fr;
+  }
 }
 
 .lodge-titlebar-row {

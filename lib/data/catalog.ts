@@ -13,6 +13,7 @@ function asEvent(row: Record<string, unknown> | EventRecord): EventRecord {
   return {
     id: event.id,
     lodge_id: event.lodge_id ?? null,
+    lodge_slug: event.lodge_slug ?? null,
     slug: event.slug || event.id,
     title: event.title,
     summary: event.summary ?? "",
@@ -124,6 +125,16 @@ export async function listUpcomingEvents(limit = 6, excludeId?: string) {
   return events
     .filter((event) => new Date(event.starts_at).getTime() >= now - 6 * 60 * 60 * 1000)
     .filter((event) => event.id !== excludeId)
+    .slice(0, limit);
+}
+
+/** Published upcoming meetings for one Mark Site lodge slug (homepage + members list). */
+export async function listLodgeUpcomingEvents(lodgeSlug: string, limit = 24): Promise<EventRecord[]> {
+  const events = await listPublishedEvents();
+  const now = Date.now() - 6 * 60 * 60 * 1000;
+  return events
+    .filter((event) => event.lodge_slug === lodgeSlug)
+    .filter((event) => new Date(event.starts_at).getTime() >= now)
     .slice(0, limit);
 }
 
