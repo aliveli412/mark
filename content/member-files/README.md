@@ -15,6 +15,9 @@ Canonical disk layout + Hostinger notes: `private-media/README.md` and `private-
 | Lodge | Offline JSON | SQL |
 |---|---|---|
 | Freemasons Without Borders | `content/member-files/fwb.json` | `supabase/seed-member-files.sql` |
+| Gallipoli (yearly WP uploads) | `content/member-files/gallipoli.json` | add rows when files are triaged |
+
+WordPress File Manager playbook: `content/member-files/WP-MIGRATION.md`.
 
 Offline mode (no Supabase env) reads the JSON catalog. Live mode reads `lodge_member_files`.
 

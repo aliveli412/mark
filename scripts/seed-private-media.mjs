@@ -46,6 +46,9 @@ let copied = 0;
 for (const lodge of manifest.lodges) {
   for (const folder of lodge.folders ?? ["pdfs", "archives"]) {
     ensureDir(path.join(destRoot, lodge.slug, folder));
+    if (!checkOnly) {
+      console.log(`· folder   ${lodge.slug}/${folder}`);
+    }
   }
 
   for (const file of lodge.files ?? []) {

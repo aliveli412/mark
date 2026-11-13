@@ -30,8 +30,18 @@
     },
     {
       "slug": "gallipoli",
-      "folders": ["pdfs", "archives"],
-      "files": []
+      "folders": [
+        "pdfs",
+        "archives",
+        "pdfs/2023",
+        "pdfs/2024",
+        "pdfs/2025",
+        "archives/2023",
+        "archives/2024",
+        "archives/2025"
+      ],
+      "files": [],
+      "migration": "WP File Manager yearly uploads → triage with content/member-files/WP-MIGRATION.md; register in content/member-files/gallipoli.json"
     },
     {
       "slug": "namik-kemal",
