@@ -1,0 +1,67 @@
+{
+  "$schema_note": "Expected private binaries on Hostinger / local disk. Binaries are gitignored; run: npm run seed:private-media",
+  "root_env": "PRIVATE_MEDIA_ROOT",
+  "default_root": "./private-media",
+  "hostinger_recommendation": "Place this tree as a sibling of the web root (not under public_html/public). Point PRIVATE_MEDIA_ROOT at the absolute path.",
+  "lodges": [
+    {
+      "slug": "freemasons-without-borders",
+      "folders": ["pdfs", "archives"],
+      "files": [
+        {
+          "role": "small_pdf",
+          "production_backend": "supabase",
+          "bucket": "member-files",
+          "storage_path": "freemasons-without-borders/pdfs/FWB-Consecration-Summon.pdf",
+          "local_disk_path": "freemasons-without-borders/pdfs/FWB-Consecration-Summon.pdf",
+          "seed_source": "content/member-files/seeds/FWB-Consecration-Summon.placeholder.pdf",
+          "notes": "Production: upload real PDF to Supabase private bucket. Local: seed script copies placeholder onto disk; download API falls back to disk when Supabase is not configured."
+        },
+        {
+          "role": "large_archive",
+          "production_backend": "local",
+          "storage_path": "freemasons-without-borders/archives/FWB_Consecration.rar",
+          "local_disk_path": "freemasons-without-borders/archives/FWB_Consecration.rar",
+          "seed_source": "content/member-files/seeds/FWB_Consecration.placeholder.rar",
+          "approx_size": "~1.5GB production",
+          "notes": "Never upload to Supabase. On Hostinger, replace the placeholder with the real WordPress archive (Downloads/FWB_Consecration.rar)."
+        }
+      ]
+    },
+    {
+      "slug": "gallipoli",
+      "folders": [
+        "pdfs",
+        "archives",
+        "pdfs/2023",
+        "pdfs/2024",
+        "pdfs/2025",
+        "archives/2023",
+        "archives/2024",
+        "archives/2025"
+      ],
+      "files": [],
+      "migration": "WP File Manager yearly uploads → triage with content/member-files/WP-MIGRATION.md; register in content/member-files/gallipoli.json"
+    },
+    {
+      "slug": "namik-kemal",
+      "folders": ["pdfs", "archives"],
+      "files": []
+    },
+    {
+      "slug": "anadolu",
+      "folders": ["pdfs", "archives"],
+      "files": []
+    },
+    {
+      "slug": "ata",
+      "folders": ["pdfs", "archives"],
+      "files": []
+    },
+    {
+      "slug": "khalsa",
+      "folders": ["pdfs", "archives"],
+      "files": []
+    }
+  ]
+}
