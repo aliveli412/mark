@@ -12,6 +12,26 @@ Use this when a lodge (e.g. Gallipoli) has years of summons / minutes / photo pa
 
 Üye dosyaları **asla** `public/` veya `public_html` altına konmaz. Üye Dashboard → **Downloads** üzerinden iner.
 
+## 1b. WordPress foto kuralı (zorunlu)
+
+WP her foto için saçma sapan boyutlar üretir (`-150x150`, `-300x300`, `-768x1024`, `-scaled`, …).
+
+**Hepsini alma. Foto başına yalnızca bir büyük dosya:**
+
+| Al | Atlama |
+|---|---|
+| `photo.jpg` (orijinal) | `photo-150x150.jpg`, `photo-300x300.jpg`, … |
+| Orijinal yoksa `photo-scaled.jpg` | Orijinal varken `-scaled` |
+| PDF / ZIP / RAR (olduğu gibi) | — |
+
+Filtre:
+
+```bash
+node scripts/filter-wp-media.mjs /path/to/wp-folder
+# veya kopyala:
+node scripts/filter-wp-media.mjs /path/to/wp-folder --copy-to /tmp/gallipoli-clean
+```
+
 ## 2. Klasör kuralı (yıllık)
 
 ```
@@ -33,14 +53,15 @@ gallipoli/archives/2024/...
 ## 3. Taşıma adımları (Gallipoli örneği)
 
 1. WP File Manager’dan ilgili klasörü zip’le / indir (yıl yıl veya hepsi).
-2. Dosyaları triage et (tabloya göre ayır).
-3. **Public** olanları `public/sites/gallipoli/media/` altına kopyala; sayfa HTML’de path güncelle (gerekirse).
-4. **Üye PDF**’leri Supabase Storage → bucket `member-files` → `gallipoli/pdfs/<year>/...` yükle.
-5. **Büyük arşiv**leri Hostinger’da `PRIVATE_MEDIA_ROOT/gallipoli/archives/<year>/...` koy.
-6. Kataloğa ekle (Downloads’ta görünsün):
+2. `scripts/filter-wp-media.mjs` ile `-WxH` varyantlarını at; foto başına bir büyük kalsın.
+3. Kalanları triage et (tabloya göre ayır).
+4. **Public** olanları `public/sites/gallipoli/media/` altına kopyala; sayfa HTML’de path güncelle (gerekirse).
+5. **Üye PDF**’leri Supabase Storage → bucket `member-files` → `gallipoli/pdfs/<year>/...` yükle.
+6. **Büyük arşiv**leri Hostinger’da `PRIVATE_MEDIA_ROOT/gallipoli/archives/<year>/...` koy.
+7. Kataloğa ekle (Downloads’ta görünsün):
    - Local/offline: `content/member-files/gallipoli.json`
    - Live: `lodge_member_files` satırı (SQL veya admin — şimdilik SQL / JSON)
-7. Üye girişi ile Gallipoli → Downloads’tan dene.
+8. Üye girişi ile Gallipoli → Downloads’tan dene.
 
 ## 4. Katalog satırı (kopyala-yapıştır)
 
