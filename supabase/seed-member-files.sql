@@ -3,7 +3,8 @@
 --   1. supabase/member-files.sql
 --   2. Private Storage bucket `member-files` (Public OFF)
 --   3. Upload PDF object: freemasons-without-borders/pdfs/FWB-Consecration-Summon.pdf
---   4. Place RAR on Hostinger: $PRIVATE_MEDIA_ROOT/freemasons-without-borders/archives/FWB_Consecration.rar
+--   4. Place archive on Hostinger: $PRIVATE_MEDIA_ROOT/freemasons-without-borders/archives/FWB_Consecration.zip
+-- Prefer supabase/seed-member-files-all.sql after a full WP migrate (all lodges).
 -- Safe to re-run (upsert on lodge_slug + slug).
 
 insert into public.lodge_member_files (
@@ -38,12 +39,12 @@ insert into public.lodge_member_files (
     'freemasons-without-borders',
     'consecration-photos-archive',
     'Consecration photos archive',
-    'Large photo pack (~1.5GB). Keep on Hostinger private disk, not Supabase.',
-    'FWB_Consecration.rar',
-    'application/vnd.rar',
-    1610612736,
+    'Large photo pack (~1.3GB zip of filtered WP originals). Keep on Hostinger private disk, not Supabase.',
+    'FWB_Consecration.zip',
+    'application/zip',
+    1319014834,
     'local',
-    'freemasons-without-borders/archives/FWB_Consecration.rar',
+    'freemasons-without-borders/archives/FWB_Consecration.zip',
     'members',
     20,
     true

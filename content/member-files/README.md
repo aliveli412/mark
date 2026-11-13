@@ -6,7 +6,7 @@
 |---|---|
 | Public page images | `public/sites/<lodge>/media/` |
 | Small PDFs / summons | **Supabase Storage** private bucket `member-files` |
-| Large RAR / photo packs | **Hostinger disk** `$PRIVATE_MEDIA_ROOT/<lodge>/archives/` (not in `public/`) |
+| Large ZIP / photo packs | **Hostinger disk** `$PRIVATE_MEDIA_ROOT/<lodge>/archives/` (not in `public/`) |
 
 Canonical disk layout + Hostinger notes: `private-media/README.md` and `private-media/MANIFEST.json`.
 
@@ -14,10 +14,10 @@ Canonical disk layout + Hostinger notes: `private-media/README.md` and `private-
 
 | Lodge | Offline JSON | SQL |
 |---|---|---|
-| Freemasons Without Borders | `content/member-files/fwb.json` | `supabase/seed-member-files.sql` |
-| Gallipoli (yearly WP uploads) | `content/member-files/gallipoli.json` | add rows when files are triaged |
+| Freemasons Without Borders | `content/member-files/fwb.json` | `supabase/seed-member-files-all.sql` |
+| Gallipoli / Khalsa / Anadolu / … | `content/member-files/<lodge>.json` | same all-lodges SQL |
 
-WordPress File Manager playbook: `content/member-files/WP-MIGRATION.md`.
+WordPress migrate playbook: `content/member-files/WP-MIGRATION.md` (`scripts/migrate-wp-uploads.py` over SSH).
 
 Offline mode (no Supabase env) reads the JSON catalog. Live mode reads `lodge_member_files`.
 

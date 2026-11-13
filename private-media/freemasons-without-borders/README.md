@@ -3,11 +3,13 @@
 | File | Backend | Path |
 |---|---|---|
 | Consecration Summon PDF | Supabase (`member-files`) | `pdfs/FWB-Consecration-Summon.pdf` |
-| Consecration photos RAR | Hostinger disk | `archives/FWB_Consecration.rar` |
+| Consecration photos ZIP | Hostinger disk | `archives/FWB_Consecration.zip` (~1.3GB) |
+| Year photo packs | Hostinger disk | `archives/<year>/freemasons-without-borders-photos-<year>.zip` |
+| Summons / minutes PDFs | Supabase | `pdfs/<year>/…` |
 
-Legacy WordPress references (for operators copying files):
+Migrated from `public_html/fwb/wp-content/uploads` (WxH variants skipped). Catalog: `content/member-files/fwb.json`.
 
-- `https://www.markmastermasons.com/Downloads/FWB_Consecration.rar`
-- `https://markmastermasons.com/fwb/download/consecration-summon` (was login-gated)
-
-Seed placeholders: `npm run seed:private-media` from the repo root.
+```bash
+npm run seed:private-media
+PRIVATE_MEDIA_ROOT=… npm run migrate:upload-pdfs
+```
