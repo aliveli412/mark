@@ -1,0 +1,17 @@
+{
+  "lodge_slug": "anadolu",
+  "files": [
+    {
+      "slug": "anadolu-consecration-summon-v1",
+      "title": "Anadolu Consecration Summon V1",
+      "description": "Migrated from WordPress uploads (pdf).",
+      "file_name": "Anadolu-Consecration-Summon-V1.pdf",
+      "mime_type": "application/pdf",
+      "size_bytes": 2077993,
+      "storage_backend": "supabase",
+      "storage_path": "anadolu/pdfs/2022/Anadolu-Consecration-Summon-V1.pdf",
+      "visibility": "members",
+      "sort_order": 202201
+    }
+  ]
+}

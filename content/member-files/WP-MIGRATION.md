@@ -1,98 +1,82 @@
-# WordPress File Manager → new site
+# WordPress uploads → new site (all Mark lodges)
 
-Use this when a lodge (e.g. Gallipoli) has years of summons / minutes / photo packs sitting in WP File Manager.
+SSH playbook for: `gallipoli`, `namik-kemal`, `anadolu`, `freemasons-without-borders`, `ata`, `khalsa`.
 
-## 1. Triage (her dosya için bir kova)
+## Locked storage split
 
 | WP’de ne? | Yeni site | Nereye |
 |---|---|---|
 | Sayfa görseli, banner, public galeri | Public | `public/sites/<lodge>/media/` |
-| Üye PDF (summon, minutes, circular) ≈ birkaç MB | Private Supabase | bucket `member-files` → `<lodge>/pdfs/<year>/...` |
-| Büyük foto arşivi / RAR / ZIP (yüzlerce MB+) | Private Hostinger | `$PRIVATE_MEDIA_ROOT/<lodge>/archives/<year>/...` |
+| Üye PDF (summon, minutes, circular) | Private Supabase | bucket `member-files` → `<lodge>/pdfs/<year>/...` |
+| Büyük foto arşivi / ZIP / RAR | Private Hostinger | `$PRIVATE_MEDIA_ROOT/<lodge>/archives/<year>/...` |
 
-Üye dosyaları **asla** `public/` veya `public_html` altına konmaz. Üye Dashboard → **Downloads** üzerinden iner.
+Üye dosyaları **asla** `public/` veya `public_html` altına konmaz.
 
-## 1b. WordPress foto kuralı (zorunlu)
+Live Hostinger root (sibling of `public_html`):
 
-WP her foto için saçma sapan boyutlar üretir (`-150x150`, `-300x300`, `-768x1024`, `-scaled`, …).
+```
+PRIVATE_MEDIA_ROOT=/home/u557964768/domains/markmastermasons.com/private-media
+```
 
-**Hepsini alma. Foto başına yalnızca bir büyük dosya:**
+## WordPress foto kuralı (zorunlu)
+
+WP her foto için `-150x150`, `-300x300`, `-768x1024`, `-scaled`, … üretir.
+
+**Foto başına yalnızca bir büyük dosya:**
 
 | Al | Atlama |
 |---|---|
-| `photo.jpg` (orijinal) | `photo-150x150.jpg`, `photo-300x300.jpg`, … |
+| `photo.jpg` (orijinal) | `photo-150x150.jpg`, … |
 | Orijinal yoksa `photo-scaled.jpg` | Orijinal varken `-scaled` |
-| PDF / ZIP / RAR (olduğu gibi) | — |
-
-Filtre:
+| PDF / ZIP / RAR | — |
 
 ```bash
-node scripts/filter-wp-media.mjs /path/to/wp-folder
-# veya kopyala:
-node scripts/filter-wp-media.mjs /path/to/wp-folder --copy-to /tmp/gallipoli-clean
+npm run filter:wp-media -- /path/to/wp-folder
+# or on Hostinger (full migrate):
+python3 ~/migrate-wp-uploads.py
 ```
 
-## 2. Klasör kuralı (yıllık)
+## Bulk migrate (SSH)
 
-```
-# Supabase object key = aynı relative path
-<lodge>/pdfs/2024/Gallipoli-Summon-2024-11.pdf
-<lodge>/pdfs/2023/...
+1. Cloud Agent secrets: `HOSTINGER_SSH_HOST|USER|PORT|PASSWORD`
+2. Copy `scripts/migrate-wp-uploads.py` to the server and run:
 
-# Hostinger disk
-$PRIVATE_MEDIA_ROOT/<lodge>/archives/2024/Gallipoli-Photos-2024.zip
-```
-
-Gallipoli örneği:
-
-```
-gallipoli/pdfs/2024/...
-gallipoli/archives/2024/...
+```bash
+python3 ~/migrate-wp-uploads.py
+# report → $PRIVATE_MEDIA_ROOT/migration-report.json
+# catalogs → $PRIVATE_MEDIA_ROOT/_catalogs/<lodge>.json
 ```
 
-## 3. Taşıma adımları (Gallipoli örneği)
+3. Pull catalogs into the repo:
 
-1. WP File Manager’dan ilgili klasörü zip’le / indir (yıl yıl veya hepsi).
-2. `scripts/filter-wp-media.mjs` ile `-WxH` varyantlarını at; foto başına bir büyük kalsın.
-3. Kalanları triage et (tabloya göre ayır).
-4. **Public** olanları `public/sites/gallipoli/media/` altına kopyala; sayfa HTML’de path güncelle (gerekirse).
-5. **Üye PDF**’leri Supabase Storage → bucket `member-files` → `gallipoli/pdfs/<year>/...` yükle.
-6. **Büyük arşiv**leri Hostinger’da `PRIVATE_MEDIA_ROOT/gallipoli/archives/<year>/...` koy.
-7. Kataloğa ekle (Downloads’ta görünsün):
-   - Local/offline: `content/member-files/gallipoli.json`
-   - Live: `lodge_member_files` satırı (SQL veya admin — şimdilik SQL / JSON)
-8. Üye girişi ile Gallipoli → Downloads’tan dene.
-
-## 4. Katalog satırı (kopyala-yapıştır)
-
-`content/member-files/gallipoli.json` içinde:
-
-```json
-{
-  "slug": "summon-2024-11",
-  "title": "Summon — November 2024",
-  "description": "Migrated from WordPress File Manager.",
-  "file_name": "Gallipoli-Summon-2024-11.pdf",
-  "mime_type": "application/pdf",
-  "size_bytes": 0,
-  "storage_backend": "supabase",
-  "storage_path": "gallipoli/pdfs/2024/Gallipoli-Summon-2024-11.pdf",
-  "visibility": "members",
-  "sort_order": 202411
-}
+```bash
+npm run migrate:apply-catalogs -- /path/to/_catalogs
 ```
 
-Büyük arşiv için `storage_backend: "local"` ve `storage_path: "gallipoli/archives/2024/...."`.
+4. Upload PDFs to Supabase (needs `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` in Cloud Agent secrets):
 
-`sort_order` için `YYYYMM` kullan → Downloads listesi yıldan yıla düzgün sıralanır.
+```bash
+PRIVATE_MEDIA_ROOT=/path/to/private-media npm run migrate:upload-pdfs
+```
 
-## 5. Toplu iş (ileride)
+Until step 4 runs, the download API falls back to disk when the same relative path exists under `PRIVATE_MEDIA_ROOT`.
 
-Şimdilik manuel triage + upload yeterli. Çok dosya olursa:
+5. Run SQL: `supabase/member-files.sql` then `supabase/seed-member-files-all.sql`.
 
-1. WP’den bir klasör dump al
-2. Script ile dosya listesi çıkar (isim, boyut, uzantı)
-3. PDF → Supabase path, büyük zip → Hostinger path öner
-4. `gallipoli.json` / SQL satırlarını üret
+## What was migrated (2026-11-13)
 
-Admin UI ile sürükle-bırak upload henüz yok; hybrid API + katalog hazır.
+| Lodge | PDFs → private-media (Supabase path) | Photo archives → private-media |
+|---|---|---|
+| freemasons-without-borders | 27 summons/minutes (+ canonical Consecration Summon) | 2021, 2022, 2023 (~1.3GB), 2025 + `FWB_Consecration.zip` |
+| gallipoli | — (no member PDFs outside invoices) | 2022 (~126MB) |
+| khalsa | — | 2022 (~870MB) |
+| anadolu | Consecration Summon V1 | — |
+| namik-kemal | — | — (below archive threshold) |
+| ata | — | — |
+
+WxH variants skipped (approx): FWB ~10k, Gallipoli ~1.9k, Khalsa ~2.7k.
+
+## Katalog
+
+Offline JSON: `content/member-files/<lodge>.json` (FWB → `fwb.json`)  
+Live table: `lodge_member_files` via `supabase/seed-member-files-all.sql`
