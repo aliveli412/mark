@@ -30,7 +30,7 @@ export default async function MembershipSuccessPage({
         once the webhook updates the lodge records.
       </p>
       <p>
-        <Link href={lodgePath(slug, "membership")}>Back to membership</Link>
+        <Link href={lodgePath(slug, "membership")}>Back to Members Page</Link>
       </p>
     </article>
   );

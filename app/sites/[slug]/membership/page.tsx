@@ -8,7 +8,7 @@ import {
 } from "@/lib/data/memberships";
 import { formatPence } from "@/lib/format";
 import { readMemberSession } from "@/lib/member-session";
-import { getMarkSite } from "@/lib/mark-sites";
+import { getMarkSite, lodgePath } from "@/lib/mark-sites";
 
 export async function generateMetadata({
   params,
@@ -17,7 +17,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const site = getMarkSite(slug);
-  return { title: `Membership · ${site?.fullName ?? "Mark Site"}` };
+  return { title: `Members Page · ${site?.fullName ?? "Mark Site"}` };
 }
 
 export default async function LodgeMembershipPage({
@@ -55,10 +55,10 @@ export default async function LodgeMembershipPage({
     <article className={`lodge-page membership-page${signedIn ? " membership-page-dash" : ""}`}>
       {signedIn ? null : (
         <>
-          <h1>Membership</h1>
+          <h1>Members Page</h1>
           <p>
-            Sign in to open your user dashboard: full lodge Excel record, dues paid / outstanding, and payment history.
-            Local access code: <code>111111</code>.
+            Sign in for Summons &amp; Minutes, the next regular meeting, dues, addresses, and your lodge record. Local
+            access code: <code>111111</code>.
           </p>
           <ul className="membership-price-list">
             <li>Yearly dues: {formatPence(settings.yearly_pence)}</li>
@@ -71,6 +71,15 @@ export default async function LodgeMembershipPage({
       <MembershipPanel
         lodgeSlug={slug}
         settings={settings}
+        meeting={{
+          label: site.nextMeetingLabel,
+          at: site.nextMeetingAt,
+          bookingHref: site.bookingHref.startsWith("#")
+            ? `${lodgePath(slug)}${site.bookingHref}`
+            : site.bookingHref,
+          event: site.event,
+          meetingsHref: lodgePath(slug, "meetings", "regular-meetings"),
+        }}
         initialMembership={boot?.membership ?? null}
         initialRoster={boot?.roster ?? null}
         initialPayments={boot?.payments ?? []}

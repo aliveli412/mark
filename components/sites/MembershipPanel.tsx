@@ -1,7 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { Countdown } from "@/components/sites/Countdown";
 import { formatPence } from "@/lib/format";
+import { lodgePath, type LodgeEvent } from "@/lib/mark-sites";
 import type {
   LodgeMembership,
   LodgeMembershipPayment,
@@ -21,7 +24,23 @@ type DashboardPayload = {
   dues: MembershipDuesSummary;
 };
 
-type DashSection = "overview" | "record" | "dues" | "downloads";
+type DashSection =
+  | "account"
+  | "meeting"
+  | "summons"
+  | "payments"
+  | "addresses"
+  | "subscriptions"
+  | "tickets"
+  | "password";
+
+type MeetingInfo = {
+  label: string;
+  at: string;
+  bookingHref: string;
+  event: LodgeEvent;
+  meetingsHref: string;
+};
 
 type MemberFileListItem = {
   id: string;
@@ -29,11 +48,23 @@ type MemberFileListItem = {
   title: string;
   description: string;
   file_name: string;
+  mime_type?: string;
   size_label: string;
   storage_backend: "local" | "supabase";
   download_count: number;
   download_url: string;
 };
+
+const NAV_ITEMS: { id: DashSection; label: string }[] = [
+  { id: "account", label: "My Account" },
+  { id: "meeting", label: "Next Regular Meeting" },
+  { id: "summons", label: "Summons & Minutes" },
+  { id: "payments", label: "Payment methods" },
+  { id: "addresses", label: "Addresses" },
+  { id: "subscriptions", label: "Subscriptions" },
+  { id: "tickets", label: "Event Tickets" },
+  { id: "password", label: "Password Change" },
+];
 
 function display(value: string | null | undefined) {
   const text = (value ?? "").trim();
@@ -45,6 +76,25 @@ function formatDate(value: string | null | undefined) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function formatMeetingRange(startsAt: string, endsAt: string) {
+  const start = new Date(startsAt);
+  const end = new Date(endsAt);
+  const day = new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Europe/London",
+  }).format(start);
+  const time = new Intl.DateTimeFormat("en-GB", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "Europe/London",
+  });
+  return `${day} · ${time.format(start)} – ${time.format(end)} (Europe/London)`;
 }
 
 function statusLabel(status: string) {
@@ -64,9 +114,18 @@ function Field({ label, value }: { label: string; value: string | null | undefin
   );
 }
 
+function isPdfFile(file: MemberFileListItem) {
+  return (
+    (file.mime_type || "").includes("pdf") ||
+    file.file_name.toLowerCase().endsWith(".pdf") ||
+    /summon|minute|minutes|reg/i.test(file.title + file.file_name)
+  );
+}
+
 function MemberHome({
   data,
   settings,
+  meeting,
   pending,
   stripeReady,
   error,
@@ -78,6 +137,7 @@ function MemberHome({
 }: {
   data: DashboardPayload;
   settings: LodgeMembershipSettings;
+  meeting: MeetingInfo;
   pending: boolean;
   stripeReady: boolean | null;
   error: string;
@@ -88,11 +148,12 @@ function MemberHome({
   onRefresh: () => void;
 }) {
   const { membership, roster, payments, dues } = data;
-  const [section, setSection] = useState<DashSection>("overview");
+  const [section, setSection] = useState<DashSection>("account");
   const [files, setFiles] = useState<MemberFileListItem[]>([]);
   const [filesError, setFilesError] = useState("");
   const [filesLoading, setFilesLoading] = useState(false);
   const title = roster ? [roster.prefix, roster.full_name].filter(Boolean).join(" ") : membership.full_name;
+  const firstName = (roster?.given_names || membership.full_name).split(/\s+/)[0] || "Brother";
   const brotherNo = roster?.brother_no || membership.membership_no;
   const current = dues.years.find((row) => row.year === dues.current_year) ?? dues.years[0];
   const canPay =
@@ -105,8 +166,11 @@ function MemberHome({
     return ((parts[0]?.[0] || "") + (parts[parts.length - 1]?.[0] || "")).toUpperCase() || "M";
   }, [roster, membership.full_name]);
 
+  const pdfFiles = files.filter(isPdfFile);
+  const otherFiles = files.filter((file) => !isPdfFile(file));
+
   useEffect(() => {
-    if (section !== "downloads") return;
+    if (section !== "summons") return;
     let cancelled = false;
     setFilesLoading(true);
     setFilesError("");
@@ -129,37 +193,39 @@ function MemberHome({
 
   return (
     <div className="member-dash">
-      <aside className="member-dash-side" aria-label="User dashboard">
+      <aside className="member-dash-side" aria-label="Members account">
         <div className="member-dash-user">
           <div className="member-dash-avatar" aria-hidden>
             {initials}
           </div>
           <div>
-            <p className="member-dash-side-kicker">User dashboard</p>
+            <p className="member-dash-side-kicker">Members Page</p>
             <strong>{title}</strong>
             <p>{brotherNo ? `BrotherNo ${brotherNo}` : membership.email}</p>
-            <span className={`member-year-status status-${membership.status === "active" ? "paid" : membership.status === "matched" ? "partial" : "due"}`}>
+            <span
+              className={`member-year-status status-${
+                membership.status === "active" ? "paid" : membership.status === "matched" ? "partial" : "due"
+              }`}
+            >
               {statusLabel(membership.status)}
             </span>
           </div>
         </div>
 
-        <nav className="member-dash-nav">
-          <button type="button" className={section === "overview" ? "active" : ""} onClick={() => setSection("overview")}>
-            Overview
-          </button>
-          <button type="button" className={section === "record" ? "active" : ""} onClick={() => setSection("record")}>
-            My lodge record
-          </button>
-          <button type="button" className={section === "dues" ? "active" : ""} onClick={() => setSection("dues")}>
-            Dues & payments
-          </button>
-          <button
-            type="button"
-            className={section === "downloads" ? "active" : ""}
-            onClick={() => setSection("downloads")}
-          >
-            Downloads
+        <nav className="member-dash-nav" aria-label="Account menu">
+          {NAV_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={section === item.id ? "active" : ""}
+              onClick={() => setSection(item.id)}
+            >
+              <span>{item.label}</span>
+              {section === item.id ? <span className="member-dash-nav-chevron" aria-hidden>{">"}</span> : null}
+            </button>
+          ))}
+          <button type="button" className="member-dash-nav-logout" onClick={onSignOut}>
+            Log out
           </button>
         </nav>
 
@@ -172,9 +238,6 @@ function MemberHome({
             <button type="button" className="member-text-btn" onClick={onRefresh}>
               Refresh
             </button>
-            <button type="button" className="member-text-btn" onClick={onSignOut}>
-              Sign out
-            </button>
           </div>
         </div>
       </aside>
@@ -185,11 +248,36 @@ function MemberHome({
           <p className="membership-note">An admin still needs to match you to the lodge roster.</p>
         ) : null}
 
-        {section === "overview" ? (
+        {section === "account" ? (
           <section className="member-dash-panel">
             <header className="member-dash-panel-head">
-              <h2>Overview</h2>
-              <p>Your dues balance and a snapshot of your lodge record.</p>
+              <h2>My Account</h2>
+              <p className="member-hello">
+                Hello <strong>{firstName}</strong> (not <strong>{firstName}</strong>?{" "}
+                <button type="button" className="member-inline-link" onClick={onSignOut}>
+                  Log out
+                </button>
+                )
+              </p>
+              <p>
+                From your account dashboard you can open{" "}
+                <button type="button" className="member-inline-link" onClick={() => setSection("summons")}>
+                  Summons &amp; Minutes
+                </button>
+                , check the{" "}
+                <button type="button" className="member-inline-link" onClick={() => setSection("meeting")}>
+                  next regular meeting
+                </button>
+                , manage{" "}
+                <button type="button" className="member-inline-link" onClick={() => setSection("payments")}>
+                  payment methods
+                </button>
+                , and review your{" "}
+                <button type="button" className="member-inline-link" onClick={() => setSection("addresses")}>
+                  addresses
+                </button>
+                .
+              </p>
             </header>
 
             <div className="member-metrics" aria-label="Dues summary">
@@ -213,14 +301,14 @@ function MemberHome({
             </div>
 
             <div className="member-overview-actions">
-              <button type="button" className="btn" onClick={() => setSection("dues")}>
-                Open dues & payments
+              <button type="button" className="btn" onClick={() => setSection("summons")}>
+                Summons &amp; Minutes
               </button>
-              <button type="button" className="btn secondary" onClick={() => setSection("record")}>
-                View full lodge record
+              <button type="button" className="btn secondary" onClick={() => setSection("meeting")}>
+                Next meeting
               </button>
-              <button type="button" className="btn secondary" onClick={() => setSection("downloads")}>
-                Member downloads
+              <button type="button" className="btn secondary" onClick={() => setSection("payments")}>
+                Pay dues
               </button>
             </div>
 
@@ -243,141 +331,101 @@ function MemberHome({
           </section>
         ) : null}
 
-        {section === "record" ? (
+        {section === "meeting" ? (
           <section className="member-dash-panel">
             <header className="member-dash-panel-head">
-              <h2>My lodge record</h2>
-              <p>Every field imported from the lodge Excel roster.</p>
+              <h2>Next Regular Meeting</h2>
+              <p>{meeting.event.title}</p>
             </header>
 
-            {!roster ? (
-              <p className="member-empty">Roster details appear once your membership is matched.</p>
-            ) : (
-              <div className="member-record-sections">
-                <div>
-                  <h3>Identity</h3>
-                  <dl className="member-field-grid">
-                    <Field label="BrotherNo" value={roster.brother_no} />
-                    <Field label="Surname" value={roster.surname} />
-                    <Field label="GivenNames" value={roster.given_names} />
-                    <Field label="Prefix" value={roster.prefix} />
-                    <Field label="Initials" value={roster.initials} />
-                    <Field label="Title" value={roster.title} />
-                    <Field label="Suffix" value={roster.suffix} />
-                    <Field label="Full name" value={roster.full_name} />
-                    <Field label="Activity" value={roster.activity} />
-                    <Field label="Notes" value={roster.notes} />
-                  </dl>
-                </div>
+            <Countdown targetIso={meeting.at} label={meeting.label} bookingHref={meeting.bookingHref} />
 
-                <div>
-                  <h3>Contact</h3>
-                  <dl className="member-field-grid">
-                    <Field label="Email" value={roster.email || membership.email} />
-                    <Field label="HomePhone" value={roster.home_phone} />
-                    <Field label="Mobile" value={roster.mobile} />
-                  </dl>
-                </div>
-
-                <div>
-                  <h3>Address</h3>
-                  <dl className="member-field-grid">
-                    <Field label="Address" value={roster.address} />
-                    <Field label="Address2" value={roster.address2} />
-                    <Field label="Address3" value={roster.address3} />
-                    <Field label="City" value={roster.city} />
-                    <Field label="County" value={roster.county} />
-                    <Field label="PostCode" value={roster.postcode} />
-                    <Field label="Country" value={roster.country} />
-                  </dl>
-                </div>
-
-                <div>
-                  <h3>Dates</h3>
-                  <dl className="member-field-grid">
-                    <Field label="StartDate" value={formatDate(roster.start_date)} />
-                    <Field label="EndDate" value={formatDate(roster.end_date)} />
-                  </dl>
-                </div>
-
-                <div>
-                  <h3>Unit rank</h3>
-                  <dl className="member-field-grid">
-                    <Field label="UnitRank" value={roster.unit_rank} />
-                    <Field label="UnitRankId" value={roster.unit_rank_id} />
-                    <Field label="UnitPrefix" value={roster.unit_prefix} />
-                    <Field label="UnitRankStart" value={formatDate(roster.unit_rank_start)} />
-                  </dl>
-                </div>
-
-                <div>
-                  <h3>Provincial rank</h3>
-                  <dl className="member-field-grid">
-                    <Field label="ProvRank" value={roster.prov_rank} />
-                    <Field label="ProvRankId" value={roster.prov_rank_id} />
-                    <Field label="ProvPrefix" value={roster.prov_prefix} />
-                    <Field label="ProvRankStart" value={formatDate(roster.prov_rank_start)} />
-                  </dl>
-                </div>
-
-                <div>
-                  <h3>Grand rank</h3>
-                  <dl className="member-field-grid">
-                    <Field label="GrandRank" value={roster.grand_rank} />
-                    <Field label="GrandRankId" value={roster.grand_rank_id} />
-                    <Field label="GrandPrefix" value={roster.grand_prefix} />
-                    <Field label="GrandRankStart" value={formatDate(roster.grand_rank_start)} />
-                  </dl>
-                </div>
+            <div className="member-meeting-card">
+              <dl className="member-field-grid">
+                <Field label="When" value={formatMeetingRange(meeting.event.startsAt, meeting.event.endsAt)} />
+                <Field label="Location" value={meeting.event.location} />
+                <Field label="Attendance" value={meeting.event.attendanceNote} />
+              </dl>
+              <div className="member-overview-actions">
+                <a className="btn" href={meeting.bookingHref}>
+                  Attendance &amp; booking
+                </a>
+                <Link className="btn secondary" href={meeting.meetingsHref}>
+                  Regular meetings
+                </Link>
               </div>
-            )}
+            </div>
           </section>
         ) : null}
 
-        {section === "downloads" ? (
+        {section === "summons" ? (
           <section className="member-dash-panel">
             <header className="member-dash-panel-head">
-              <h2>Downloads</h2>
-              <p>
-                Member-only PDFs and archives. Small files use private Supabase storage; large packs stay on the server
-                disk (Hostinger) and are never in a public URL.
-              </p>
+              <h2>Summons &amp; Minutes</h2>
+              <p>Member-only PDFs for this lodge. Files are private — never a public URL.</p>
             </header>
 
             {filesLoading ? <p className="member-empty">Loading files…</p> : null}
             {filesError ? <p className="error">{filesError}</p> : null}
 
             {!filesLoading && !filesError && files.length === 0 ? (
-              <p className="member-empty">No member files published for this lodge yet.</p>
+              <p className="member-empty">No summons or minutes published for this lodge yet.</p>
             ) : null}
 
-            <ul className="member-download-list">
-              {files.map((file) => (
-                <li key={file.id}>
-                  <div>
-                    <strong>{file.title}</strong>
-                    <p>{file.description || file.file_name}</p>
-                    <span className="member-download-meta">
-                      {file.size_label} · {file.storage_backend === "supabase" ? "Supabase private" : "Server private"} ·{" "}
-                      {file.download_count} downloads
-                    </span>
-                  </div>
-                  <a className="btn" href={file.download_url}>
-                    Download
-                  </a>
-                </li>
-              ))}
-            </ul>
+            {pdfFiles.length ? (
+              <>
+                <h3 className="member-file-group-title">Summons &amp; minutes (PDF)</h3>
+                <ul className="member-download-list">
+                  {pdfFiles.map((file) => (
+                    <li key={file.id}>
+                      <div>
+                        <strong>{file.title}</strong>
+                        <p>{file.description || file.file_name}</p>
+                        <span className="member-download-meta">
+                          {file.size_label} · {file.storage_backend === "supabase" ? "Supabase private" : "Server private"} ·{" "}
+                          {file.download_count} downloads
+                        </span>
+                      </div>
+                      <a className="btn" href={file.download_url}>
+                        Download
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+
+            {otherFiles.length ? (
+              <>
+                <h3 className="member-file-group-title">Archives &amp; other files</h3>
+                <ul className="member-download-list">
+                  {otherFiles.map((file) => (
+                    <li key={file.id}>
+                      <div>
+                        <strong>{file.title}</strong>
+                        <p>{file.description || file.file_name}</p>
+                        <span className="member-download-meta">
+                          {file.size_label} · {file.storage_backend === "supabase" ? "Supabase private" : "Server private"} ·{" "}
+                          {file.download_count} downloads
+                        </span>
+                      </div>
+                      <a className="btn" href={file.download_url}>
+                        Download
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
           </section>
         ) : null}
 
-        {section === "dues" ? (
+        {section === "payments" ? (
           <section className="member-dash-panel">
             <header className="member-dash-panel-head">
-              <h2>Dues & payments</h2>
+              <h2>Payment methods</h2>
               <p>
-                Annual lodge dues are {formatPence(dues.annual_due_pence)}. Pay by card, or ask an admin to record bank /
-                cash history for earlier years.
+                Annual lodge dues are {formatPence(dues.annual_due_pence)}. Pay by card, or use a bank standing order.
               </p>
             </header>
 
@@ -413,7 +461,12 @@ function MemberHome({
                     <button className="btn secondary" type="button" disabled={pending} onClick={() => onPay("monthly")}>
                       Monthly · {formatPence(settings.monthly_pence)}
                     </button>
-                    <button className="btn secondary" type="button" disabled={pending} onClick={() => onPay("standing_order")}>
+                    <button
+                      className="btn secondary"
+                      type="button"
+                      disabled={pending}
+                      onClick={() => onPay("standing_order")}
+                    >
                       Standing order · {formatPence(settings.standing_order_pence)}/mo
                     </button>
                   </>
@@ -486,6 +539,110 @@ function MemberHome({
           </section>
         ) : null}
 
+        {section === "addresses" ? (
+          <section className="member-dash-panel">
+            <header className="member-dash-panel-head">
+              <h2>Addresses</h2>
+              <p>Contact and postal details from the lodge roster. Ask an admin if something needs updating.</p>
+            </header>
+
+            {!roster ? (
+              <p className="member-empty">Address details appear once your membership is matched to the roster.</p>
+            ) : (
+              <div className="member-record-sections">
+                <div>
+                  <h3>Contact</h3>
+                  <dl className="member-field-grid">
+                    <Field label="Email" value={roster.email || membership.email} />
+                    <Field label="HomePhone" value={roster.home_phone} />
+                    <Field label="Mobile" value={roster.mobile} />
+                  </dl>
+                </div>
+                <div>
+                  <h3>Address</h3>
+                  <dl className="member-field-grid">
+                    <Field label="Address" value={roster.address} />
+                    <Field label="Address2" value={roster.address2} />
+                    <Field label="Address3" value={roster.address3} />
+                    <Field label="City" value={roster.city} />
+                    <Field label="County" value={roster.county} />
+                    <Field label="PostCode" value={roster.postcode} />
+                    <Field label="Country" value={roster.country} />
+                  </dl>
+                </div>
+              </div>
+            )}
+          </section>
+        ) : null}
+
+        {section === "subscriptions" ? (
+          <section className="member-dash-panel">
+            <header className="member-dash-panel-head">
+              <h2>Subscriptions</h2>
+              <p>Your lodge membership plan and dues status.</p>
+            </header>
+
+            <dl className="member-field-grid">
+              <Field label="Status" value={statusLabel(membership.status)} />
+              <Field label="Plan" value={membership.plan ? statusLabel(membership.plan) : "Not selected"} />
+              <Field label="BrotherNo" value={brotherNo} />
+              <Field label="Email" value={membership.email} />
+              <Field
+                label={`${dues.current_year} dues`}
+                value={current ? `${formatPence(current.paid_pence)} / ${formatPence(current.due_pence)}` : "—"}
+              />
+              <Field label="Outstanding" value={formatPence(dues.total_remaining_pence)} />
+            </dl>
+
+            <div className="member-overview-actions">
+              <button type="button" className="btn" onClick={() => setSection("payments")}>
+                Manage payments
+              </button>
+            </div>
+          </section>
+        ) : null}
+
+        {section === "tickets" ? (
+          <section className="member-dash-panel">
+            <header className="member-dash-panel-head">
+              <h2>Event Tickets</h2>
+              <p>Dining and special event tickets for this lodge appear here when published.</p>
+            </header>
+            <p className="member-empty">No event tickets on your account yet.</p>
+            <div className="member-overview-actions">
+              <button type="button" className="btn secondary" onClick={() => setSection("meeting")}>
+                View next meeting
+              </button>
+              <Link className="btn secondary" href="/shop">
+                Mark Portal shop
+              </Link>
+            </div>
+          </section>
+        ) : null}
+
+        {section === "password" ? (
+          <section className="member-dash-panel">
+            <header className="member-dash-panel-head">
+              <h2>Password Change</h2>
+              <p>
+                Lodge members sign in with email plus a private access code (not a password). Keep your code safe — it
+                opens Summons &amp; Minutes and dues for this lodge only.
+              </p>
+            </header>
+            <dl className="member-field-grid">
+              <Field label="Email" value={membership.email} />
+              <Field label="Access code" value={membership.access_code} />
+            </dl>
+            <p className="member-empty">
+              Need a new code? Contact the lodge secretary or a portal admin and they can issue one from the membership
+              admin.
+            </p>
+            <p className="membership-note">
+              Local testing uses access code <code>{LOCAL_ACCESS_CODE}</code> for every member.
+            </p>
+          </section>
+        ) : null}
+
         {error ? <p className="error">{error}</p> : null}
       </div>
     </div>
@@ -495,6 +652,7 @@ function MemberHome({
 export function MembershipPanel({
   lodgeSlug,
   settings,
+  meeting,
   initialMembership = null,
   initialRoster = null,
   initialPayments = [],
@@ -502,6 +660,7 @@ export function MembershipPanel({
 }: {
   lodgeSlug: string;
   settings: LodgeMembershipSettings;
+  meeting: MeetingInfo;
   initialMembership?: LodgeMembership | null;
   initialRoster?: LodgeRosterMember | null;
   initialPayments?: LodgeMembershipPayment[];
@@ -670,6 +829,7 @@ export function MembershipPanel({
       <MemberHome
         data={dashboard}
         settings={settings}
+        meeting={meeting}
         pending={pending}
         stripeReady={stripeReady}
         error={error}
@@ -695,10 +855,10 @@ export function MembershipPanel({
 
       {mode === "signin" ? (
         <section className="membership-card member-gate-card">
-          <h2>Open your membership</h2>
+          <h2>Members Page</h2>
           <p>
-            Use your registered email. For local testing the access code is <code>{LOCAL_ACCESS_CODE}</code> for every
-            member.
+            Sign in for Summons &amp; Minutes, the next regular meeting, dues, and your lodge record. Local access code:{" "}
+            <code>{LOCAL_ACCESS_CODE}</code>.
           </p>
           <label>
             Email
