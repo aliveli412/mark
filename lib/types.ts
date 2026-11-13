@@ -8,6 +8,8 @@ export type Profile = {
 export type EventRecord = {
   id: string;
   lodge_id: string | null;
+  /** Mark Sites slug (e.g. gallipoli). Drives lodge homepage + members meeting list. */
+  lodge_slug: string | null;
   slug: string;
   title: string;
   summary: string;

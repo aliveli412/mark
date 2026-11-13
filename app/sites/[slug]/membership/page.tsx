@@ -2,14 +2,17 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { MembershipPanel } from "@/components/sites/MembershipPanel";
+import { listLodgeUpcomingEvents } from "@/lib/data/catalog";
 import {
   getMembershipByAccess,
   getMembershipDashboard,
   getMembershipSettings,
 } from "@/lib/data/memberships";
 import { formatPence } from "@/lib/format";
+import { resolveLodgeHomeMeeting } from "@/lib/lodge-meetings";
 import { readMemberSession } from "@/lib/member-session";
 import { getMarkSite, lodgePath } from "@/lib/mark-sites";
+import { getEnrichedMarkSite } from "@/lib/mark-sites-server";
 
 export async function generateMetadata({
   params,
@@ -30,17 +33,19 @@ export default async function LodgeMembershipPage({
 }) {
   const { slug } = await params;
   const query = await searchParams;
-  const site = getMarkSite(slug);
+  const site = getEnrichedMarkSite(slug) ?? getMarkSite(slug);
   if (!site) notFound();
 
   const settings = await getMembershipSettings(slug);
+  const lodgeEvents = await listLodgeUpcomingEvents(slug);
+  const meetingResolved = resolveLodgeHomeMeeting(site, lodgeEvents);
 
   let initial = null as Awaited<ReturnType<typeof getMembershipDashboard>> | null;
   if (query.email && query.code) {
     const membership = await getMembershipByAccess(slug, query.email, query.code);
     if (membership) initial = await getMembershipDashboard(membership.id);
   }
-  if ((!initial || "error" in initial) ) {
+  if (!initial || "error" in initial) {
     const session = await readMemberSession(slug);
     if (session) {
       const fromCookie = await getMembershipDashboard(session.membershipId);
@@ -58,8 +63,8 @@ export default async function LodgeMembershipPage({
         <>
           <h1>Members Page</h1>
           <p>
-            Sign in for Summons &amp; Minutes, the next regular meeting, dues, addresses, and your lodge record. Local
-            access code: <code>111111</code>.
+            Sign in for Summons &amp; Minutes, regular meetings, dues, addresses, and your lodge record. Local access
+            code: <code>111111</code>.
           </p>
           <ul className="membership-price-list">
             <li>Yearly dues: {formatPence(settings.yearly_pence)}</li>
@@ -74,13 +79,12 @@ export default async function LodgeMembershipPage({
           lodgeSlug={slug}
           settings={settings}
           meeting={{
-            label: site.nextMeetingLabel,
-            at: site.nextMeetingAt,
-            bookingHref: site.bookingHref.startsWith("#")
-              ? `${lodgePath(slug)}${site.bookingHref}`
-              : site.bookingHref,
-            event: site.event,
+            label: meetingResolved.label,
+            at: meetingResolved.targetIso,
+            bookingHref: meetingResolved.bookingHref,
+            event: meetingResolved.featured,
             meetingsHref: lodgePath(slug, "meetings", "regular-meetings"),
+            upcoming: meetingResolved.list,
           }}
           initialMembership={boot?.membership ?? null}
           initialRoster={boot?.roster ?? null}

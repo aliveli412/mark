@@ -1,5 +1,6 @@
 import { saveEventAction } from "@/app/admin/actions";
 import { AdminNavForm } from "@/components/admin/AdminNavForm";
+import { markSites } from "@/lib/mark-sites";
 import type { EventRecord } from "@/lib/types";
 
 function toLocalInput(value?: string | null) {
@@ -21,6 +22,17 @@ export function EventForm({ event }: { event?: EventRecord | null }) {
       <label>
         Slug
         <input name="slug" defaultValue={event?.slug ?? ""} placeholder="auto from title if blank" />
+      </label>
+      <label>
+        Lodge site
+        <select name="lodge_slug" defaultValue={event?.lodge_slug ?? ""}>
+          <option value="">Portal / Grand Lodge only (no lodge homepage)</option>
+          {markSites.map((site) => (
+            <option key={site.slug} value={site.slug}>
+              {site.menuLabel} — {site.fullName}
+            </option>
+          ))}
+        </select>
       </label>
       <label>
         Category
@@ -70,6 +82,9 @@ export function EventForm({ event }: { event?: EventRecord | null }) {
         <input name="rsvp_enabled" type="checkbox" defaultChecked={event?.rsvp_enabled ?? true} />
         RSVP open
       </label>
+      <p className="admin-help">
+        Choose a lodge site to show this meeting on that lodge homepage countdown and the members meeting list.
+      </p>
       <button type="submit">Save event</button>
     </AdminNavForm>
   );

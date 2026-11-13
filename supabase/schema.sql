@@ -36,6 +36,7 @@ create table if not exists public.posts (
 create table if not exists public.events (
   id uuid primary key default gen_random_uuid(),
   lodge_id uuid references public.lodges (id) on delete set null,
+  lodge_slug text,
   slug text not null unique,
   title text not null,
   summary text not null default '',
@@ -53,6 +54,9 @@ create table if not exists public.events (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+create index if not exists events_lodge_slug_starts_at_idx
+  on public.events (lodge_slug, starts_at);
 
 create table if not exists public.event_rsvps (
   id uuid primary key default gen_random_uuid(),

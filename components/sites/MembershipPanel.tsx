@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Countdown } from "@/components/sites/Countdown";
 import { formatPence } from "@/lib/format";
+import type { LodgeMeetingListItem } from "@/lib/lodge-meetings";
 import { lodgePath, type LodgeEvent } from "@/lib/mark-sites";
 import type {
   LodgeMembership,
@@ -59,6 +60,7 @@ type MeetingInfo = {
   bookingHref: string;
   event: LodgeEvent;
   meetingsHref: string;
+  upcoming: LodgeMeetingListItem[];
 };
 
 type MemberFileListItem = {
@@ -77,7 +79,7 @@ type MemberFileListItem = {
 const NAV_ITEMS: { id: DashSection; label: string }[] = [
   { id: "account", label: "My Account" },
   { id: "record", label: "My lodge record" },
-  { id: "meeting", label: "Next Regular Meeting" },
+  { id: "meeting", label: "Regular Meetings" },
   { id: "summons", label: "Summons & Minutes" },
   { id: "payments", label: "Payment methods" },
   { id: "addresses", label: "Addresses" },
@@ -648,8 +650,13 @@ function MemberHome({
         {section === "meeting" ? (
           <section className="member-dash-panel">
             <header className="member-dash-panel-head">
-              <h2>Next Regular Meeting</h2>
-              <p>{meeting.event.title}</p>
+              <h2>Regular Meetings</h2>
+              <p>
+                Next up: <strong>{meeting.event.title}</strong>
+                {meeting.upcoming.length > 1
+                  ? ` · ${meeting.upcoming.length} upcoming on the lodge calendar`
+                  : null}
+              </p>
             </header>
 
             <Countdown targetIso={meeting.at} label={meeting.label} bookingHref={meeting.bookingHref} />
@@ -665,9 +672,50 @@ function MemberHome({
                   Attendance &amp; booking
                 </a>
                 <Link className="btn secondary" href={meeting.meetingsHref}>
-                  Regular meetings
+                  Lodge meetings page
                 </Link>
               </div>
+            </div>
+
+            <div className="member-meetings-list-block">
+              <h3>Upcoming meetings</h3>
+              {meeting.upcoming.length ? (
+                <ol className="member-meetings-list">
+                  {meeting.upcoming.map((item, index) => (
+                    <li key={item.id} className={index === 0 ? "is-next" : undefined}>
+                      <div className="member-meetings-list-date">
+                        <span>{new Date(item.startsAt).toLocaleDateString("en-GB", {
+                          day: "numeric",
+                          month: "short",
+                          timeZone: "Europe/London",
+                        })}</span>
+                        <strong>
+                          {new Date(item.startsAt).toLocaleTimeString("en-GB", {
+                            hour: "numeric",
+                            minute: "2-digit",
+                            hour12: true,
+                            timeZone: "Europe/London",
+                          })}
+                        </strong>
+                      </div>
+                      <div className="member-meetings-list-body">
+                        <p className="member-meetings-list-title">
+                          {item.title}
+                          {index === 0 ? <span className="member-meetings-list-badge">Next</span> : null}
+                        </p>
+                        {item.summary ? <p className="member-meetings-list-summary">{item.summary}</p> : null}
+                        <p className="member-meetings-list-meta">{item.location}</p>
+                        <div className="member-meetings-list-actions">
+                          <a href={item.href}>Details</a>
+                          {item.rsvpOpen ? <a href={item.rsvpHref}>RSVP</a> : <span>RSVP closed</span>}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="member-empty">No upcoming lodge meetings published yet.</p>
+              )}
             </div>
           </section>
         ) : null}

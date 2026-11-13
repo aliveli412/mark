@@ -12,7 +12,17 @@ function partsUntil(targetMs: number) {
   return { days, hours, minutes, seconds };
 }
 
-export function Countdown({ targetIso, label, bookingHref }: { targetIso: string; label: string; bookingHref: string }) {
+export function Countdown({
+  targetIso,
+  label,
+  bookingHref,
+  showBookingLink = true,
+}: {
+  targetIso: string;
+  label: string;
+  bookingHref: string;
+  showBookingLink?: boolean;
+}) {
   const targetMs = new Date(targetIso).getTime();
   const [parts, setParts] = useState(() => partsUntil(targetMs));
 
@@ -30,7 +40,7 @@ export function Countdown({ targetIso, label, bookingHref }: { targetIso: string
 
   return (
     <section className="lodge-countdown">
-      <h2>{label}</h2>
+      {label ? <h2>{label}</h2> : null}
       <div className="lodge-count-grid" aria-live="polite">
         {blocks.map((block) => (
           <div key={block.label}>
@@ -39,10 +49,12 @@ export function Countdown({ targetIso, label, bookingHref }: { targetIso: string
           </div>
         ))}
       </div>
-      <p>
-        Please{" "}
-        <a href={bookingHref}>click here for attendance and booking</a>!
-      </p>
+      {showBookingLink ? (
+        <p>
+          Please{" "}
+          <a href={bookingHref}>click here for attendance and booking</a>!
+        </p>
+      ) : null}
     </section>
   );
 }

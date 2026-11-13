@@ -133,6 +133,8 @@ export async function saveEventAction(formData: FormData): Promise<{ error?: str
 
   const id = String(formData.get("id") ?? "") || undefined;
   const title = String(formData.get("title") ?? "").trim();
+  const lodgeSlugRaw = String(formData.get("lodge_slug") ?? "").trim();
+  const lodge_slug = lodgeSlugRaw || null;
   const payload = {
     title,
     slug: String(formData.get("slug") ?? "").trim() || slugify(title),
@@ -151,6 +153,7 @@ export async function saveEventAction(formData: FormData): Promise<{ error?: str
     published: formData.get("published") === "on",
     rsvp_enabled: formData.get("rsvp_enabled") === "on",
     lodge_id: null as string | null,
+    lodge_slug,
   };
   if (!payload.title || !payload.slug || Number.isNaN(Date.parse(payload.starts_at))) {
     return { error: "Title and start date are required." };
@@ -165,14 +168,14 @@ export async function saveEventAction(formData: FormData): Promise<{ error?: str
       const { error } = await supabase.from("events").update(payload).eq("id", id);
       if (error) {
         return {
-          error: `${error.message}. If columns are missing, run supabase/events-rsvp.sql.`,
+          error: `${error.message}. If columns are missing, run supabase/events-rsvp.sql and supabase/events-lodge-slug.sql.`,
         };
       }
     } else {
       const { error } = await supabase.from("events").insert(payload);
       if (error) {
         return {
-          error: `${error.message}. If columns are missing, run supabase/events-rsvp.sql.`,
+          error: `${error.message}. If columns are missing, run supabase/events-rsvp.sql and supabase/events-lodge-slug.sql.`,
         };
       }
     }
@@ -181,6 +184,10 @@ export async function saveEventAction(formData: FormData): Promise<{ error?: str
   revalidatePath("/admin/events");
   revalidatePath("/calendar");
   revalidatePath(`/calendar/${payload.slug}`);
+  if (lodge_slug) {
+    revalidatePath(`/sites/${lodge_slug}`);
+    revalidatePath(`/sites/${lodge_slug}/membership`);
+  }
   return { next: "/admin/events" };
 }
 
