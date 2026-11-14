@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { DistrictMap } from "@/components/DistrictMap";
 import { provinces } from "@/lib/site";
 
-export function ProvinceDirectory() {
+export function ProvinceDirectory({ showMap = true }: { showMap?: boolean }) {
   const [query, setQuery] = useState("");
   const matches = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -12,7 +13,9 @@ export function ProvinceDirectory() {
   }, [query]);
 
   return (
-    <div>
+    <div className="province-directory">
+      {showMap ? <DistrictMap provinces={matches} /> : null}
+
       <div className="finder">
         <input
           type="search"
