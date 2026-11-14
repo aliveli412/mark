@@ -15,3 +15,4 @@ private-media/**
 !private-media/**/.gitkeep
 !private-media/**/README.md
 *.tsbuildinfo
+__pycache__/

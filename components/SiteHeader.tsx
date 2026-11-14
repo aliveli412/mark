@@ -21,7 +21,7 @@ export function SiteHeader() {
   const markActive = pathname.startsWith("/mark-degree") || markLinks.some((link) => pathname === link.href);
   const sitesActive = pathname.startsWith("/sites");
 
-  if (pathname.startsWith("/admin") || pathname.startsWith("/sites")) return null;
+  if (pathname.startsWith("/admin") || pathname.startsWith("/sites") || pathname.startsWith("/districts")) return null;
 
   return (
     <header className="site-header">

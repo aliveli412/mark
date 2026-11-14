@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PageBanner } from "@/components/PageBanner";
+import { DistrictContent } from "@/components/districts/DistrictContent";
+import { districtNavLinks, getDistrictPage, loadDistrictContent } from "@/lib/district-content";
 import { getProvinceBySlug, provinces } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -15,74 +16,58 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const province = getProvinceBySlug(slug);
-  if (!province) return { title: "District" };
+  const content = loadDistrictContent(slug);
+  const title = content?.pages.home?.title || content?.name || province?.name || "District";
   return {
-    title: `${province.name} · District Lodge`,
-    description: `Grand & District Lodge page for ${province.name} Mark Master Masons.`,
+    title: `${title} · District Lodge`,
+    description: `Imported Grand & District Lodge content for ${title}.`,
   };
 }
 
-export default async function DistrictCountryPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function DistrictHomePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const province = getProvinceBySlug(slug);
   if (!province) notFound();
 
-  const others = provinces.filter((item) => item.slug !== province.slug).slice(0, 8);
+  const content = loadDistrictContent(slug);
+  const home = getDistrictPage(slug, "home");
+  const nav = districtNavLinks(slug);
+
+  if (home && content) {
+    return (
+      <>
+        <DistrictContent slug={slug} page={home} pages={content.pages} />
+        {nav.length ? (
+          <section className="district-home-nav" aria-label="District pages">
+            <h2>Pages</h2>
+            <div className="province-grid">
+              {nav.map((item) => (
+                <Link key={item.key} href={item.href}>
+                  {item.title}
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
+        <p className="district-legacy">
+          <a href={province.liveUrl} target="_blank" rel="noreferrer">
+            View legacy live site →
+          </a>
+        </p>
+      </>
+    );
+  }
 
   return (
-    <>
-      <PageBanner title={province.name} />
-      <div className="wrap page district-page">
-        <p className="district-kicker">Grand &amp; District Lodge</p>
-        <h2 className="district-heading">{province.name}</h2>
-        <p className="lede">
-          This is the portal page for the <strong>{province.name}</strong> Mark Master Masons district. Use the map on{" "}
-          <Link href="/grand-lodges">Grand Lodges</Link> to browse every district.
-        </p>
-
-        <section className="district-card" aria-label={`${province.name} details`}>
-          <dl className="district-meta">
-            <div>
-              <dt>District</dt>
-              <dd>{province.name}</dd>
-            </div>
-            <div>
-              <dt>Portal path</dt>
-              <dd>
-                <code>/districts/{province.slug}</code>
-              </dd>
-            </div>
-            <div>
-              <dt>Map position</dt>
-              <dd>
-                {province.lat.toFixed(2)}°, {province.lng.toFixed(2)}°
-              </dd>
-            </div>
-          </dl>
-          <div className="district-actions">
-            <Link className="btn" href="/grand-lodges">
-              Back to map
-            </Link>
-            <a className="btn secondary" href={province.liveUrl} target="_blank" rel="noreferrer">
-              Open legacy live site
-            </a>
-          </div>
-        </section>
-
-        <section className="district-other" aria-label="Other districts">
-          <h3>Other districts</h3>
-          <div className="province-grid">
-            {others.map((item) => (
-              <Link key={item.slug} href={item.href}>
-                {item.name}
-              </Link>
-            ))}
-          </div>
-          <p>
-            <Link href="/grand-lodges">See all on the map →</Link>
-          </p>
-        </section>
-      </div>
-    </>
+    <article className="district-page-content">
+      <h1>{province.name}</h1>
+      <p className="lede">
+        Content for this district has not been imported yet. Run{" "}
+        <code>python3 scripts/import-district-sites.py --only {slug}</code>.
+      </p>
+      <p>
+        <Link href="/grand-lodges">← Back to map</Link>
+      </p>
+    </article>
   );
 }
