@@ -38,7 +38,7 @@ export function DistrictMap({ provinces = allProvinces, className }: DistrictMap
         )}
       </div>
       <p className="district-map-hint">
-        Blue markers open each published Grand or District Lodge site. Use + / − to zoom.
+        Blue markers open each country / district Mark Site (same as the live portal map). Use + / − to zoom.
       </p>
     </div>
   );

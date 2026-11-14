@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { CircleMarker, MapContainer, Popup, TileLayer, Tooltip, useMap } from "react-leaflet";
 import type { Province } from "@/lib/site";
 import "leaflet/dist/leaflet.css";
@@ -25,6 +26,13 @@ function FitProvinces({ provinces }: { provinces: Province[] }) {
 }
 
 export function DistrictMapInner({ provinces }: { provinces: Province[] }) {
+  const router = useRouter();
+
+  function openDistrict(province: Province) {
+    // Same-tab navigation like the live portal map → country page.
+    router.push(province.href);
+  }
+
   return (
     <MapContainer
       className="district-map-leaflet"
@@ -43,7 +51,7 @@ export function DistrictMapInner({ provinces }: { provinces: Province[] }) {
       <FitProvinces provinces={provinces} />
       {provinces.map((province) => (
         <CircleMarker
-          key={province.name}
+          key={province.slug}
           center={[province.lat, province.lng]}
           radius={7}
           pathOptions={{
@@ -53,9 +61,7 @@ export function DistrictMapInner({ provinces }: { provinces: Province[] }) {
             weight: 2,
           }}
           eventHandlers={{
-            click: () => {
-              window.open(province.href, "_blank", "noopener,noreferrer");
-            },
+            click: () => openDistrict(province),
           }}
         >
           <Tooltip direction="top" offset={[0, -6]} opacity={1}>
@@ -64,8 +70,14 @@ export function DistrictMapInner({ provinces }: { provinces: Province[] }) {
           <Popup>
             <strong>{province.name}</strong>
             <br />
-            <a href={province.href} target="_blank" rel="noreferrer">
-              Open district site →
+            <a
+              href={province.href}
+              onClick={(event) => {
+                event.preventDefault();
+                openDistrict(province);
+              }}
+            >
+              Open {province.name} site →
             </a>
           </Popup>
         </CircleMarker>

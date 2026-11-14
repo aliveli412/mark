@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { provinces } from "./lib/site";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -9,6 +10,14 @@ const nextConfig: NextConfig = {
       allowedOrigins: ["localhost:3000", "127.0.0.1:3000"],
       bodySizeLimit: "10mb",
     },
+  },
+  async redirects() {
+    // Live-site style country paths: /belgium → published district Mark Site.
+    return provinces.map((province) => ({
+      source: `/${province.slug}`,
+      destination: province.liveUrl,
+      permanent: false,
+    }));
   },
   async headers() {
     return [
