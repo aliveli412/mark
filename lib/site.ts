@@ -14,11 +14,13 @@ export type Province = {
 const LIVE_ORIGIN = "https://www.markmastermasons.com";
 
 function district(name: string, slug: string, lat: number, lng: number): Province {
+  const liveUrl = `${LIVE_ORIGIN}/${slug}/`;
   return {
     name,
     slug,
-    href: `/districts/${slug}`,
-    liveUrl: `${LIVE_ORIGIN}/${slug}/`,
+    // Direct live country Mark Site URL (full navigation — not an in-app soft link).
+    href: liveUrl,
+    liveUrl,
     lat,
     lng,
   };
