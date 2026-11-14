@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { CircleMarker, MapContainer, Popup, TileLayer, Tooltip, useMap } from "react-leaflet";
 import type { Province } from "@/lib/site";
 import "leaflet/dist/leaflet.css";
@@ -24,12 +25,13 @@ function FitProvinces({ provinces }: { provinces: Province[] }) {
   return null;
 }
 
-function openCountrySite(url: string) {
-  // Full browser navigation to the live district Mark Site (avoids Next soft-nav ending on portal home).
-  window.location.assign(url);
-}
-
 export function DistrictMapInner({ provinces }: { provinces: Province[] }) {
+  const router = useRouter();
+
+  function openDistrictPage(href: string) {
+    router.push(href);
+  }
+
   return (
     <MapContainer
       className="district-map-leaflet"
@@ -58,7 +60,7 @@ export function DistrictMapInner({ provinces }: { provinces: Province[] }) {
             weight: 2,
           }}
           eventHandlers={{
-            click: () => openCountrySite(province.liveUrl),
+            click: () => openDistrictPage(province.href),
           }}
         >
           <Tooltip direction="top" offset={[0, -6]} opacity={1}>
@@ -68,13 +70,13 @@ export function DistrictMapInner({ provinces }: { provinces: Province[] }) {
             <strong>{province.name}</strong>
             <br />
             <a
-              href={province.liveUrl}
+              href={province.href}
               onClick={(event) => {
                 event.preventDefault();
-                openCountrySite(province.liveUrl);
+                openDistrictPage(province.href);
               }}
             >
-              Open {province.name} site →
+              Open {province.name} page →
             </a>
           </Popup>
         </CircleMarker>

@@ -38,8 +38,7 @@ export function DistrictMap({ provinces = allProvinces, className }: DistrictMap
         )}
       </div>
       <p className="district-map-hint">
-        Blue markers open each live country Mark Site (e.g. Belgium → markmastermasons.com/belgium/). Use + / − to
-        zoom.
+        Blue markers open each district page on this portal (e.g. Belgium → /districts/belgium). Use + / − to zoom.
       </p>
     </div>
   );
