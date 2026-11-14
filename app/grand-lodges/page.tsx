@@ -9,8 +9,8 @@ export default function GrandLodgesPage() {
     <>
       <PageBanner title="Grand Lodges" />
       <div className="wrap page">
-        <p>Grand & District Lodges of Mark Master Masons will be listed here.</p>
-        <p>These are the lodges already marked on the portal map:</p>
+        <p>Grand &amp; District Lodges of Mark Master Masons.</p>
+        <p>Blue markers on the map open each published district site. You can also search the list below.</p>
         <ProvinceDirectory />
       </div>
     </>

@@ -47,7 +47,8 @@ export default function HomePage() {
         <div className="wrap">
           <h2>Grand & District Lodges</h2>
           <p className="lede">
-            The same provinces and districts marked on the portal map. Each name opens the lodge site that is already published.
+            Explore the interactive map — blue markers open each published Grand or District Lodge site. Search or browse
+            the list below.
           </p>
           <ProvinceDirectory />
         </div>

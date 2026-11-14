@@ -1,32 +1,50 @@
-export const provinces = [
-  { name: "Belgium", href: "https://www.markmastermasons.com/belgium/" },
-  { name: "Bolivia", href: "https://www.markmastermasons.com/bolivia/" },
-  { name: "Bombay", href: "https://www.markmastermasons.com/bombay/" },
-  { name: "Brazil", href: "https://www.markmastermasons.com/brazil/" },
-  { name: "Channel Islands", href: "https://www.markmastermasons.com/channelislands/" },
-  { name: "Cyprus", href: "https://www.markmastermasons.com/cyprus/" },
-  { name: "East Africa", href: "https://www.markmastermasons.com/eastafrica/" },
-  { name: "England", href: "https://www.markmastermasons.com/england/" },
-  { name: "Germany", href: "https://www.markmastermasons.com/germany/" },
-  { name: "Ghana", href: "https://www.markmastermasons.com/ghana/" },
-  { name: "Gibraltar", href: "https://www.markmastermasons.com/gibraltar/" },
-  { name: "Hong Kong", href: "https://www.markmastermasons.com/hongkong/" },
-  { name: "Italy", href: "https://www.markmastermasons.com/italy/" },
-  { name: "Jamaica & Cayman", href: "https://www.markmastermasons.com/jamaica-cayman/" },
-  { name: "Madras", href: "https://www.markmastermasons.com/madras/" },
-  { name: "Natal", href: "https://www.markmastermasons.com/natal/" },
-  { name: "Netherlands", href: "https://www.markmastermasons.com/netherlands/" },
-  { name: "New Zealand", href: "https://www.markmastermasons.com/new-zealand/" },
-  { name: "Nigeria", href: "https://www.markmastermasons.com/nigeria/" },
-  { name: "River Plate", href: "https://www.markmastermasons.com/river-plate/" },
-  { name: "Romania", href: "https://www.markmastermasons.com/romania/" },
-  { name: "Singapore", href: "https://www.markmastermasons.com/singapore/" },
-  { name: "South Africa (Eastern Division)", href: "https://www.markmastermasons.com/safricaeasterndivision/" },
-  { name: "South and East Caribbean", href: "https://www.markmastermasons.com/southandeastcaribbean/" },
-  { name: "Spain", href: "https://www.markmastermasons.com/spain/" },
-  { name: "Sri Lanka", href: "https://www.markmastermasons.com/srilanka/" },
-  { name: "The Transvaal", href: "https://www.markmastermasons.com/thetransvaal/" },
-  { name: "Zimbabwe", href: "https://www.markmastermasons.com/zimbabwe/" },
+export type Province = {
+  name: string;
+  href: string;
+  /** Approximate map marker (WGS84). */
+  lat: number;
+  lng: number;
+};
+
+export const provinces: Province[] = [
+  { name: "Belgium", href: "https://www.markmastermasons.com/belgium/", lat: 50.85, lng: 4.35 },
+  { name: "Bolivia", href: "https://www.markmastermasons.com/bolivia/", lat: -16.29, lng: -63.59 },
+  { name: "Bombay", href: "https://www.markmastermasons.com/bombay/", lat: 19.08, lng: 72.88 },
+  { name: "Brazil", href: "https://www.markmastermasons.com/brazil/", lat: -14.24, lng: -51.93 },
+  { name: "Channel Islands", href: "https://www.markmastermasons.com/channelislands/", lat: 49.37, lng: -2.36 },
+  { name: "Cyprus", href: "https://www.markmastermasons.com/cyprus/", lat: 35.13, lng: 33.43 },
+  { name: "East Africa", href: "https://www.markmastermasons.com/eastafrica/", lat: -1.29, lng: 36.82 },
+  { name: "England", href: "https://www.markmastermasons.com/england/", lat: 52.36, lng: -1.17 },
+  { name: "Germany", href: "https://www.markmastermasons.com/germany/", lat: 51.17, lng: 10.45 },
+  { name: "Ghana", href: "https://www.markmastermasons.com/ghana/", lat: 7.95, lng: -1.02 },
+  { name: "Gibraltar", href: "https://www.markmastermasons.com/gibraltar/", lat: 36.14, lng: -5.35 },
+  { name: "Hong Kong", href: "https://www.markmastermasons.com/hongkong/", lat: 22.32, lng: 114.17 },
+  { name: "Italy", href: "https://www.markmastermasons.com/italy/", lat: 41.87, lng: 12.57 },
+  { name: "Jamaica & Cayman", href: "https://www.markmastermasons.com/jamaica-cayman/", lat: 18.11, lng: -77.3 },
+  { name: "Madras", href: "https://www.markmastermasons.com/madras/", lat: 13.08, lng: 80.27 },
+  { name: "Natal", href: "https://www.markmastermasons.com/natal/", lat: -29.86, lng: 31.02 },
+  { name: "Netherlands", href: "https://www.markmastermasons.com/netherlands/", lat: 52.13, lng: 5.29 },
+  { name: "New Zealand", href: "https://www.markmastermasons.com/new-zealand/", lat: -40.9, lng: 174.89 },
+  { name: "Nigeria", href: "https://www.markmastermasons.com/nigeria/", lat: 9.08, lng: 8.68 },
+  { name: "River Plate", href: "https://www.markmastermasons.com/river-plate/", lat: -34.6, lng: -58.38 },
+  { name: "Romania", href: "https://www.markmastermasons.com/romania/", lat: 45.94, lng: 24.97 },
+  { name: "Singapore", href: "https://www.markmastermasons.com/singapore/", lat: 1.35, lng: 103.82 },
+  {
+    name: "South Africa (Eastern Division)",
+    href: "https://www.markmastermasons.com/safricaeasterndivision/",
+    lat: -33.02,
+    lng: 27.91,
+  },
+  {
+    name: "South and East Caribbean",
+    href: "https://www.markmastermasons.com/southandeastcaribbean/",
+    lat: 13.19,
+    lng: -59.54,
+  },
+  { name: "Spain", href: "https://www.markmastermasons.com/spain/", lat: 40.46, lng: -3.75 },
+  { name: "Sri Lanka", href: "https://www.markmastermasons.com/srilanka/", lat: 7.87, lng: 80.77 },
+  { name: "The Transvaal", href: "https://www.markmastermasons.com/thetransvaal/", lat: -26.2, lng: 28.04 },
+  { name: "Zimbabwe", href: "https://www.markmastermasons.com/zimbabwe/", lat: -19.02, lng: 29.15 },
 ];
 
 export const stats = [
