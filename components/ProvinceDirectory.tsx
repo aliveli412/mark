@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { DistrictMap } from "@/components/DistrictMap";
 import { provinces } from "@/lib/site";
@@ -27,9 +28,9 @@ export function ProvinceDirectory({ showMap = true }: { showMap?: boolean }) {
       </div>
       <div className="province-grid">
         {matches.map((province) => (
-          <a key={province.name} href={province.href} target="_blank" rel="noreferrer">
+          <Link key={province.slug} href={province.href}>
             {province.name}
-          </a>
+          </Link>
         ))}
       </div>
       {matches.length === 0 ? <p>No lodge matches that name.</p> : null}

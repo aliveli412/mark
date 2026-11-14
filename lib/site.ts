@@ -1,51 +1,63 @@
 export type Province = {
   name: string;
+  /** Live Mark Sites path slug, e.g. belgium → markmastermasons.com/belgium/ */
+  slug: string;
+  /** In-portal path that opens the country/district site. */
   href: string;
+  /** Canonical live WordPress district URL. */
+  liveUrl: string;
   /** Approximate map marker (WGS84). */
   lat: number;
   lng: number;
 };
 
+const LIVE_ORIGIN = "https://www.markmastermasons.com";
+
+function district(name: string, slug: string, lat: number, lng: number): Province {
+  return {
+    name,
+    slug,
+    href: `/districts/${slug}`,
+    liveUrl: `${LIVE_ORIGIN}/${slug}/`,
+    lat,
+    lng,
+  };
+}
+
 export const provinces: Province[] = [
-  { name: "Belgium", href: "https://www.markmastermasons.com/belgium/", lat: 50.85, lng: 4.35 },
-  { name: "Bolivia", href: "https://www.markmastermasons.com/bolivia/", lat: -16.29, lng: -63.59 },
-  { name: "Bombay", href: "https://www.markmastermasons.com/bombay/", lat: 19.08, lng: 72.88 },
-  { name: "Brazil", href: "https://www.markmastermasons.com/brazil/", lat: -14.24, lng: -51.93 },
-  { name: "Channel Islands", href: "https://www.markmastermasons.com/channelislands/", lat: 49.37, lng: -2.36 },
-  { name: "Cyprus", href: "https://www.markmastermasons.com/cyprus/", lat: 35.13, lng: 33.43 },
-  { name: "East Africa", href: "https://www.markmastermasons.com/eastafrica/", lat: -1.29, lng: 36.82 },
-  { name: "England", href: "https://www.markmastermasons.com/england/", lat: 52.36, lng: -1.17 },
-  { name: "Germany", href: "https://www.markmastermasons.com/germany/", lat: 51.17, lng: 10.45 },
-  { name: "Ghana", href: "https://www.markmastermasons.com/ghana/", lat: 7.95, lng: -1.02 },
-  { name: "Gibraltar", href: "https://www.markmastermasons.com/gibraltar/", lat: 36.14, lng: -5.35 },
-  { name: "Hong Kong", href: "https://www.markmastermasons.com/hongkong/", lat: 22.32, lng: 114.17 },
-  { name: "Italy", href: "https://www.markmastermasons.com/italy/", lat: 41.87, lng: 12.57 },
-  { name: "Jamaica & Cayman", href: "https://www.markmastermasons.com/jamaica-cayman/", lat: 18.11, lng: -77.3 },
-  { name: "Madras", href: "https://www.markmastermasons.com/madras/", lat: 13.08, lng: 80.27 },
-  { name: "Natal", href: "https://www.markmastermasons.com/natal/", lat: -29.86, lng: 31.02 },
-  { name: "Netherlands", href: "https://www.markmastermasons.com/netherlands/", lat: 52.13, lng: 5.29 },
-  { name: "New Zealand", href: "https://www.markmastermasons.com/new-zealand/", lat: -40.9, lng: 174.89 },
-  { name: "Nigeria", href: "https://www.markmastermasons.com/nigeria/", lat: 9.08, lng: 8.68 },
-  { name: "River Plate", href: "https://www.markmastermasons.com/river-plate/", lat: -34.6, lng: -58.38 },
-  { name: "Romania", href: "https://www.markmastermasons.com/romania/", lat: 45.94, lng: 24.97 },
-  { name: "Singapore", href: "https://www.markmastermasons.com/singapore/", lat: 1.35, lng: 103.82 },
-  {
-    name: "South Africa (Eastern Division)",
-    href: "https://www.markmastermasons.com/safricaeasterndivision/",
-    lat: -33.02,
-    lng: 27.91,
-  },
-  {
-    name: "South and East Caribbean",
-    href: "https://www.markmastermasons.com/southandeastcaribbean/",
-    lat: 13.19,
-    lng: -59.54,
-  },
-  { name: "Spain", href: "https://www.markmastermasons.com/spain/", lat: 40.46, lng: -3.75 },
-  { name: "Sri Lanka", href: "https://www.markmastermasons.com/srilanka/", lat: 7.87, lng: 80.77 },
-  { name: "The Transvaal", href: "https://www.markmastermasons.com/thetransvaal/", lat: -26.2, lng: 28.04 },
-  { name: "Zimbabwe", href: "https://www.markmastermasons.com/zimbabwe/", lat: -19.02, lng: 29.15 },
+  district("Belgium", "belgium", 50.85, 4.35),
+  district("Bolivia", "bolivia", -16.29, -63.59),
+  district("Bombay", "bombay", 19.08, 72.88),
+  district("Brazil", "brazil", -14.24, -51.93),
+  district("Channel Islands", "channelislands", 49.37, -2.36),
+  district("Cyprus", "cyprus", 35.13, 33.43),
+  district("East Africa", "eastafrica", -1.29, 36.82),
+  district("England", "england", 52.36, -1.17),
+  district("Germany", "germany", 51.17, 10.45),
+  district("Ghana", "ghana", 7.95, -1.02),
+  district("Gibraltar", "gibraltar", 36.14, -5.35),
+  district("Hong Kong", "hongkong", 22.32, 114.17),
+  district("Italy", "italy", 41.87, 12.57),
+  district("Jamaica & Cayman", "jamaica-cayman", 18.11, -77.3),
+  district("Madras", "madras", 13.08, 80.27),
+  district("Natal", "natal", -29.86, 31.02),
+  district("Netherlands", "netherlands", 52.13, 5.29),
+  district("New Zealand", "new-zealand", -40.9, 174.89),
+  district("Nigeria", "nigeria", 9.08, 8.68),
+  district("River Plate", "river-plate", -34.6, -58.38),
+  district("Romania", "romania", 45.94, 24.97),
+  district("Singapore", "singapore", 1.35, 103.82),
+  district("South Africa (Eastern Division)", "safricaeasterndivision", -33.02, 27.91),
+  district("South and East Caribbean", "southandeastcaribbean", 13.19, -59.54),
+  district("Spain", "spain", 40.46, -3.75),
+  district("Sri Lanka", "srilanka", 7.87, 80.77),
+  district("The Transvaal", "thetransvaal", -26.2, 28.04),
+  district("Zimbabwe", "zimbabwe", -19.02, 29.15),
 ];
+
+export function getProvinceBySlug(slug: string) {
+  return provinces.find((item) => item.slug === slug) ?? null;
+}
 
 export const stats = [
   { value: "39", label: "Prov. Grand Lodges" },
@@ -136,4 +148,9 @@ export const searchEntries = [
   { href: "/the-mark-degree", title: "The Mark Degree", text: "History of the Mark Degree from Portsmouth 1769 to the Grand Mark Lodge of 1856." },
   { href: "/joining-the-mark-degree", title: "Joining the Mark Degree", text: "A Master Mason may be advanced. Psalm 118 and the stone the builders rejected." },
   { href: "/turkey-earthquake-appeal", title: "Turkey Earthquake Appeal", text: "Appeal following the earthquakes in Turkey." },
+  ...provinces.map((province) => ({
+    href: province.href,
+    title: province.name,
+    text: `Grand or District Lodge site for ${province.name}. Opens the live country page.`,
+  })),
 ];
