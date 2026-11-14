@@ -18,8 +18,8 @@ function district(name: string, slug: string, lat: number, lng: number): Provinc
   return {
     name,
     slug,
-    // Direct live country Mark Site URL (full navigation — not an in-app soft link).
-    href: liveUrl,
+    // In-portal country page (stays on this Next app).
+    href: `/districts/${slug}`,
     liveUrl,
     lat,
     lng,

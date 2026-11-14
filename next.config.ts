@@ -12,10 +12,10 @@ const nextConfig: NextConfig = {
     },
   },
   async redirects() {
-    // Live-site style country paths: /belgium → published district Mark Site.
+    // Live-style short paths stay on this portal: /belgium → /districts/belgium
     return provinces.map((province) => ({
       source: `/${province.slug}`,
-      destination: province.liveUrl,
+      destination: `/districts/${province.slug}`,
       permanent: false,
     }));
   },
