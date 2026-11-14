@@ -120,4 +120,7 @@ Without `.env.local`, public pages use sample content and admin stays locked.
 npm run dev    # local development
 npm run build  # production build
 npm run start  # serve production build
+python3 scripts/import-mark-sites.py   # re-crawl lodge WP pages → content/sites + public/sites media
 ```
+
+Lodge WP import → render path, district reuse, province slugs, and Hostinger SSH notes: `content/sites/WP-IMPORT.md`.
