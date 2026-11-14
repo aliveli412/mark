@@ -20,10 +20,11 @@ export async function generateMetadata({
   };
 }
 
-/** Open the live country/district Mark Site (same behaviour as the portal map on the live homepage). */
+/** Alias route: /districts/belgium → https://www.markmastermasons.com/belgium/ */
 export default async function DistrictCountryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const province = getProvinceBySlug(slug);
   if (!province) notFound();
+  // Permanent external redirect to the published country Mark Site.
   redirect(province.liveUrl);
 }
