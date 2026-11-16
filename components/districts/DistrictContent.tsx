@@ -10,7 +10,9 @@ export function DistrictContent({
   page: SitePageContent;
   pages: Record<string, SitePageContent>;
 }) {
-  const html = localizeDistrictHtml(page.html || "", slug, pages);
+  const html = localizeDistrictHtml(page.html || "", slug, pages)
+    .replace(/<\/?(?:html|body)[^>]*>/gi, "")
+    .trim();
   const text = html.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
 
   if (!text) {
@@ -24,7 +26,7 @@ export function DistrictContent({
 
   return (
     <article className="district-page-content">
-      <div className="district-rich lodge-rich" dangerouslySetInnerHTML={{ __html: html }} />
+      <div className="district-rich" dangerouslySetInnerHTML={{ __html: html }} />
     </article>
   );
 }

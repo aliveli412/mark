@@ -32,6 +32,13 @@ export function listDistrictPageKeys(slug: string) {
   return Object.keys(content.pages).filter((key) => key !== "home");
 }
 
+function prettyTitle(raw: string, key: string) {
+  const value = (raw || key).replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
+  if (!value) return key;
+  if (/[A-Z]/.test(value) && value !== value.toLowerCase()) return value;
+  return value.replace(/\b\w/g, (ch) => ch.toUpperCase());
+}
+
 /** Nav items derived from imported page keys (exclude posts noise from primary nav). */
 export function districtNavLinks(slug: string) {
   const content = loadDistrictContent(slug);
@@ -40,7 +47,7 @@ export function districtNavLinks(slug: string) {
     .filter(([key]) => key !== "home" && !key.startsWith("posts/"))
     .map(([key, page]) => ({
       key,
-      title: page.title || key,
+      title: prettyTitle(page.title || key, key),
       href: `/districts/${slug}/${key}`,
     }))
     .sort((a, b) => a.title.localeCompare(b.title));
