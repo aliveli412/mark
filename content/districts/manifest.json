@@ -1,0 +1,201 @@
+{
+  "imported_at": "2026-11-14T21:26:40Z",
+  "districts": [
+    {
+      "slug": "belgium",
+      "name": "Belgium",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/belgium.json"
+    },
+    {
+      "slug": "bolivia",
+      "name": "Bolivia",
+      "status": "ok",
+      "page_count": 48,
+      "file": "content/districts/bolivia.json"
+    },
+    {
+      "slug": "bombay",
+      "name": "Bombay",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/bombay.json"
+    },
+    {
+      "slug": "brazil",
+      "name": "Brazil",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/brazil.json"
+    },
+    {
+      "slug": "channelislands",
+      "name": "Channel Islands",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/channelislands.json"
+    },
+    {
+      "slug": "cyprus",
+      "name": "Cyprus",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/cyprus.json"
+    },
+    {
+      "slug": "eastafrica",
+      "name": "East Africa",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/eastafrica.json"
+    },
+    {
+      "slug": "england",
+      "name": "England",
+      "status": "ok",
+      "page_count": 44,
+      "file": "content/districts/england.json"
+    },
+    {
+      "slug": "germany",
+      "name": "Germany",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/germany.json"
+    },
+    {
+      "slug": "ghana",
+      "name": "Ghana",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/ghana.json"
+    },
+    {
+      "slug": "gibraltar",
+      "name": "Gibraltar",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/gibraltar.json"
+    },
+    {
+      "slug": "hongkong",
+      "name": "Hong Kong",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/hongkong.json"
+    },
+    {
+      "slug": "italy",
+      "name": "Italy",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/italy.json"
+    },
+    {
+      "slug": "jamaica-cayman",
+      "name": "Jamaica&Cayman",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/jamaica-cayman.json"
+    },
+    {
+      "slug": "madras",
+      "name": "Madras",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/madras.json"
+    },
+    {
+      "slug": "natal",
+      "name": "Natal",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/natal.json"
+    },
+    {
+      "slug": "netherlands",
+      "name": "Netherlands",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/netherlands.json"
+    },
+    {
+      "slug": "new-zealand",
+      "name": "New Zealand",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/new-zealand.json"
+    },
+    {
+      "slug": "nigeria",
+      "name": "Nigeria",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/nigeria.json"
+    },
+    {
+      "slug": "river-plate",
+      "name": "River Plate",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/river-plate.json"
+    },
+    {
+      "slug": "romania",
+      "name": "Romania",
+      "status": "unreachable",
+      "page_count": 1,
+      "file": "content/districts/romania.json"
+    },
+    {
+      "slug": "safricaeasterndivision",
+      "name": "South Africa (Eastern Division)",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/safricaeasterndivision.json"
+    },
+    {
+      "slug": "singapore",
+      "name": "Singapore",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/singapore.json"
+    },
+    {
+      "slug": "southandeastcaribbean",
+      "name": "South and East Caribbean",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/southandeastcaribbean.json"
+    },
+    {
+      "slug": "spain",
+      "name": "Spain",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/spain.json"
+    },
+    {
+      "slug": "srilanka",
+      "name": "Sri Lanka",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/srilanka.json"
+    },
+    {
+      "slug": "thetransvaal",
+      "name": "The Transvaal",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/thetransvaal.json"
+    },
+    {
+      "slug": "zimbabwe",
+      "name": "Zimbabwe",
+      "status": "ok",
+      "page_count": 45,
+      "file": "content/districts/zimbabwe.json"
+    }
+  ]
+}
