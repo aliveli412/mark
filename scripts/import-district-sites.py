@@ -199,15 +199,24 @@ def download_media(html: str, slug: str, media_dir: Path) -> str:
                 return None
         return local
 
-    for tag in soup.find_all(["img", "a", "source"]):
+    for tag in list(soup.find_all(["img", "a", "source"])):
+        failed_img = False
         for attr in ("src", "href", "data-src", "data-lazy-src"):
             val = tag.get(attr)
             if not val:
                 continue
+            # Only rewrite media-like URLs; leave normal page links alone.
+            path = urllib.parse.urlparse(urllib.parse.urljoin(f"{ORIGIN}/{slug}/", val)).path
+            ext = Path(path).suffix.lower()
+            is_media = ext in {".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"}
+            if not is_media and attr != "src":
+                continue
             local = rewrite(val)
             if local:
                 tag[attr] = local
-        # srcset
+            elif tag.name == "img" and attr in {"src", "data-src", "data-lazy-src"} and "markmastermasons.com" in val:
+                # Live host often 404s demo gallery files — drop broken icons.
+                failed_img = True
         if tag.name == "img" and tag.get("srcset"):
             parts = []
             for chunk in tag["srcset"].split(","):
@@ -222,6 +231,17 @@ def download_media(html: str, slug: str, media_dir: Path) -> str:
                     parts.append(" ".join(bits))
             if parts:
                 tag["srcset"] = ", ".join(parts)
+            else:
+                tag.attrs.pop("srcset", None)
+        if failed_img:
+            remove_node = tag
+            for cand in (tag.parent, getattr(tag.parent, "parent", None)):
+                if not cand or not getattr(cand, "name", None):
+                    continue
+                classes = " ".join(cand.get("class") or [])
+                if cand.name in {"figure", "li"} or "coblocks-gallery--item" in classes or "coblocks-gallery--figure" in classes:
+                    remove_node = cand
+            remove_node.decompose()
 
     return str(soup)
 

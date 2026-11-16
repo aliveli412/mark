@@ -581,6 +581,55 @@ button, input, select, textarea { font: inherit; }
   color: #7d2128;
   font-family: Georgia, "Times New Roman", serif;
 }
+.district-rich .sub_page_header {
+  background: #ce1b28;
+  color: #fff;
+  padding: 28px 22px 18px;
+}
+.district-rich .sub_page_header h1 {
+  color: #1d2433;
+  margin: 0 0 8px;
+  font-family: Georgia, "Times New Roman", serif;
+}
+.district-rich .breadcrumb,
+.district-rich .breadcrumb a,
+.district-rich .breadcrumb li {
+  color: rgba(255, 255, 255, 0.92);
+  list-style: none;
+}
+.district-rich .breadcrumb ol {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+.district-rich .coblocks-gallery ul,
+.district-rich .wp-block-coblocks-gallery-masonry ul {
+  list-style: none;
+  margin: 0;
+  padding: 18px 18px 28px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+.district-rich .coblocks-gallery--item,
+.district-rich .coblocks-gallery--figure {
+  margin: 0;
+}
+.district-rich .coblocks-gallery img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+.district-rich .district-missing-media {
+  margin: 18px 22px 28px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #fff7f0;
+  border: 1px solid #f0d7c0;
+  color: #6a3b12;
+}
 .district-rich > .page-title + p,
 .district-rich .district-empty-note {
   padding: 0 22px 22px;
