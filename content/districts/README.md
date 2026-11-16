@@ -6,6 +6,10 @@ JSON under this folder is scraped from the live WordPress district microsites on
 Media lands in `public/districts/{slug}/media/` and is committed so GitHub deploys
 include everything.
 
+Empty title-only stubs, demo template pages (e.g. Gallery images that 404 on the
+live host, “Hello world” posts, Product/Service placeholders) are dropped so the
+portal only keeps publishable content.
+
 ## Re-import
 
 ```bash

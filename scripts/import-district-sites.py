@@ -123,6 +123,50 @@ def should_skip(wp_slug: str, key: str) -> bool:
     parts = key.split("/")
     if any(SKIP_SLUG_RE.search(part) for part in parts):
         return True
+    if key.startswith("posts/hello-world") or wp_slug.startswith("hello-world"):
+        return True
+    return False
+
+
+DEMO_CONTENT_RE = re.compile(
+    r"Product\s*/\s*Service|Your Main Message|Whatever your company|"
+    r"Hello world|Talk about some of the products|Project Name|"
+    r"Learn More Learn More Learn More|This is your first post",
+    re.I,
+)
+
+
+def scrub_demo_blocks(html: str) -> str:
+    """Remove Hello-world / first-post cards left in homepage carousels."""
+    soup = BeautifulSoup(html or "", "lxml")
+    for item in list(soup.select(".item, .post-content-wrapper, article, .coblocks-gallery--item, li")):
+        blob = item.get_text(" ", strip=True)
+        raw = str(item)
+        if re.search(r"Hello world|This is your first post", raw, re.I) and (
+            "Hello world" in blob or "first post" in blob.lower()
+        ):
+            item.decompose()
+    return str(soup)
+
+
+def is_publishable_page(key: str, title: str, html: str) -> bool:
+    """Drop empty stubs, demo template pages, and media-less galleries."""
+    if key == "home":
+        return True
+    text = strip_tags(html)
+    if DEMO_CONTENT_RE.search(f"{html} {text}"):
+        return False
+    if "district-missing-media" in html and "/districts/" not in html:
+        return False
+    body = DEMO_CONTENT_RE.sub("", text)
+    body = re.sub(re.escape(title or ""), "", body, flags=re.I)
+    body = re.sub(r"\bHome\b", "", body)
+    body = re.sub(r"\[[^\]]+\]", "", body).strip()
+    has_local = "/districts/" in html and "<img" in html
+    if has_local and len(body) >= 40:
+        return True
+    if len(body) >= 140:
+        return True
     return False
 
 
@@ -199,15 +243,24 @@ def download_media(html: str, slug: str, media_dir: Path) -> str:
                 return None
         return local
 
-    for tag in soup.find_all(["img", "a", "source"]):
+    for tag in list(soup.find_all(["img", "a", "source"])):
+        failed_img = False
         for attr in ("src", "href", "data-src", "data-lazy-src"):
             val = tag.get(attr)
             if not val:
                 continue
+            # Only rewrite media-like URLs; leave normal page links alone.
+            path = urllib.parse.urlparse(urllib.parse.urljoin(f"{ORIGIN}/{slug}/", val)).path
+            ext = Path(path).suffix.lower()
+            is_media = ext in {".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"}
+            if not is_media and attr != "src":
+                continue
             local = rewrite(val)
             if local:
                 tag[attr] = local
-        # srcset
+            elif tag.name == "img" and attr in {"src", "data-src", "data-lazy-src"} and "markmastermasons.com" in val:
+                # Live host often 404s demo gallery files — drop broken icons.
+                failed_img = True
         if tag.name == "img" and tag.get("srcset"):
             parts = []
             for chunk in tag["srcset"].split(","):
@@ -222,6 +275,17 @@ def download_media(html: str, slug: str, media_dir: Path) -> str:
                     parts.append(" ".join(bits))
             if parts:
                 tag["srcset"] = ", ".join(parts)
+            else:
+                tag.attrs.pop("srcset", None)
+        if failed_img:
+            remove_node = tag
+            for cand in (tag.parent, getattr(tag.parent, "parent", None)):
+                if not cand or not getattr(cand, "name", None):
+                    continue
+                classes = " ".join(cand.get("class") or [])
+                if cand.name in {"figure", "li"} or "coblocks-gallery--item" in classes or "coblocks-gallery--figure" in classes:
+                    remove_node = cand
+            remove_node.decompose()
 
     return str(soup)
 
@@ -281,6 +345,7 @@ def import_district(slug: str) -> dict:
         title = re.sub(r"\s*[|\-–].*$", "", title).strip() or name
         main = extract_main_html(soup)
         main = download_media(main, slug, media_dir)
+        main = scrub_demo_blocks(main)
         out_pages["home"] = {
             "title": title,
             "source": f"{base}/",
@@ -310,15 +375,17 @@ def import_district(slug: str) -> dict:
         title = unescape(BeautifulSoup(title_raw, "lxml").get_text(" ", strip=True)) if title_raw else key
         main = extract_main_html(soup)
         text_len = len(strip_tags(main)) if main else 0
-        if text_len < 20:
-            # Persist a titled stub so nav still lists the page from the live site.
-            main = f"<section class=\"page-title\"><h1>{title}</h1></section><p class=\"district-empty-note\">This page has no published body on the source district site yet.</p>"
-            text_len = len(strip_tags(main))
-            print(f"  ~ stub {key}")
-        else:
-            main = download_media(main, slug, media_dir)
-            text_len = len(strip_tags(main))
-            print(f"  + {key} ({text_len} chars)")
+        if text_len < 40:
+            print(f"  ~ skip empty {key}")
+            time.sleep(0.05)
+            return
+        main = download_media(main, slug, media_dir)
+        text_len = len(strip_tags(main))
+        if not is_publishable_page(key, title, main):
+            print(f"  ~ skip thin/demo {key}")
+            time.sleep(0.05)
+            return
+        print(f"  + {key} ({text_len} chars)")
         out_pages[key] = {
             "title": title,
             "source": link,

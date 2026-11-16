@@ -8,8 +8,8 @@
       "title": "Romania",
       "source": "https://www.markmastermasons.com/romania/",
       "status": 404,
-      "html": "<h1>Romania</h1><p>This district site was not publicly reachable on the live WordPress host at import time (HTTP 404).</p>",
-      "text_chars": 120,
+      "html": "<html><body><h1>Romania</h1><p>This district site was not publicly reachable on the live WordPress host at import time (HTTP 404).</p></body></html>",
+      "text_chars": 107,
       "meta": {}
     }
   },

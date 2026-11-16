@@ -7,22 +7,16 @@ import { useMemo, useState } from "react";
 export type DistrictNavItem = { key: string; title: string; href: string };
 
 const PRIMARY_KEYS = [
-  "history",
   "welcome",
-  "about",
-  "lodge-directory",
-  "lodges",
   "meetings",
-  "calendar",
-  "calendar-2",
-  "gallery",
-  "photo-gallery",
-  "contact",
-  "contact-us",
-  "executive",
-  "meet-the-team",
-  "news",
-  "blog",
+  "the-promised-journey",
+  "links",
+  "privacy-cookies",
+  "mark-benevolent-fund",
+  "mark-benevolent-fund/almoner",
+  "romaniamark-benevolent-fund",
+  "romaniamark-benevolent-fund/almoner",
+  "bolivia-mark-benevolent-fund/almoner",
 ];
 
 function pickPrimary(nav: DistrictNavItem[]) {
