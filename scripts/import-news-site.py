@@ -281,6 +281,7 @@ def import_news() -> dict:
                 "image": image,
                 "categories": cats,
                 "primary_category": primary,
+                "published": True,
                 "published_at": date,
                 "modified_at": modified,
                 "source": link,

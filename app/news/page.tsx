@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageBanner } from "@/components/PageBanner";
-import { listPublishedPosts } from "@/lib/data/catalog";
 import { formatNewsDate, listNewsPosts, newsDisplayDate, type NewsPost } from "@/lib/news-content";
 
 export const dynamic = "force-dynamic";
@@ -31,29 +30,8 @@ function heroOrder(posts: NewsPost[]) {
     .sort((a, b) => score(b) - score(a) || (b.published_at || "").localeCompare(a.published_at || ""));
 }
 
-export default async function NewsPage() {
-  const imported = listNewsPosts();
-  const importedSlugs = new Set(imported.map((post) => post.slug));
-  const cmsPosts = (await listPublishedPosts())
-    .filter((post) => !importedSlugs.has(post.slug))
-    // Skip placeholder sample until real CMS content exists
-    .filter((post) => post.slug !== "welcome-to-the-portal")
-    .map(
-      (post): NewsPost => ({
-        id: post.id,
-        slug: post.slug,
-        title: post.title,
-        excerpt: post.excerpt,
-        html: "",
-        image: null,
-        categories: [],
-        primary_category: null,
-        published_at: post.published_at,
-        modified_at: post.published_at,
-        source: `/news/${post.slug}`,
-      }),
-    );
-  const posts = heroOrder([...imported, ...cmsPosts]);
+export default function NewsPage() {
+  const posts = heroOrder(listNewsPosts());
   const [featured, ...rest] = posts;
   const side = rest.slice(0, 3);
   const remaining = rest.slice(3);
@@ -93,7 +71,7 @@ export default async function NewsPage() {
             ) : null}
           </section>
         ) : (
-          <p>No news articles have been imported yet.</p>
+          <p>No published news articles yet.</p>
         )}
 
         {remaining.length ? (

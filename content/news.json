@@ -22,6 +22,7 @@
         "slug": "uncategorized",
         "name": "Uncategorized"
       },
+      "published": true,
       "published_at": "2022-04-29T14:40:46",
       "modified_at": "2022-04-29T14:40:46",
       "source": "https://www.markmastermasons.com/news/running-for-ukraine.html",
@@ -52,6 +53,7 @@
         "slug": "mbf",
         "name": "Benevolent"
       },
+      "published": true,
       "published_at": "2022-04-29T14:35:57",
       "modified_at": "2022-05-27T05:55:15",
       "source": "https://www.markmastermasons.com/news/the-john-hale-mezzanine-floor.html",
@@ -74,6 +76,7 @@
         "slug": "uncategorized",
         "name": "Uncategorized"
       },
+      "published": true,
       "published_at": "2022-04-29T14:08:09",
       "modified_at": "2022-04-29T14:08:09",
       "source": "https://www.markmastermasons.com/news/kevins-half-marathon.html",
@@ -112,6 +115,7 @@
         "slug": "mbf",
         "name": "Benevolent"
       },
+      "published": true,
       "published_at": "2022-04-29T14:02:36",
       "modified_at": "2022-05-27T05:58:32",
       "source": "https://www.markmastermasons.com/news/london-marks-m-b-f-vice-patron-fine-dining-evening.html",
@@ -142,6 +146,7 @@
         "slug": "mbf",
         "name": "Benevolent"
       },
+      "published": true,
       "published_at": "2022-04-29T13:39:59",
       "modified_at": "2022-05-27T05:57:20",
       "source": "https://www.markmastermasons.com/news/cheshire-mark-men-mark-well.html",
@@ -172,6 +177,7 @@
         "slug": "england-grand-lodge",
         "name": "GL of MMM of England, Wales..."
       },
+      "published": true,
       "published_at": "2022-04-29T13:24:13",
       "modified_at": "2022-05-27T06:00:38",
       "source": "https://www.markmastermasons.com/news/annual-meeting-the-mark-province-of-surrey.html",
@@ -206,6 +212,7 @@
         "slug": "mbf",
         "name": "Benevolent"
       },
+      "published": true,
       "published_at": "2022-04-29T13:08:09",
       "modified_at": "2022-05-27T06:14:48",
       "source": "https://www.markmastermasons.com/news/mark-emergency-relief-fund.html",
@@ -244,6 +251,7 @@
         "slug": "australia",
         "name": "Australia"
       },
+      "published": true,
       "published_at": "2022-04-29T13:02:35",
       "modified_at": "2022-05-27T06:12:15",
       "source": "https://www.markmastermasons.com/news/hertfordshire-mark-masons-return-to-the-southern-hemisphere-in-their-series-of-interviews.html",
@@ -270,6 +278,7 @@
         "slug": "mbf",
         "name": "Benevolent"
       },
+      "published": true,
       "published_at": "2022-03-28T14:49:57",
       "modified_at": "2022-05-27T06:09:21",
       "source": "https://www.markmastermasons.com/news/a-special-event-for-the-mbf.html",
