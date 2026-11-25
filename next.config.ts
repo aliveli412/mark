@@ -13,11 +13,16 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     // Live-style short paths stay on this portal: /belgium → /districts/belgium
-    return provinces.map((province) => ({
+    const districtRedirects = provinces.map((province) => ({
       source: `/${province.slug}`,
       destination: `/districts/${province.slug}`,
       permanent: false,
     }));
+    return [
+      { source: "/blog", destination: "/news", permanent: false },
+      { source: "/blog/:slug", destination: "/news/:slug", permanent: false },
+      ...districtRedirects,
+    ];
   },
   async headers() {
     return [

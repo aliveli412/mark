@@ -142,7 +142,7 @@ export const searchEntries = [
   { href: "/grand-lodges", title: "Grand Lodges", text: "Grand and District Lodges of Mark Master Masons." },
   { href: "/links", title: "Links", text: "Grand Lodge of Mark Master Masons, London, UGLE, RMBI, MCF, masonic periodicals." },
   { href: "/calendar", title: "Calendar", text: "Meetings and events calendar." },
-  { href: "/blog", title: "Blog", text: "Mark Grand Lodge Communication addresses." },
+  { href: "/news", title: "News", text: "Mark News and communications from the Order." },
   { href: "/packages", title: "Packages", text: "Free websites, hosting, mobile apps, Mark, Mark Master and Hiram packages." },
   { href: "/contact", title: "Contact Us", text: "Enquiries, opinions, suggestions and complaints." },
   { href: "/shop", title: "Shop", text: "MMM Online Store. White mug and English and Turkish ritual book." },

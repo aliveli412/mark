@@ -10,6 +10,7 @@
     "migrate:apply-catalogs": "node scripts/apply-migration-catalogs.mjs",
     "migrate:upload-pdfs": "node scripts/upload-member-pdfs-to-supabase.mjs",
     "import:districts": "python3 scripts/import-district-sites.py",
+    "import:news": "python3 scripts/import-news-site.py",
     "clean": "node -e \"const fs=require('fs');for (const p of ['.next','node_modules/.cache']) { try { fs.rmSync(p,{recursive:true,force:true}); console.log('removed',p);} catch(e){ console.log('skip',p);} }\""
   },
   "dependencies": {

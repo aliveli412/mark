@@ -13,7 +13,7 @@ export default async function AdminNewsPage() {
     <AdminShell title="News" email={gate.session.user.email}>
       <div className="admin-actions" style={{ marginBottom: 16 }}>
         <Link className="button" href="/admin/news/new">New post</Link>
-        <Link className="button secondary" href="/blog">View blog</Link>
+        <Link className="button secondary" href="/news">View news</Link>
       </div>
       <div className="admin-card">
         <table className="admin-table">

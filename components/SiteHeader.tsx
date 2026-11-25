@@ -49,8 +49,12 @@ export function SiteHeader() {
           <Link className={pathname === "/calendar" ? "active" : ""} href="/calendar" onClick={() => setOpen(false)}>
             Calendar
           </Link>
-          <Link className={pathname.startsWith("/blog") ? "active" : ""} href="/blog" onClick={() => setOpen(false)}>
-            Blog
+          <Link
+            className={pathname.startsWith("/news") || pathname.startsWith("/blog") ? "active" : ""}
+            href="/news"
+            onClick={() => setOpen(false)}
+          >
+            News
           </Link>
           <div className="menu">
             <Link className={sitesActive ? "active" : ""} href={lodgePath(markSites[0].slug)} onClick={() => setOpen(false)}>

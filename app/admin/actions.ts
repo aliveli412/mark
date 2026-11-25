@@ -238,6 +238,7 @@ export async function savePostAction(formData: FormData): Promise<{ error?: stri
   }
 
   revalidatePath("/admin/news");
+  revalidatePath("/news");
   revalidatePath("/blog");
   return { next: "/admin/news" };
 }
@@ -253,6 +254,7 @@ export async function deletePostAction(formData: FormData) {
     if (supabase) await supabase.from("posts").delete().eq("id", id);
   }
   revalidatePath("/admin/news");
+  revalidatePath("/news");
   revalidatePath("/blog");
 }
 
