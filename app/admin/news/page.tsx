@@ -28,7 +28,8 @@ export default async function AdminNewsPage() {
           <thead>
             <tr>
               <th>Title</th>
-              <th>Category</th>
+              <th>Categories</th>
+              <th>Tags</th>
               <th>Date</th>
               <th>Status</th>
               <th />
@@ -37,7 +38,7 @@ export default async function AdminNewsPage() {
           <tbody>
             {posts.length === 0 ? (
               <tr>
-                <td colSpan={5}>No news posts yet. Import with <code>npm run import:news</code> or create one.</td>
+                <td colSpan={6}>No news posts yet. Import with <code>npm run import:news</code> or create one.</td>
               </tr>
             ) : (
               posts.map((post) => (
@@ -48,7 +49,12 @@ export default async function AdminNewsPage() {
                       /news/{post.slug}
                     </div>
                   </td>
-                  <td>{post.primary_category?.name || "—"}</td>
+                  <td>
+                    {(post.categories || []).length
+                      ? post.categories.map((c) => c.name).join(", ")
+                      : post.primary_category?.name || "—"}
+                  </td>
+                  <td>{(post.tags || []).map((t) => t.name).join(", ") || "—"}</td>
                   <td>{formatNewsDate(newsDisplayDate(post)) || "—"}</td>
                   <td>
                     <span className={`pill ${post.published ? "ok" : "draft"}`}>

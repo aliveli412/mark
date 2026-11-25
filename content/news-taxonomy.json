@@ -1,0 +1,986 @@
+{
+  "imported_at": "2026-11-25",
+  "source": "WordPress export + live /news WP REST",
+  "categories": [
+    {
+      "slug": "antilles-netherland-no-184",
+      "name": "Antilles, Netherland No: 184",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "antilles-netherlands",
+      "name": "Antilles, Netherlands",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "australia",
+      "name": "Australia",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "austria",
+      "name": "Austria",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "autonomous-gl",
+      "name": "Autonomous GL",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "bahamas-and-turks",
+      "name": "Bahamas and Turks",
+      "parent": "inspectorates",
+      "description": ""
+    },
+    {
+      "slug": "belgium",
+      "name": "Belgium",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "belgrade-serbia-no-1919",
+      "name": "Belgrade, Serbia No: 1919",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "mbf",
+      "name": "Benevolent",
+      "parent": null,
+      "description": "Mark Benevolent Fund news including charities of brethren and philanthropy activities."
+    },
+    {
+      "slug": "bermuda",
+      "name": "Bermuda",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "bolivia",
+      "name": "Bolivia",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "bombay",
+      "name": "Bombay",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "brazil",
+      "name": "Brazil",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "brethren",
+      "name": "Brethren",
+      "parent": "news",
+      "description": ""
+    },
+    {
+      "slug": "bucharest-romania-no-1988",
+      "name": "Bucharest, Romania No: 1988",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "bucharest-romania-no-1991",
+      "name": "Bucharest, Romania No: 1991",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "bulgaria",
+      "name": "Bulgaria",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "canada",
+      "name": "Canada",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "charities",
+      "name": "Charities",
+      "parent": "mbf",
+      "description": ""
+    },
+    {
+      "slug": "consecration-ceremonies",
+      "name": "Consecration ceremonies",
+      "parent": "news",
+      "description": ""
+    },
+    {
+      "slug": "constanta-romania-no-1993",
+      "name": "Constanta, Romania No: 1993",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "cyprus",
+      "name": "Cyprus",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "district-grand-lodges",
+      "name": "District GL",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "east-africa-kenya",
+      "name": "East Africa, Kenya",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "freetown-sierra-leone-no-1797",
+      "name": "Freetown, Sierra Leone No: 1797",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "germany",
+      "name": "Germany",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "ghana",
+      "name": "Ghana",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "gibraltar",
+      "name": "Gibraltar",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "gl-of-brazil",
+      "name": "GL of Brazil",
+      "parent": "autonomous-gl",
+      "description": ""
+    },
+    {
+      "slug": "gl-of-finland",
+      "name": "GL of Finland",
+      "parent": "autonomous-gl",
+      "description": ""
+    },
+    {
+      "slug": "gl-of-france",
+      "name": "GL of France",
+      "parent": "autonomous-gl",
+      "description": ""
+    },
+    {
+      "slug": "gl-of-greece",
+      "name": "GL of Greece",
+      "parent": "autonomous-gl",
+      "description": ""
+    },
+    {
+      "slug": "england-grand-lodge",
+      "name": "GL of MMM of England, Wales...",
+      "parent": "grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "gl-of-mmm-of-estonia",
+      "name": "GL of MMM of Estonia",
+      "parent": "grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "gl-of-mmm-of-finland",
+      "name": "GL of MMM of Finland",
+      "parent": "grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "gl-of-mmm-of-france",
+      "name": "GL of MMM of France",
+      "parent": "grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "gl-of-mmm-of-greece",
+      "name": "GL of MMM of Greece",
+      "parent": "grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "gl-of-mmm-of-switzerland",
+      "name": "GL of MMM of Switzerland",
+      "parent": "grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "gl-of-queensland",
+      "name": "GL of Queensland",
+      "parent": "autonomous-gl",
+      "description": ""
+    },
+    {
+      "slug": "gl-of-south-australia-and-northern-territory",
+      "name": "GL of South Australia and Northern Territory",
+      "parent": "autonomous-gl",
+      "description": ""
+    },
+    {
+      "slug": "gl-of-south-east-asia",
+      "name": "GL of South East Asia",
+      "parent": "autonomous-gl",
+      "description": ""
+    },
+    {
+      "slug": "gl-of-switzerland",
+      "name": "GL of Switzerland",
+      "parent": "autonomous-gl",
+      "description": ""
+    },
+    {
+      "slug": "grand-lodges",
+      "name": "Grand Lodges",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "grand-masters",
+      "name": "Grand Masters",
+      "parent": "unattached-british-lodges",
+      "description": ""
+    },
+    {
+      "slug": "grand-stewards",
+      "name": "Grand Stewards",
+      "parent": "unattached-british-lodges",
+      "description": ""
+    },
+    {
+      "slug": "hamilton-bermuda-no-33",
+      "name": "Hamilton, Bermuda No: 33",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "hong-kong",
+      "name": "Hong Kong",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "iasi-romania-no-2004",
+      "name": "Iasi, Romania No: 2004",
+      "parent": "unattached-lodges-overseas",
+      "description": ""
+    },
+    {
+      "slug": "inspectorates",
+      "name": "Inspectorates",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "installation-ceremonies",
+      "name": "Installation ceremonies",
+      "parent": "news",
+      "description": ""
+    },
+    {
+      "slug": "italy",
+      "name": "Italy",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "jamaica-and-cayman-islands",
+      "name": "Jamaica and Cayman Islands",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "madras-india",
+      "name": "Madras, India",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "malta",
+      "name": "Malta",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "melbourne-australia-no-47",
+      "name": "Melbourne, Australia No: 47",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "milestone-no-1000",
+      "name": "Milestone No: 1000",
+      "parent": "unattached-british-lodges",
+      "description": ""
+    },
+    {
+      "slug": "natal-south-africa",
+      "name": "Natal, South Africa",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "ndola-zambia-no-1442",
+      "name": "Ndola, Zambia No: 1442",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "netherlands",
+      "name": "Netherlands",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "new-zealand",
+      "name": "New Zealand",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "news",
+      "name": "NEWS",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "nigeria",
+      "name": "Nigeria",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "other-lodges",
+      "name": "Other lodges",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "pattaya-thailand-no-1990",
+      "name": "Pattaya, Thailand No: 1990",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "phuket-thailand-no-1893",
+      "name": "Phuket, Thailand No: 1893",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "plovdiv-bulgaria-no-736",
+      "name": "Plovdiv, Bulgaria No: 736",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-bedfordshire",
+      "name": "Provincial GL of Bedfordshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-berkshire",
+      "name": "Provincial GL of Berkshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-bristol",
+      "name": "Provincial GL of Bristol",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-buckinghamshire",
+      "name": "Provincial GL of Buckinghamshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-channel-islands",
+      "name": "Provincial GL of Channel Islands",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-cheshire",
+      "name": "Provincial GL of Cheshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-cornwall",
+      "name": "Provincial GL of Cornwall",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-cumberland-and-westmoreland",
+      "name": "Provincial GL of Cumberland and Westmoreland",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-derbyshire",
+      "name": "Provincial GL of Derbyshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-devonshire",
+      "name": "Provincial GL of Devonshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-dorset",
+      "name": "Provincial GL of Dorset",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-durham",
+      "name": "Provincial GL of Durham",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-dyfed",
+      "name": "Provincial GL of Dyfed",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-east-anglia",
+      "name": "Provincial GL of East Anglia",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-east-lancashire",
+      "name": "Provincial GL of East Lancashire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-essex",
+      "name": "Provincial GL of Essex",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-gloucestershire-and-herefordshire",
+      "name": "Provincial GL of Gloucestershire and Herefordshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-hampshire-and-isle-of-wight",
+      "name": "Provincial GL of Hampshire and Isle of Wight",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-hertfordshire",
+      "name": "Provincial GL of Hertfordshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-isle-of-man",
+      "name": "Provincial GL of Isle of Man",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-kent",
+      "name": "Provincial GL of Kent",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-leicestershire-and-rutland",
+      "name": "Provincial GL of Leicestershire and Rutland",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-lincolnshire",
+      "name": "Provincial GL of Lincolnshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-london",
+      "name": "Provincial GL of London",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-middlesex",
+      "name": "Provincial GL of Middlesex",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-monmouthshire",
+      "name": "Provincial GL of Monmouthshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-north-and-east-yorkshire",
+      "name": "Provincial GL of North and East Yorkshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-north-wales",
+      "name": "Provincial GL of North Wales",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-northamptonshire-and-huntingdonshire",
+      "name": "Provincial GL of Northamptonshire and Huntingdonshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-northumberland",
+      "name": "Provincial GL of Northumberland",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-nottinghamshire",
+      "name": "Provincial GL of Nottinghamshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-oxfordshire",
+      "name": "Provincial GL of Oxfordshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-somerset",
+      "name": "Provincial GL of Somerset",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-south-wales",
+      "name": "Provincial GL of South Wales",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-staffordshire-and-shropshire",
+      "name": "Provincial GL of Staffordshire and Shropshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-surrey",
+      "name": "Provincial GL of Surrey",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-sussex",
+      "name": "Provincial GL of Sussex",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-warwickshire",
+      "name": "Provincial GL of Warwickshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-west-lancashire",
+      "name": "Provincial GL of West Lancashire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-west-yorkshire",
+      "name": "Provincial GL of West Yorkshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-wiltshire",
+      "name": "Provincial GL of Wiltshire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "provincial-gl-of-worcestershire",
+      "name": "Provincial GL of Worcestershire",
+      "parent": "england-grand-lodge",
+      "description": ""
+    },
+    {
+      "slug": "quebec-canada-no-131",
+      "name": "Quebec, Canada No: 131",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "regular-meetings",
+      "name": "Regular meetings",
+      "parent": "news",
+      "description": ""
+    },
+    {
+      "slug": "river-plate-argentina",
+      "name": "River Plate, Argentina",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "romania",
+      "name": "Romania",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "salutations-news",
+      "name": "Salutations",
+      "parent": "news",
+      "description": ""
+    },
+    {
+      "slug": "salzburg-austria-no-1903",
+      "name": "Salzburg, Austria No: 1903",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "sibiu-romania-no-2011",
+      "name": "Sibiu, Romania No: 2011",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "sierra-leone",
+      "name": "Sierra Leone",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "singapore",
+      "name": "Singapore",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "sofia-bulgaria",
+      "name": "Sofia, Bulgaria No: 1402",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "south-africa-eastern-division",
+      "name": "South Africa (Eastern Division)",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "south-africa-western-division",
+      "name": "South Africa (Western Division)",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "south-and-east-caribbean",
+      "name": "South and East Caribbean",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "spain",
+      "name": "Spain",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "sri-lanka",
+      "name": "Sri Lanka",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "st-helena",
+      "name": "St Helena No: 644",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "thailand",
+      "name": "Thailand",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "the-lord-swansea",
+      "name": "The Lord Swansea",
+      "parent": "unattached-british-lodges",
+      "description": ""
+    },
+    {
+      "slug": "the-promised-journey",
+      "name": "The promised journey",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "the-provincial-grand-secretaries",
+      "name": "The Provincial Grand Secretaries",
+      "parent": "unattached-british-lodges",
+      "description": ""
+    },
+    {
+      "slug": "the-provincial-grand-wardens",
+      "name": "The Provincial Grand Wardens",
+      "parent": "unattached-british-lodges",
+      "description": ""
+    },
+    {
+      "slug": "timisoara-romania-no-2010",
+      "name": "Timisoara, Romania No: 2010",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "transvaal-south-africa",
+      "name": "Transvaal, South Africa",
+      "parent": "district-grand-lodges",
+      "description": ""
+    },
+    {
+      "slug": "ugl-of-victoria",
+      "name": "UGL of Victoria",
+      "parent": "autonomous-gl",
+      "description": ""
+    },
+    {
+      "slug": "unattached-british-lodges",
+      "name": "Unattached British Lodges",
+      "parent": "other-lodges",
+      "description": ""
+    },
+    {
+      "slug": "unattached-lodges-overseas",
+      "name": "Unattached Lodges Overseas",
+      "parent": "other-lodges",
+      "description": ""
+    },
+    {
+      "slug": "uncategorized",
+      "name": "Uncategorized",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "valletta-malta-no-1863",
+      "name": "Valletta, Malta No: 1863",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "vienna-austria-no-1954",
+      "name": "Vienna, Austria No: 1954",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "zambia",
+      "name": "Zambia",
+      "parent": null,
+      "description": ""
+    },
+    {
+      "slug": "zimbabwe",
+      "name": "Zimbabwe",
+      "parent": "district-grand-lodges",
+      "description": ""
+    }
+  ],
+  "tags": [
+    {
+      "slug": "1856",
+      "name": "1856"
+    },
+    {
+      "slug": "aberdeen",
+      "name": "Aberdeen"
+    },
+    {
+      "slug": "anadolu",
+      "name": "Anadolu"
+    },
+    {
+      "slug": "anatolia",
+      "name": "Anatolia"
+    },
+    {
+      "slug": "belgium",
+      "name": "Belgium"
+    },
+    {
+      "slug": "bon-accord",
+      "name": "Bon Accord"
+    },
+    {
+      "slug": "brussels",
+      "name": "Brussels"
+    },
+    {
+      "slug": "consecration-ceremony",
+      "name": "Consecration Ceremony"
+    },
+    {
+      "slug": "cumhuriyet",
+      "name": "Cumhuriyet"
+    },
+    {
+      "slug": "earthquake",
+      "name": "earthquake"
+    },
+    {
+      "slug": "england",
+      "name": "England"
+    },
+    {
+      "slug": "gallipoli",
+      "name": "Gallipoli"
+    },
+    {
+      "slug": "greece",
+      "name": "Greece"
+    },
+    {
+      "slug": "hiram-package",
+      "name": "Hiram Package"
+    },
+    {
+      "slug": "hrh-prince-michael-of-kent",
+      "name": "HRH Prince Michael of Kent"
+    },
+    {
+      "slug": "installation-ceremony",
+      "name": "Installation Ceremony"
+    },
+    {
+      "slug": "isad-toreni",
+      "name": "İs'ad Töreni"
+    },
+    {
+      "slug": "istanbul",
+      "name": "İstanbul"
+    },
+    {
+      "slug": "izmir",
+      "name": "İzmir"
+    },
+    {
+      "slug": "london",
+      "name": "London"
+    },
+    {
+      "slug": "lord-leigh",
+      "name": "Lord Leigh"
+    },
+    {
+      "slug": "mark",
+      "name": "Mark"
+    },
+    {
+      "slug": "mark-master-masons",
+      "name": "Mark Master Masons"
+    },
+    {
+      "slug": "mark-master-package",
+      "name": "Mark Master Package"
+    },
+    {
+      "slug": "mark-package",
+      "name": "Mark Package"
+    },
+    {
+      "slug": "mark-ustat-masonlar",
+      "name": "Mark Üstat Masonlar"
+    },
+    {
+      "slug": "mmm",
+      "name": "MMM"
+    },
+    {
+      "slug": "mum",
+      "name": "MÜM"
+    },
+    {
+      "slug": "namik-kemal",
+      "name": "Namık Kemal"
+    },
+    {
+      "slug": "ram",
+      "name": "RAM"
+    },
+    {
+      "slug": "relief",
+      "name": "relief"
+    },
+    {
+      "slug": "royal-ark-mariner",
+      "name": "Royal Ark Mariner"
+    },
+    {
+      "slug": "tahsis-toreni",
+      "name": "Tahsis Töreni"
+    },
+    {
+      "slug": "turkish",
+      "name": "Turkish"
+    },
+    {
+      "slug": "turkiye",
+      "name": "Turkiye"
+    },
+    {
+      "slug": "turkce",
+      "name": "Türkçe"
+    }
+  ]
+}

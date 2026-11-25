@@ -8,6 +8,7 @@ import {
   listNewsPosts,
   localizeNewsHtml,
   newsDisplayDate,
+  newsSeo,
 } from "@/lib/news-content";
 
 type Params = { slug: string };
@@ -21,7 +22,19 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
   const post = getNewsPost(slug);
-  return { title: post?.title ?? "News" };
+  if (!post) return { title: "News" };
+  const seo = newsSeo(post);
+  return {
+    title: seo.title,
+    description: seo.description,
+    keywords: seo.keywords || undefined,
+    openGraph: {
+      title: seo.title,
+      description: seo.description,
+      images: post.image ? [post.image] : undefined,
+      type: "article",
+    },
+  };
 }
 
 export default async function NewsArticlePage({ params }: { params: Promise<Params> }) {
@@ -37,6 +50,7 @@ export default async function NewsArticlePage({ params }: { params: Promise<Para
   const html = localizeNewsHtml(post.html || "", posts)
     .replace(/<\/?(?:html|body)[^>]*>/gi, "")
     .trim();
+  const tags = post.tags || [];
 
   return (
     <>
@@ -56,6 +70,15 @@ export default async function NewsArticlePage({ params }: { params: Promise<Para
             </figure>
           ) : null}
           <div className="news-rich" dangerouslySetInnerHTML={{ __html: html }} />
+          {tags.length ? (
+            <p className="news-tags">
+              {tags.map((tag) => (
+                <span className="news-tag-pill" key={tag.slug}>
+                  {tag.name}
+                </span>
+              ))}
+            </p>
+          ) : null}
           <p className="news-back">
             <Link href="/news">← Back to news</Link>
           </p>

@@ -1015,6 +1015,21 @@ button, input, select, textarea { font: inherit; }
 }
 .news-rich ul,
 .news-rich ol { margin: 0 0 1em; padding-left: 1.3em; }
+.news-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 22px 0 0;
+}
+.news-tag-pill {
+  display: inline-block;
+  background: var(--band);
+  color: var(--navy);
+  border: 1px solid var(--line);
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
 .news-back { margin-top: 28px; font-weight: 700; }
 .news-related h2 {
   margin: 0 0 14px;
