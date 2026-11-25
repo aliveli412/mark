@@ -221,6 +221,14 @@ export async function savePostAction(formData: FormData): Promise<{ error?: stri
   if (!title || !slug) return { error: "Title is required." };
 
   const existing = id ? getAdminNewsPost(id) : null;
+  const categorySlugs = formData
+    .getAll("categories")
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+  const tagNames = String(formData.get("tags") ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
   const saved = saveNewsPost({
     id: existing?.id ?? id,
     title,
@@ -228,7 +236,11 @@ export async function savePostAction(formData: FormData): Promise<{ error?: stri
     excerpt: String(formData.get("excerpt") ?? "").trim(),
     html: String(formData.get("body") ?? "").trim(),
     image: String(formData.get("image") ?? "").trim() || null,
-    category: String(formData.get("category") ?? "").trim(),
+    categorySlugs,
+    tagNames,
+    seo_title: String(formData.get("seo_title") ?? "").trim(),
+    seo_description: String(formData.get("seo_description") ?? "").trim(),
+    seo_keywords: String(formData.get("seo_keywords") ?? "").trim(),
     published,
     published_at: publishedAt ?? null,
   });
