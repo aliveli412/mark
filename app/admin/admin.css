@@ -69,6 +69,10 @@
 }
 .admin-form .check { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .admin-form .check input { width: auto; }
+.admin-main .note { color: #5b6180; font-size: 14px; margin: 0 0 16px; max-width: 720px; }
+.admin-main .note code { font-size: 12px; background: #eef0f8; padding: 1px 6px; border-radius: 4px; }
+.admin-main .muted { color: #7a8099; }
+.admin-form .optional { display: block; margin-top: 6px; font-weight: 500; color: #7a8099; font-size: 12px; }
 .btn-admin, .admin-form button, .admin-actions button, .admin-actions a.button {
   background: #272180;
   color: #fff;

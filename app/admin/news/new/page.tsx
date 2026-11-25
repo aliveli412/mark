@@ -6,7 +6,7 @@ export default async function NewPostPage() {
   const gate = await adminGate();
   if (!gate.ok) return gate.node;
   return (
-    <AdminShell title="New post" email={gate.session.user.email}>
+    <AdminShell title="New news post" email={gate.session.user.email}>
       <PostForm />
     </AdminShell>
   );

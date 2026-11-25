@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { adminGate } from "@/lib/admin/gate";
-import { listAdminEvents, listAdminPosts, listAdminProducts } from "@/lib/data/catalog";
+import { listAdminEvents, listAdminProducts } from "@/lib/data/catalog";
+import { listAdminNewsPosts } from "@/lib/news-content";
 
 export default async function AdminDashboardPage() {
   const gate = await adminGate();
@@ -9,7 +10,7 @@ export default async function AdminDashboardPage() {
 
   const [events, posts, products] = await Promise.all([
     listAdminEvents(),
-    listAdminPosts(),
+    Promise.resolve(listAdminNewsPosts()),
     listAdminProducts(),
   ]);
 

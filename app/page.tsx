@@ -35,7 +35,7 @@ export default function HomePage() {
           <Link href="/packages">
             <img src="/images/services-websites.png" alt="Mark Portal for lodges, provinces, district lodges and grand lodges" />
           </Link>
-          <Link href="/blog">
+          <Link href="/news">
             <img src="/images/services-news.png" alt="Mark News" />
           </Link>
           <Link href="/packages">

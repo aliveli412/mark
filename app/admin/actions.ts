@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { mockStore } from "@/lib/data/mock-store";
 import { requireAdmin } from "@/lib/admin/auth";
 import { safeAdminNextPath } from "@/lib/admin/paths";
+import { deleteNewsPost, getAdminNewsPost, saveNewsPost } from "@/lib/news-content";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -212,32 +213,31 @@ export async function savePostAction(formData: FormData): Promise<{ error?: stri
   const id = String(formData.get("id") ?? "") || undefined;
   const title = String(formData.get("title") ?? "").trim();
   const published = formData.get("published") === "on";
-  const payload = {
-    title,
-    slug: String(formData.get("slug") ?? "").trim() || slugify(title),
-    excerpt: String(formData.get("excerpt") ?? "").trim(),
-    body: String(formData.get("body") ?? "").trim(),
-    published,
-    published_at: published ? new Date().toISOString() : null,
-    lodge_id: null as string | null,
-  };
-  if (!payload.title || !payload.slug) return { error: "Title is required." };
+  const slug = String(formData.get("slug") ?? "").trim() || slugify(title);
+  const dateRaw = String(formData.get("published_at") ?? "").trim();
+  const publishedAt = dateRaw
+    ? new Date(`${dateRaw}T12:00:00.000Z`).toISOString()
+    : undefined;
+  if (!title || !slug) return { error: "Title is required." };
 
-  if (!getSupabaseEnv().configured) {
-    mockStore.savePost({ ...payload, id });
-  } else {
-    const supabase = createSupabaseAdminClient() ?? (await createSupabaseServerClient());
-    if (!supabase) return { error: "Supabase is not configured." };
-    if (id) {
-      const { error } = await supabase.from("posts").update(payload).eq("id", id);
-      if (error) return { error: error.message };
-    } else {
-      const { error } = await supabase.from("posts").insert(payload);
-      if (error) return { error: error.message };
-    }
-  }
+  const existing = id ? getAdminNewsPost(id) : null;
+  const saved = saveNewsPost({
+    id: existing?.id ?? id,
+    title,
+    slug,
+    excerpt: String(formData.get("excerpt") ?? "").trim(),
+    html: String(formData.get("body") ?? "").trim(),
+    image: String(formData.get("image") ?? "").trim() || null,
+    category: String(formData.get("category") ?? "").trim(),
+    published,
+    published_at: publishedAt ?? null,
+  });
 
   revalidatePath("/admin/news");
+  revalidatePath(`/admin/news/${saved.id}`);
+  revalidatePath("/news");
+  revalidatePath(`/news/${saved.slug}`);
+  if (existing && existing.slug !== saved.slug) revalidatePath(`/news/${existing.slug}`);
   revalidatePath("/blog");
   return { next: "/admin/news" };
 }
@@ -247,12 +247,11 @@ export async function deletePostAction(formData: FormData) {
   if (!session) return;
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  if (!getSupabaseEnv().configured) mockStore.deletePost(id);
-  else {
-    const supabase = createSupabaseAdminClient() ?? (await createSupabaseServerClient());
-    if (supabase) await supabase.from("posts").delete().eq("id", id);
-  }
+  const existing = getAdminNewsPost(id);
+  deleteNewsPost(id);
   revalidatePath("/admin/news");
+  revalidatePath("/news");
+  if (existing) revalidatePath(`/news/${existing.slug}`);
   revalidatePath("/blog");
 }
 
