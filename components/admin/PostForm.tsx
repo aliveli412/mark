@@ -1,5 +1,7 @@
 import { savePostAction } from "@/app/admin/actions";
 import { AdminNavForm } from "@/components/admin/AdminNavForm";
+import { FeaturedImageField } from "@/components/admin/FeaturedImageField";
+import { NewsEditor } from "@/components/admin/NewsEditor";
 import type { NewsCategory, NewsPost, NewsTag } from "@/lib/news-content";
 
 function toDateInput(iso: string | null | undefined) {
@@ -35,14 +37,10 @@ export function PostForm({
           Slug
           <input name="slug" defaultValue={post?.slug ?? ""} placeholder="auto from title if blank" />
         </label>
-        <label>
-          Image path
-          <input
-            name="image"
-            defaultValue={post?.image ?? ""}
-            placeholder="/news/media/….jpg or /images/…"
-          />
-        </label>
+        <div>
+          <span className="field-label">Featured image</span>
+          <FeaturedImageField initialPath={post?.image ?? ""} />
+        </div>
         <label>
           Published date
           <input name="published_at" type="date" defaultValue={toDateInput(post?.published_at)} />
@@ -51,13 +49,11 @@ export function PostForm({
           Excerpt
           <textarea name="excerpt" rows={3} defaultValue={post?.excerpt ?? ""} />
         </label>
-        <label>
-          Body (HTML)
-          <textarea name="body" rows={14} defaultValue={post?.html ?? ""} />
-          <span className="optional">
-            Supports HTML from the Mark News import. Images should use /news/media/… paths.
-          </span>
-        </label>
+        <div>
+          <span className="field-label">Body</span>
+          <NewsEditor initialHtml={post?.html ?? ""} />
+          <span className="optional">WordPress-style editor. Use Add media to insert images from the library.</span>
+        </div>
         <label className="check">
           <input name="published" type="checkbox" defaultChecked={post?.published ?? true} />
           Published
